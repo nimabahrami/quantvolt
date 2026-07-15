@@ -1,0 +1,28 @@
+# Pre-commit hooks for quantvolt (see .kiro/steering/tech.md).
+# Runs ruff check, ruff format, and mypy --strict via the project's uv toolchain,
+# so there are no external hook-repo revisions to keep in sync. Install with:
+#   uv run pre-commit install
+# Run on the whole tree once with:
+#   uv run pre-commit run --all-files
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --force-exclude
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+      - id: mypy
+        name: mypy --strict
+        # Files come from [tool.mypy] files = ["src/quantvolt"] in pyproject.toml.
+        entry: uv run mypy
+        language: system
+        pass_filenames: false
+        types_or: [python, pyi]

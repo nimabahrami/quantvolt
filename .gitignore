@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.env/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.benchmarks/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+dist/
+build/
+*.egg-info/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# AI agents and assistant tooling
+/agents/
+/.agents/
+/.claude/
+/.clouade/
+/.codex/
+/.kiro/
+/.cursor/
+/.continue/
+/.cline/
+/.gemini/
+/.github/copilot/
+/.opencode/
+/.roo/
+/.windsurf/
+.aider*
+CLAUDE.md
+AGENTS.md
+GEMINI.md
+/graphify-out/
+
+# Local working and reference documents
+/energy_power_risk_management_ch10_appendices.md
+/polished_continue.md
+/polished_energy_derivatives_modeling_specification.md
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Rust
+/target/
+# maturin build artifacts
+src/quantvolt/_core*.so
+src/quantvolt/_core*.pyd

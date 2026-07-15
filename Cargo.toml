@@ -1,0 +1,26 @@
+[package]
+name = "quantvolt-core"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "_core"
+path = "rust/src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+# pyo3 and rust-numpy move in lockstep: numpy 0.29 requires pyo3 ^0.29 and ndarray <= 0.17.
+# `extension-module` is deliberately NOT enabled here so `cargo test` can link a test binary
+# against libpython on macOS; pyproject.toml's [tool.maturin] features =
+# ["pyo3/extension-module"] applies it when maturin builds the wheel (standard PyO3 FAQ pattern).
+pyo3 = "0.29"
+numpy = "0.29"
+ndarray = "0.17"
+rand = "0.10"
+rand_distr = "0.6"
+
+[profile.release]
+lto = true
+codegen-units = 1
+

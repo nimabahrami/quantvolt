@@ -1,0 +1,49 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "quantvolt"
+version = "0.1.0"
+description = "Quantitative analysis of European power and energy markets"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{ name = "quantvolt" }]
+dependencies = [
+    "polars>=1.0",
+    "numpy>=2.0",
+    "scipy>=1.13",
+    "statsmodels>=0.14",
+]
+
+[project.optional-dependencies]
+data = ["httpx>=0.27"]           # optional imperative shell — quantvolt[data]
+dev = [
+    "pytest>=8.0",
+    "hypothesis>=6.100",
+    "pytest-benchmark>=4.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "maturin>=1.7,<2.0",
+]
+
+[tool.maturin]
+python-source = "src"
+module-name = "quantvolt._core"
+features = ["pyo3/extension-module"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src/quantvolt"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
