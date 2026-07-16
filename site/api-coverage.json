@@ -1,0 +1,3762 @@
+{
+  "version": "0.1.0",
+  "totals": {
+    "modules": 16,
+    "symbols": 469,
+    "documented": 469
+  },
+  "symbols": [
+    {
+      "public_path": "quantvolt.ArbitrageChecker",
+      "kind": "class",
+      "source": "src/quantvolt/curves/arbitrage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.ArbitrageError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.ArbitrageWarning",
+      "kind": "class",
+      "source": "src/quantvolt/curves/arbitrage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.AsianOptionRequest",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.AuthenticationError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.BangBangHedgeWarning",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_approx.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.BarrierOptionRequest",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.CapFloorRequest",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/vanilla.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.CapFloorResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/vanilla.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.CashflowStrategyComparison",
+      "kind": "class",
+      "source": "src/quantvolt/risk/cashflow_metrics.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.CashflowStrategyMetrics",
+      "kind": "class",
+      "source": "src/quantvolt/risk/cashflow_metrics.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.CommodityConfig",
+      "kind": "class",
+      "source": "src/quantvolt/models/commodity.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.CurveBuilder",
+      "kind": "class",
+      "source": "src/quantvolt/curves/builder.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.CurveBuildResult",
+      "kind": "class",
+      "source": "src/quantvolt/curves/builder.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.CurveNode",
+      "kind": "class",
+      "source": "src/quantvolt/models/curve.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.DataSourceError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.DataUnavailableError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.DeliveryPeriod",
+      "kind": "class",
+      "source": "src/quantvolt/models/schedule.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.DeliverySchedule",
+      "kind": "class",
+      "source": "src/quantvolt/models/schedule.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.DeltaMatrix",
+      "kind": "class",
+      "source": "src/quantvolt/risk/aggregation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.DiscountCurve",
+      "kind": "class",
+      "source": "src/quantvolt/models/discount_curve.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.DispatchDiagnostics",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.DispatchFactorModel",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.DispatchResult",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.EnergyQuantError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.ExcludedPosition",
+      "kind": "class",
+      "source": "src/quantvolt/risk/engine.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.ExoticOptionResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.ExpiredContractError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.FactorTransform",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.ForwardContract",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.ForwardCurve",
+      "kind": "class",
+      "source": "src/quantvolt/models/curve.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.FuturesContract",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.FuturesPricingResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/futures.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.Granularity",
+      "kind": "class",
+      "source": "src/quantvolt/models/schedule.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.Greeks",
+      "kind": "class",
+      "source": "src/quantvolt/models/greeks.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.Hub",
+      "kind": "class",
+      "source": "src/quantvolt/models/commodity.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.ImpliedVolResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/implied_vol.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.InstrumentPriceRecord",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.InsufficientDataError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.LookbackOptionRequest",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.MarketData",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/valuation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.MissingImbalancePricePolicy",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.MissingTenorError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.Moneyness",
+      "kind": "class",
+      "source": "src/quantvolt/models/vol_surface.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.MonteCarloEvaluation",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.MtMPosition",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/mark_to_market.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.MtMPositionResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/mark_to_market.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.MtMResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/mark_to_market.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.MultifactorForwardModel",
+      "kind": "class",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.NativeExtensionError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.NoPricingDataError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.NumericalError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.PhysicalFactorMapping",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PipelineRight",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PlantConfig",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PlantModel",
+      "kind": "class",
+      "source": "src/quantvolt/assets/plant.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.Portfolio",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/model.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PortfolioSettlement",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/settlement.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PortfolioValuation",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/valuation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.Position",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/model.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PowerDeliveryInterval",
+      "kind": "class",
+      "source": "src/quantvolt/models/interval.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PowerHedgeContract",
+      "kind": "class",
+      "source": "src/quantvolt/models/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PowerHedgeDataColumns",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PowerHedgePosition",
+      "kind": "class",
+      "source": "src/quantvolt/models/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PowerHedgeSettlement",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PowerHedgeType",
+      "kind": "class",
+      "source": "src/quantvolt/models/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PpaContract",
+      "kind": "class",
+      "source": "src/quantvolt/models/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PpaDataColumns",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PpaIntervalSettlement",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PpaNominationCandidate",
+      "kind": "class",
+      "source": "src/quantvolt/hedging/ppa_nomination.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PpaNominationColumns",
+      "kind": "class",
+      "source": "src/quantvolt/hedging/ppa_nomination.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PpaNominationFit",
+      "kind": "class",
+      "source": "src/quantvolt/hedging/ppa_nomination.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PpaNominationObjective",
+      "kind": "class",
+      "source": "src/quantvolt/hedging/ppa_nomination.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PpaSettlementType",
+      "kind": "class",
+      "source": "src/quantvolt/models/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PpaVolumeBasis",
+      "kind": "class",
+      "source": "src/quantvolt/models/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PpaWalkForwardResult",
+      "kind": "class",
+      "source": "src/quantvolt/hedging/ppa_walk_forward.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.PricedPosition",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/model.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.RateLimitError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.RiskEngine",
+      "kind": "class",
+      "source": "src/quantvolt/risk/engine.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.RiskResult",
+      "kind": "class",
+      "source": "src/quantvolt/risk/engine.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.RiskType",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.ScenarioCatalogue",
+      "kind": "class",
+      "source": "src/quantvolt/risk/scenarios.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.ScenarioNotFoundError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.ScenarioResult",
+      "kind": "class",
+      "source": "src/quantvolt/risk/engine.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.ScenarioShock",
+      "kind": "class",
+      "source": "src/quantvolt/risk/scenarios.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.SchwartzSmithParams",
+      "kind": "class",
+      "source": "src/quantvolt/curvemodels/schwartz_smith.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.SettledPortfolioPosition",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/settlement.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.SettlementType",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.SpreadOptionRequest",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/spread_option.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.SpreadOptionResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/spread_option.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.StorageModel",
+      "kind": "class",
+      "source": "src/quantvolt/assets/storage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.SwapContract",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.SwapPricingResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/swap.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.TollingResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/tolling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.TransmissionRight",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.TransportDirection",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.TransportRightResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/transmission_right.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.ValidationError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.VanillaOptionRequest",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/vanilla.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.VanillaOptionResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/vanilla.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.VolatilitySurface",
+      "kind": "class",
+      "source": "src/quantvolt/models/vol_surface.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.VolatilityTenor",
+      "kind": "class",
+      "source": "src/quantvolt/models/vol_surface.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.aggregate_delta",
+      "kind": "function",
+      "source": "src/quantvolt/risk/aggregation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.apply_ppa_nomination",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/ppa_nomination.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.bang_bang",
+      "kind": "function",
+      "source": "src/quantvolt/assets/dispatch_approx.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.basis",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.build_volatility_surface",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/implied_vol.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.calendar_spread",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.calibrate_ppa_nomination",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/ppa_nomination.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.cash_flow_at_risk",
+      "kind": "function",
+      "source": "src/quantvolt/risk/cfar.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.check_arbitrage",
+      "kind": "function",
+      "source": "src/quantvolt/curves/arbitrage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.classify_moneyness",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/implied_vol.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.clean_spread",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.compare_cashflow_strategies",
+      "kind": "function",
+      "source": "src/quantvolt/risk/cashflow_metrics.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.crack_spread",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.credit_var",
+      "kind": "function",
+      "source": "src/quantvolt/risk/credit_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.dark_spread",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.delta_gamma_var",
+      "kind": "function",
+      "source": "src/quantvolt/risk/parametric_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.dispatch_deterministic",
+      "kind": "function",
+      "source": "src/quantvolt/assets/dispatch_deterministic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.dispatch_value",
+      "kind": "function",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.ewma_covariance",
+      "kind": "function",
+      "source": "src/quantvolt/risk/covariance.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.forward_spread",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.futures_delta",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/futures.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.garch11_covariance",
+      "kind": "function",
+      "source": "src/quantvolt/risk/covariance.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.horizon_divide",
+      "kind": "function",
+      "source": "src/quantvolt/assets/dispatch_approx.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.implied_heat_rate",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.implied_vol",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/implied_vol.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.linear_cross_hedge",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/variance_min.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.mark_to_market",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/mark_to_market.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.monte_carlo_var",
+      "kind": "function",
+      "source": "src/quantvolt/risk/mc_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.parametric_var",
+      "kind": "function",
+      "source": "src/quantvolt/risk/parametric_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.power_cap_payoff",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.power_floor_payoff",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.price_asian",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.price_barrier",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.price_cap_floor",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/vanilla.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.price_futures",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/futures.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.price_lookback",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.price_spark_spread_option",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spread_option.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.price_spread_option",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spread_option.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.price_swap",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/swap.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.price_tolling_agreement",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/tolling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.price_vanilla_option",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/vanilla.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.settle_energy_portfolio",
+      "kind": "function",
+      "source": "src/quantvolt/portfolio/settlement.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.settle_power_hedge_interval",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.settle_power_hedges_frame",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.settle_ppa_frame",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.settle_ppa_interval",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.spark_spread",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.storage_intrinsic",
+      "kind": "function",
+      "source": "src/quantvolt/assets/storage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.storage_value",
+      "kind": "function",
+      "source": "src/quantvolt/assets/storage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.time_aggregate",
+      "kind": "function",
+      "source": "src/quantvolt/assets/dispatch_approx.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.valuation_benchmark",
+      "kind": "function",
+      "source": "src/quantvolt/assets/long_dated.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.value_portfolio",
+      "kind": "function",
+      "source": "src/quantvolt/portfolio/valuation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.value_transport_right",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/transmission_right.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.var_applicability_guard",
+      "kind": "function",
+      "source": "src/quantvolt/assets/long_dated.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.variance_min_hedge",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/variance_min.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.walk_forward_ppa_nomination",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/ppa_walk_forward.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.BUILT_IN_COMMODITIES",
+      "kind": "constant",
+      "source": "src/quantvolt/models/commodity.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.Instrument",
+      "kind": "constant",
+      "source": "src/quantvolt/portfolio/model.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.models.CommodityConfig",
+      "kind": "class",
+      "source": "src/quantvolt/models/commodity.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.CurveNode",
+      "kind": "class",
+      "source": "src/quantvolt/models/curve.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.DeliveryPeriod",
+      "kind": "class",
+      "source": "src/quantvolt/models/schedule.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.DeliverySchedule",
+      "kind": "class",
+      "source": "src/quantvolt/models/schedule.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.DiscountCurve",
+      "kind": "class",
+      "source": "src/quantvolt/models/discount_curve.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.ForwardContract",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.ForwardCurve",
+      "kind": "class",
+      "source": "src/quantvolt/models/curve.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.FuturesContract",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.Granularity",
+      "kind": "class",
+      "source": "src/quantvolt/models/schedule.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.Greeks",
+      "kind": "class",
+      "source": "src/quantvolt/models/greeks.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.Hub",
+      "kind": "class",
+      "source": "src/quantvolt/models/commodity.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.InstrumentPriceRecord",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.Moneyness",
+      "kind": "class",
+      "source": "src/quantvolt/models/vol_surface.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.PipelineRight",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.PlantConfig",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.PowerDeliveryInterval",
+      "kind": "class",
+      "source": "src/quantvolt/models/interval.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.PowerHedgeContract",
+      "kind": "class",
+      "source": "src/quantvolt/models/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.PowerHedgePosition",
+      "kind": "class",
+      "source": "src/quantvolt/models/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.PowerHedgeType",
+      "kind": "class",
+      "source": "src/quantvolt/models/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.PpaContract",
+      "kind": "class",
+      "source": "src/quantvolt/models/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.PpaSettlementType",
+      "kind": "class",
+      "source": "src/quantvolt/models/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.PpaVolumeBasis",
+      "kind": "class",
+      "source": "src/quantvolt/models/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.RiskType",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.SettlementType",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.SwapContract",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.TransmissionRight",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.TransportDirection",
+      "kind": "class",
+      "source": "src/quantvolt/models/instruments.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.VolatilitySurface",
+      "kind": "class",
+      "source": "src/quantvolt/models/vol_surface.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.VolatilityTenor",
+      "kind": "class",
+      "source": "src/quantvolt/models/vol_surface.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.models.merge_commodities",
+      "kind": "function",
+      "source": "src/quantvolt/models/commodity.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.models.resolve_commodity",
+      "kind": "function",
+      "source": "src/quantvolt/models/commodity.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.models.BUILT_IN_COMMODITIES",
+      "kind": "constant",
+      "source": "src/quantvolt/models/commodity.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.CorrelatedSimulationRequest",
+      "kind": "class",
+      "source": "src/quantvolt/numerics/monte_carlo.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.numerics.DriftKind",
+      "kind": "class",
+      "source": "src/quantvolt/numerics/risk_adjustment.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.numerics.InterpolationMethod",
+      "kind": "class",
+      "source": "src/quantvolt/numerics/interpolation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.PriceOfRiskKind",
+      "kind": "class",
+      "source": "src/quantvolt/numerics/risk_adjustment.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.numerics.actual_360",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/daycount.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.actual_365",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/daycount.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.asian_monte_carlo",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/monte_carlo.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.barrier_analytic",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.black76_greeks",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/black76.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.black76_implied_vol",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/black76.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.black76_price",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/black76.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.brent_root",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/rootfind.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.build_covariance",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/monte_carlo.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.cubic_spline",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/interpolation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.finite_difference_bump",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/rootfind.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.kemna_vorst",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.kirk",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/spread_models.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.lookback_fixed",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.lookback_floating",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.margrabe",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/spread_models.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.piecewise_flat",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/interpolation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.piecewise_linear",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/interpolation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.price_of_risk",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/risk_adjustment.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.require_physical_drift",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/risk_adjustment.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.risk_adjusted_drift",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/risk_adjustment.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.simulate_correlated_forwards",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/monte_carlo.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.simulate_correlated_term_structure",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/monte_carlo.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.simulate_ou_paths",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/monte_carlo.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.tradable_price_of_risk",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/risk_adjustment.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.turnbull_wakeman",
+      "kind": "function",
+      "source": "src/quantvolt/numerics/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.numerics.INTERPOLATION_METHODS",
+      "kind": "constant",
+      "source": "src/quantvolt/numerics/interpolation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curves.ArbitrageChecker",
+      "kind": "class",
+      "source": "src/quantvolt/curves/arbitrage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.curves.ArbitrageWarning",
+      "kind": "class",
+      "source": "src/quantvolt/curves/arbitrage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.curves.CurveBuilder",
+      "kind": "class",
+      "source": "src/quantvolt/curves/builder.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.curves.CurveBuildResult",
+      "kind": "class",
+      "source": "src/quantvolt/curves/builder.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.curves.check_arbitrage",
+      "kind": "function",
+      "source": "src/quantvolt/curves/arbitrage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.AsianOptionRequest",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.BarrierOptionRequest",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.BasisResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.CalendarSpreadResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.CapFloorRequest",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/vanilla.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.CapFloorResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/vanilla.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.CleanSpreadResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.CrackSpreadResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.ExoticOptionResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.FuturesPricingResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/futures.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.ImpliedHeatRateResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.ImpliedVolResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/implied_vol.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.LookbackOptionRequest",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.MissingImbalancePricePolicy",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.MtMPosition",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/mark_to_market.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.MtMPositionResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/mark_to_market.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.MtMResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/mark_to_market.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.OptionQuote",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/implied_vol.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.PowerHedgeDataColumns",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.PowerHedgeSettlement",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.PpaDataColumns",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.PpaIntervalSettlement",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.SpreadOptionRequest",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/spread_option.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.SpreadOptionResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/spread_option.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.SpreadResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.SwapPricingResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/swap.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.TollingResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/tolling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.TransportPeriodValue",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/transmission_right.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.TransportRightResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/transmission_right.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.VanillaOptionRequest",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/vanilla.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.VanillaOptionResult",
+      "kind": "class",
+      "source": "src/quantvolt/pricing/vanilla.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.pricing.basis",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.build_volatility_surface",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/implied_vol.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.calendar_spread",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.classify_moneyness",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/implied_vol.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.clean_spread",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.crack_spread",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.cumulative_historical_vol",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/implied_vol.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.dark_spread",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.forward_spread",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.futures_delta",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/futures.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.implied_heat_rate",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.implied_vol",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/implied_vol.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.mark_to_market",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/mark_to_market.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.power_cap_payoff",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.power_floor_payoff",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.price_asian",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.price_barrier",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.price_cap_floor",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/vanilla.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.price_futures",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/futures.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.price_lookback",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/exotic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.price_spark_spread_option",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spread_option.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.price_spread_option",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spread_option.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.price_swap",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/swap.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.price_tolling_agreement",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/tolling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.price_vanilla_option",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/vanilla.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.settle_power_hedge_interval",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.settle_power_hedges_frame",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/power_hedge.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.settle_ppa_frame",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.settle_ppa_interval",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/ppa.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.spark_spread",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/spreads.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.pricing.value_transport_right",
+      "kind": "function",
+      "source": "src/quantvolt/pricing/transmission_right.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.portfolio.MarketData",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/valuation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.portfolio.Portfolio",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/model.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.portfolio.PortfolioSettlement",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/settlement.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.portfolio.PortfolioValuation",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/valuation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.portfolio.Position",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/model.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.portfolio.PricedPosition",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/model.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.portfolio.SettledPortfolioPosition",
+      "kind": "class",
+      "source": "src/quantvolt/portfolio/settlement.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.portfolio.settle_energy_portfolio",
+      "kind": "function",
+      "source": "src/quantvolt/portfolio/settlement.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.portfolio.value_portfolio",
+      "kind": "function",
+      "source": "src/quantvolt/portfolio/valuation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.portfolio.Instrument",
+      "kind": "constant",
+      "source": "src/quantvolt/portfolio/model.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.risk.CashflowStrategyComparison",
+      "kind": "class",
+      "source": "src/quantvolt/risk/cashflow_metrics.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.CashflowStrategyMetrics",
+      "kind": "class",
+      "source": "src/quantvolt/risk/cashflow_metrics.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.CFaRResult",
+      "kind": "class",
+      "source": "src/quantvolt/risk/cfar.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.CounterpartyCreditDetail",
+      "kind": "class",
+      "source": "src/quantvolt/risk/credit_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.CreditVaRResult",
+      "kind": "class",
+      "source": "src/quantvolt/risk/credit_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.DeltaMatrix",
+      "kind": "class",
+      "source": "src/quantvolt/risk/aggregation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.ExcludedPosition",
+      "kind": "class",
+      "source": "src/quantvolt/risk/engine.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.FactorModel",
+      "kind": "class",
+      "source": "src/quantvolt/risk/mc_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.McVaRResult",
+      "kind": "class",
+      "source": "src/quantvolt/risk/mc_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.ParametricVaRResult",
+      "kind": "class",
+      "source": "src/quantvolt/risk/parametric_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.RiskEngine",
+      "kind": "class",
+      "source": "src/quantvolt/risk/engine.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.RiskResult",
+      "kind": "class",
+      "source": "src/quantvolt/risk/engine.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.ScenarioCatalogue",
+      "kind": "class",
+      "source": "src/quantvolt/risk/scenarios.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.ScenarioResult",
+      "kind": "class",
+      "source": "src/quantvolt/risk/engine.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.ScenarioShock",
+      "kind": "class",
+      "source": "src/quantvolt/risk/scenarios.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.TaggedDrift",
+      "kind": "class",
+      "source": "src/quantvolt/risk/mc_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.risk.aggregate_delta",
+      "kind": "function",
+      "source": "src/quantvolt/risk/aggregation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.risk.cash_flow_at_risk",
+      "kind": "function",
+      "source": "src/quantvolt/risk/cfar.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.risk.compare_cashflow_strategies",
+      "kind": "function",
+      "source": "src/quantvolt/risk/cashflow_metrics.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.risk.credit_var",
+      "kind": "function",
+      "source": "src/quantvolt/risk/credit_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.risk.delta_gamma_var",
+      "kind": "function",
+      "source": "src/quantvolt/risk/parametric_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.risk.ewma_covariance",
+      "kind": "function",
+      "source": "src/quantvolt/risk/covariance.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.risk.garch11_covariance",
+      "kind": "function",
+      "source": "src/quantvolt/risk/covariance.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.risk.monte_carlo_var",
+      "kind": "function",
+      "source": "src/quantvolt/risk/mc_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.risk.nearest_psd",
+      "kind": "function",
+      "source": "src/quantvolt/risk/covariance.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.risk.parametric_var",
+      "kind": "function",
+      "source": "src/quantvolt/risk/parametric_var.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.risk.BUILT_IN_SCENARIOS",
+      "kind": "constant",
+      "source": "src/quantvolt/risk/scenarios.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.hedging.PpaNominationCandidate",
+      "kind": "class",
+      "source": "src/quantvolt/hedging/ppa_nomination.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.hedging.PpaNominationColumns",
+      "kind": "class",
+      "source": "src/quantvolt/hedging/ppa_nomination.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.hedging.PpaNominationFit",
+      "kind": "class",
+      "source": "src/quantvolt/hedging/ppa_nomination.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.hedging.PpaNominationObjective",
+      "kind": "class",
+      "source": "src/quantvolt/hedging/ppa_nomination.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.hedging.PpaWalkForwardResult",
+      "kind": "class",
+      "source": "src/quantvolt/hedging/ppa_walk_forward.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.hedging.apply_ppa_nomination",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/ppa_nomination.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.hedging.calibrate_ppa_nomination",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/ppa_nomination.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.hedging.decomposed_delta",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/variance_min.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.hedging.global_mean_variance",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/mean_variance.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.hedging.hybrid_deltas",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/hybrid.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.hedging.linear_cross_hedge",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/variance_min.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.hedging.local_mean_variance",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/mean_variance.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.hedging.residual_variance",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/hybrid.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.hedging.variance_min_hedge",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/variance_min.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.hedging.walk_forward_ppa_nomination",
+      "kind": "function",
+      "source": "src/quantvolt/hedging/ppa_walk_forward.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.assets.BangBangHedgeWarning",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_approx.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.assets.BenchmarkResult",
+      "kind": "class",
+      "source": "src/quantvolt/assets/long_dated.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.CorporatePremium",
+      "kind": "class",
+      "source": "src/quantvolt/assets/long_dated.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.DispatchDiagnostics",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.DispatchFactorModel",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.DispatchResult",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.DispatchSchedule",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_deterministic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.FactorTransform",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.IntrinsicResult",
+      "kind": "class",
+      "source": "src/quantvolt/assets/storage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.LowerBoundResult",
+      "kind": "class",
+      "source": "src/quantvolt/assets/long_dated.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.MonteCarloEvaluation",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.PeakKind",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.PhysicalFactorMapping",
+      "kind": "class",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.PlantModel",
+      "kind": "class",
+      "source": "src/quantvolt/assets/plant.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.StartCost",
+      "kind": "class",
+      "source": "src/quantvolt/assets/plant.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.StartState",
+      "kind": "class",
+      "source": "src/quantvolt/assets/plant.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.StorageFactorModel",
+      "kind": "class",
+      "source": "src/quantvolt/assets/storage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.StorageModel",
+      "kind": "class",
+      "source": "src/quantvolt/assets/storage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.StorageValueResult",
+      "kind": "class",
+      "source": "src/quantvolt/assets/storage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.ValuationSource",
+      "kind": "class",
+      "source": "src/quantvolt/assets/long_dated.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.VarApplicabilityVerdict",
+      "kind": "class",
+      "source": "src/quantvolt/assets/long_dated.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.assets.bang_bang",
+      "kind": "function",
+      "source": "src/quantvolt/assets/dispatch_approx.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.assets.dispatch_deterministic",
+      "kind": "function",
+      "source": "src/quantvolt/assets/dispatch_deterministic.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.assets.dispatch_value",
+      "kind": "function",
+      "source": "src/quantvolt/assets/dispatch_sdp.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.assets.furthest_forward_lower_bound",
+      "kind": "function",
+      "source": "src/quantvolt/assets/long_dated.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.assets.horizon_divide",
+      "kind": "function",
+      "source": "src/quantvolt/assets/dispatch_approx.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.assets.storage_intrinsic",
+      "kind": "function",
+      "source": "src/quantvolt/assets/storage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.assets.storage_value",
+      "kind": "function",
+      "source": "src/quantvolt/assets/storage.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.assets.time_aggregate",
+      "kind": "function",
+      "source": "src/quantvolt/assets/dispatch_approx.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.assets.valuation_benchmark",
+      "kind": "function",
+      "source": "src/quantvolt/assets/long_dated.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.assets.var_applicability_guard",
+      "kind": "function",
+      "source": "src/quantvolt/assets/long_dated.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.CalibrationDiagnostics",
+      "kind": "class",
+      "source": "src/quantvolt/curvemodels/schwartz_smith.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.curvemodels.LognormalPowerWarning",
+      "kind": "class",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.MultifactorForwardModel",
+      "kind": "class",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.curvemodels.SchwartzSmithParams",
+      "kind": "class",
+      "source": "src/quantvolt/curvemodels/schwartz_smith.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.curvemodels.calibrate",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/schwartz_smith.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.cumulative_covariance",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.forward_curve",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/schwartz_smith.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.forward_matching_residual",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.induced_correlation",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.induced_covariance",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.log_forward_curve",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/schwartz_smith.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.matches_initial_curve",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.matches_option_variance",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.mc_inputs",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.option_variance",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.risk_neutral_drift",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.simulate",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/schwartz_smith.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.simulate_forwards",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.curvemodels.warn_if_power_like",
+      "kind": "function",
+      "source": "src/quantvolt/curvemodels/multifactor.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.stats.DescriptiveStats",
+      "kind": "class",
+      "source": "src/quantvolt/stats/descriptive.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.stats.MeanReversionParams",
+      "kind": "class",
+      "source": "src/quantvolt/stats/mean_reversion.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.stats.NormalityTestResult",
+      "kind": "class",
+      "source": "src/quantvolt/stats/normality.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.stats.NormalityTestType",
+      "kind": "class",
+      "source": "src/quantvolt/stats/normality.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.stats.StationarityResult",
+      "kind": "class",
+      "source": "src/quantvolt/stats/stationarity.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.stats.correlation_matrix",
+      "kind": "function",
+      "source": "src/quantvolt/stats/correlation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.stats.descriptive_stats",
+      "kind": "function",
+      "source": "src/quantvolt/stats/descriptive.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.stats.fit_ou",
+      "kind": "function",
+      "source": "src/quantvolt/stats/mean_reversion.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.stats.moments",
+      "kind": "function",
+      "source": "src/quantvolt/stats/descriptive.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.stats.rolling_correlation",
+      "kind": "function",
+      "source": "src/quantvolt/stats/correlation.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.stats.test_normality",
+      "kind": "function",
+      "source": "src/quantvolt/stats/normality.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.stats.test_stationarity",
+      "kind": "function",
+      "source": "src/quantvolt/stats/stationarity.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.market.OutageDataset",
+      "kind": "class",
+      "source": "src/quantvolt/market/outages.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.market.OutageRecord",
+      "kind": "class",
+      "source": "src/quantvolt/market/outages.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.market.OutageStatus",
+      "kind": "class",
+      "source": "src/quantvolt/market/outages.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.market.OutageType",
+      "kind": "class",
+      "source": "src/quantvolt/market/outages.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.market.Pipeline",
+      "kind": "class",
+      "source": "src/quantvolt/market/transmission.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.market.TemperatureData",
+      "kind": "class",
+      "source": "src/quantvolt/market/weather.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.market.availability_factor",
+      "kind": "function",
+      "source": "src/quantvolt/market/outages.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.market.degree_days",
+      "kind": "function",
+      "source": "src/quantvolt/market/weather.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.market.efor",
+      "kind": "function",
+      "source": "src/quantvolt/market/outages.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.market.equivalent_availability_factor",
+      "kind": "function",
+      "source": "src/quantvolt/market/outages.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.market.forced_outage_rate",
+      "kind": "function",
+      "source": "src/quantvolt/market/outages.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.market.mtbf",
+      "kind": "function",
+      "source": "src/quantvolt/market/outages.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.market.mttr",
+      "kind": "function",
+      "source": "src/quantvolt/market/outages.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.market.outage_frequency",
+      "kind": "function",
+      "source": "src/quantvolt/market/outages.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.market.transmission_cost",
+      "kind": "function",
+      "source": "src/quantvolt/market/transmission.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.market.unavailable_energy",
+      "kind": "function",
+      "source": "src/quantvolt/market/outages.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.workflow.ConsistencyReport",
+      "kind": "class",
+      "source": "src/quantvolt/workflow/modeling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.workflow.DataSufficiencyReport",
+      "kind": "class",
+      "source": "src/quantvolt/workflow/modeling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.workflow.ModelingWorkflow",
+      "kind": "class",
+      "source": "src/quantvolt/workflow/modeling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.workflow.ModelSelectionCriteria",
+      "kind": "class",
+      "source": "src/quantvolt/workflow/criteria.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.workflow.QualitativeAnalysis",
+      "kind": "class",
+      "source": "src/quantvolt/workflow/modeling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.workflow.ResidualAnalysis",
+      "kind": "class",
+      "source": "src/quantvolt/workflow/modeling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.workflow.ResidualModel",
+      "kind": "class",
+      "source": "src/quantvolt/workflow/modeling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.workflow.StaticHedge",
+      "kind": "class",
+      "source": "src/quantvolt/workflow/modeling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.workflow.StructuredProduct",
+      "kind": "class",
+      "source": "src/quantvolt/workflow/modeling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.workflow.WorkflowResult",
+      "kind": "class",
+      "source": "src/quantvolt/workflow/modeling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.workflow.WorkflowSteps",
+      "kind": "class",
+      "source": "src/quantvolt/workflow/modeling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.workflow.DEFAULT_STEPS",
+      "kind": "constant",
+      "source": "src/quantvolt/workflow/modeling.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.AuthenticationError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.Credentials",
+      "kind": "class",
+      "source": "src/quantvolt/data/base.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.data.DataSource",
+      "kind": "class",
+      "source": "src/quantvolt/data/base.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.data.DataSourceError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.DataUnavailableError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.EexSource",
+      "kind": "class",
+      "source": "src/quantvolt/data/commercial.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.EntsoeSource",
+      "kind": "class",
+      "source": "src/quantvolt/data/entsoe.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.data.EntsogSource",
+      "kind": "class",
+      "source": "src/quantvolt/data/entsog.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.data.EpexSource",
+      "kind": "class",
+      "source": "src/quantvolt/data/commercial.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.IceSource",
+      "kind": "class",
+      "source": "src/quantvolt/data/commercial.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.LsegSource",
+      "kind": "class",
+      "source": "src/quantvolt/data/commercial.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.NetztransparenzSource",
+      "kind": "class",
+      "source": "src/quantvolt/data/netztransparenz.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.data.NordPoolSource",
+      "kind": "class",
+      "source": "src/quantvolt/data/commercial.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.OAuthClientCredentials",
+      "kind": "class",
+      "source": "src/quantvolt/data/base.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.data.OpenMeteoSource",
+      "kind": "class",
+      "source": "src/quantvolt/data/open_meteo.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.data.RateLimitError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.SmardResolution",
+      "kind": "class",
+      "source": "src/quantvolt/data/smard.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.data.SmardSource",
+      "kind": "class",
+      "source": "src/quantvolt/data/smard.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
+      "public_path": "quantvolt.data.attach_rebap_prices",
+      "kind": "function",
+      "source": "src/quantvolt/data/netztransparenz.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.parse_rebap_csv",
+      "kind": "function",
+      "source": "src/quantvolt/data/netztransparenz.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.restore",
+      "kind": "function",
+      "source": "src/quantvolt/data/base.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.snapshot",
+      "kind": "function",
+      "source": "src/quantvolt/data/base.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.ArbitrageError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.AuthenticationError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.DataSourceError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.DataUnavailableError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.EnergyQuantError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.ExpiredContractError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.InsufficientDataError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.MissingTenorError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.NativeExtensionError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.NoPricingDataError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.NumericalError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.RateLimitError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.ScenarioNotFoundError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.exceptions.ValidationError",
+      "kind": "class",
+      "source": "src/quantvolt/exceptions.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.testing.assert_input_unchanged",
+      "kind": "function",
+      "source": "src/quantvolt/testing.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    }
+  ]
+}

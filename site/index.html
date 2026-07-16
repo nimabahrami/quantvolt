@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="QuantVolt documentation — European energy pricing, risk, hedging and physical-asset analytics.">
+  <title>QuantVolt documentation</title>
+  <link rel="icon" type="image/png" href="assets/quantvolt-icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="enhancements.css">
+</head>
+<body>
+  <header class="topbar">
+    <button class="icon-button menu-button" id="menu-button" aria-label="Open navigation">☰</button>
+    <a class="brand" href="#/overview"><img class="brand-logo brand-logo-light" src="assets/quantvolt-logo.png" alt="QuantVolt"><img class="brand-logo brand-logo-dark" src="assets/quantvolt-logo-dark.png" alt="QuantVolt"><span>docs</span></a>
+    <button class="search-trigger" id="search-trigger"><span>⌕</span><span>Search documentation</span><kbd>/</kbd></button>
+    <nav class="toplinks"><a href="#/guide/quickstart">Getting started</a><a href="#/api">API reference</a><a href="https://github.com/nimabahrami/quantvolt">GitHub ↗</a></nav>
+    <button class="icon-button" id="theme-button" aria-label="Toggle dark mode">◐</button>
+  </header>
+
+  <aside class="sidebar" id="sidebar" aria-label="Documentation navigation">
+    <div class="version-row"><span>Documentation</span><select aria-label="Version"><option>v0.1.0</option></select></div>
+    <nav id="side-nav">
+      <section><h3>Introduction</h3><a href="#/overview" data-route="overview">Overview</a><a href="#/guide/installation">Installation</a><a href="#/guide/quickstart">Quickstart</a><a href="#/guide/concepts">Core concepts</a></section>
+      <section><h3>User guide</h3><div id="guide-nav"></div></section>
+      <section><h3>API reference</h3><a href="#/api" data-route="api">API index</a><div id="module-nav"></div></section>
+      <section><h3>Project</h3><a href="#/guide/conventions">Units &amp; conventions</a><a href="#/guide/errors">Errors &amp; validation</a><a href="#/guide/testing">Testing utilities</a><a href="#/guide/design">Design guarantees</a><a href="#/guide/markets">Supported markets</a><a href="https://github.com/nimabahrami/quantvolt">Source code ↗</a></section>
+    </nav>
+  </aside>
+
+  <main class="content" id="content" tabindex="-1"><div class="loading"><span></span>Loading reference…</div></main>
+  <aside class="toc" id="toc" aria-label="On this page"><p>On this page</p><nav></nav></aside>
+  <div class="backdrop" id="backdrop"></div>
+
+  <dialog class="search-dialog" id="search-dialog">
+    <form method="dialog"><div class="search-box"><span>⌕</span><input id="search-input" type="search" placeholder="Search guides, modules, functions, classes…" autocomplete="off"><button aria-label="Close">Esc</button></div></form>
+    <div class="search-results" id="search-results"><p class="search-hint">Type to search the complete QuantVolt API.</p></div>
+    <footer><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>↵</kbd> open</span></footer>
+  </dialog>
+  <div class="toast" id="toast" role="status">Copied</div>
+  <script src="api-data.js"></script>
+  <script src="content.js"></script>
+  <script src="complete-guides.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
