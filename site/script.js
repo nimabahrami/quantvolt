@@ -28,6 +28,7 @@ const GUIDE_NAV = [
   ['assets','Physical assets',[['plant','Thermal plant'],['stochastic','Stochastic dispatch'],['storage','Gas storage'],['governance','Governance']]],
   ['curve-models','Stochastic curve models',[['schwartz-smith','Schwartz–Smith'],['ss-simulation','Factor simulation'],['multifactor','Multifactor model'],['induced','Induced covariance'],['model-simulation','Forward simulation'],['power-warning','Power warning']]],
   ['hedging','Hedging',[['variance','Variance minimum'],['cross','Cross-commodity'],['decomposed-delta','Decomposed delta'],['mean-variance','Mean-variance'],['ppa-nomination','PPA objectives'],['walk-forward','Walk forward']]],
+  ['rust-monte-carlo','Rust & Monte Carlo',[['native-architecture','Architecture'],['native-build','Build & install'],['asian-native','Asian MC'],['ou-native','OU simulation'],['correlated-native','Correlated forwards'],['term-native','Term structure'],['mc-var-native','Monte Carlo VaR'],['mc-validation','Validation & errors'],['mc-performance','Performance']]],
   ['statistics','Statistics',[['descriptive','Descriptive'],['stationarity','Stationarity'],['mean-reversion','Mean reversion'],['normality','Normality']]],
   ['market-utils','Market utilities',[['transmission-utils','Transmission'],['weather-utils','Weather'],['outage-records','Outage records'],['reliability-kpis','Reliability KPIs']]],
   ['workflow-guide','Model-selection workflow',[['workflow-product','Product definition'],['workflow-criteria','Criteria'],['workflow-steps','Seven steps'],['workflow-result','Result & audit']]],
