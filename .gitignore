@@ -55,6 +55,7 @@ graphify-out/
 /data/raw/
 /data/processed/
 /data/experiments/
+/data/SHA256SUMS
 
 # Local working and reference documents
 /energy_power_risk_management_ch10_appendices.md
