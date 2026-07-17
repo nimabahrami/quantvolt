@@ -48,6 +48,11 @@ AGENTS.md
 GEMINI.md
 /graphify-out/
 
+# Optional datasets are fetched explicitly into a user cache, never committed.
+/data/raw/
+/data/processed/
+/data/experiments/
+
 # Local working and reference documents
 /energy_power_risk_management_ch10_appendices.md
 /polished_continue.md

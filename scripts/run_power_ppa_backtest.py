@@ -13,6 +13,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import polars as pl
+from data_access import local_or_fetch
 
 from quantvolt import (
     PowerDeliveryInterval,
@@ -55,7 +56,8 @@ def _summary(frame: pl.DataFrame, column: str) -> dict[str, float | int]:
 
 
 def main() -> None:
-    data = pl.read_parquet(INPUT).filter(
+    input_path = local_or_fetch(INPUT, "smard-de-power-experiment")
+    data = pl.read_parquet(input_path).filter(
         (pl.col("interval_start_utc") >= CALIBRATION_START)
         & (pl.col("interval_start_utc") < EVALUATION_END)
     )

@@ -1,5 +1,12 @@
 # Real gas-market experiment data
 
+> **Optional-data policy:** Full snapshots are published as immutable assets in the
+> [`data-2026.07` release](https://github.com/nimabahrami/quantvolt/releases/tag/data-2026.07).
+> They are not part of the Python package and, after the history-cleanup cutover, will
+> not be part of ordinary Git clones. Use `quantvolt data list` and
+> `quantvolt data fetch <dataset-id>` to download one checksummed dataset explicitly.
+> Tiny files under `data/samples/` remain in Git for tutorials and offline tests.
+
 This directory contains unmodified public source files in `raw/` and normalized,
 analysis-ready copies in `processed/`. Prices are nominal unless stated otherwise.
 

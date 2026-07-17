@@ -15,6 +15,7 @@ from ..exceptions import (
 )
 from .base import Credentials, DataSource, OAuthClientCredentials, restore, snapshot
 from .commercial import EexSource, EpexSource, IceSource, LsegSource, NordPoolSource
+from .datasets import DatasetRecord, fetch, info, list_datasets, path, remove, verify
 from .entsoe import EntsoeSource
 from .entsog import EntsogSource
 from .netztransparenz import NetztransparenzSource, attach_rebap_prices, parse_rebap_csv
@@ -27,6 +28,7 @@ __all__ = [
     "DataSource",
     "DataSourceError",
     "DataUnavailableError",
+    "DatasetRecord",
     "EexSource",
     "EntsoeSource",
     "EntsogSource",
@@ -41,7 +43,13 @@ __all__ = [
     "SmardResolution",
     "SmardSource",
     "attach_rebap_prices",
+    "fetch",
+    "info",
+    "list_datasets",
+    "path",
     "parse_rebap_csv",
     "restore",
+    "remove",
     "snapshot",
+    "verify",
 ]

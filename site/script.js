@@ -32,7 +32,7 @@ const GUIDE_NAV = [
   ['statistics','Statistics',[['descriptive','Descriptive'],['stationarity','Stationarity'],['mean-reversion','Mean reversion'],['normality','Normality']]],
   ['market-utils','Market utilities',[['transmission-utils','Transmission'],['weather-utils','Weather'],['outage-records','Outage records'],['reliability-kpis','Reliability KPIs']]],
   ['workflow-guide','Model-selection workflow',[['workflow-product','Product definition'],['workflow-criteria','Criteria'],['workflow-steps','Seven steps'],['workflow-result','Result & audit']]],
-  ['data','Data adapters',[['providers','Providers'],['fetch','Fetch & map'],['snapshots','Snapshots']]],
+  ['data','Data & datasets',[['dataset-catalog','Optional datasets'],['dataset-fetch','Fetch & verify'],['dataset-cache','Cache & offline'],['providers','Providers'],['fetch','Provider mapping'],['snapshots','Snapshots']]],
   ['conventions','Conventions',[['units','Units'],['position-sign','Position signs'],['time','Dates & intervals'],['randomness','Randomness'],['precision','Tolerances']]],
   ['errors','Errors & validation',[['hierarchy','Hierarchy'],['validation','Validation'],['missing-data','Missing data'],['recovery','Recovery']]],
   ['testing','Testing workflows',[['unchanged','Non-mutation'],['deterministic','Determinism'],['round-trip','Serialization']]],

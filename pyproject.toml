@@ -16,6 +16,9 @@ dependencies = [
     "statsmodels>=0.14",
 ]
 
+[project.scripts]
+quantvolt = "quantvolt.cli:main"
+
 [project.optional-dependencies]
 data = ["httpx>=0.27"]           # optional imperative shell — quantvolt[data]
 dev = [

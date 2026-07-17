@@ -2,8 +2,8 @@
   "version": "0.1.0",
   "totals": {
     "modules": 16,
-    "symbols": 469,
-    "documented": 469
+    "symbols": 476,
+    "documented": 476
   },
   "symbols": [
     {
@@ -3479,6 +3479,14 @@
       "has_fields_or_methods": true
     },
     {
+      "public_path": "quantvolt.data.DatasetRecord",
+      "kind": "class",
+      "source": "src/quantvolt/data/datasets.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": true
+    },
+    {
       "public_path": "quantvolt.data.DataSource",
       "kind": "class",
       "source": "src/quantvolt/data/base.py",
@@ -3615,9 +3623,49 @@
       "has_fields_or_methods": false
     },
     {
+      "public_path": "quantvolt.data.fetch",
+      "kind": "function",
+      "source": "src/quantvolt/data/datasets.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.info",
+      "kind": "function",
+      "source": "src/quantvolt/data/datasets.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.list_datasets",
+      "kind": "function",
+      "source": "src/quantvolt/data/datasets.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
       "public_path": "quantvolt.data.parse_rebap_csv",
       "kind": "function",
       "source": "src/quantvolt/data/netztransparenz.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.path",
+      "kind": "function",
+      "source": "src/quantvolt/data/datasets.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.remove",
+      "kind": "function",
+      "source": "src/quantvolt/data/datasets.py",
       "has_docstring": true,
       "has_signature": true,
       "has_fields_or_methods": false
@@ -3634,6 +3682,14 @@
       "public_path": "quantvolt.data.snapshot",
       "kind": "function",
       "source": "src/quantvolt/data/base.py",
+      "has_docstring": true,
+      "has_signature": true,
+      "has_fields_or_methods": false
+    },
+    {
+      "public_path": "quantvolt.data.verify",
+      "kind": "function",
+      "source": "src/quantvolt/data/datasets.py",
       "has_docstring": true,
       "has_signature": true,
       "has_fields_or_methods": false

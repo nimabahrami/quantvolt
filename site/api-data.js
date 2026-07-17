@@ -12061,6 +12061,66 @@ window.API_DATA = {
           "line": 55
         },
         {
+          "name": "DatasetRecord",
+          "module": "data",
+          "qualified": "quantvolt.data.datasets.DatasetRecord",
+          "kind": "class",
+          "signature": "DatasetRecord(dataset_id: str, version: str, filename: str, size: int, sha256: str, format: str, license: str, source: str, url: str)",
+          "summary": "One immutable downloadable dataset release record.",
+          "doc": "One immutable downloadable dataset release record.",
+          "methods": [],
+          "fields": [
+            {
+              "name": "dataset_id",
+              "type": "str",
+              "default": null
+            },
+            {
+              "name": "version",
+              "type": "str",
+              "default": null
+            },
+            {
+              "name": "filename",
+              "type": "str",
+              "default": null
+            },
+            {
+              "name": "size",
+              "type": "int",
+              "default": null
+            },
+            {
+              "name": "sha256",
+              "type": "str",
+              "default": null
+            },
+            {
+              "name": "format",
+              "type": "str",
+              "default": null
+            },
+            {
+              "name": "license",
+              "type": "str",
+              "default": null
+            },
+            {
+              "name": "source",
+              "type": "str",
+              "default": null
+            },
+            {
+              "name": "url",
+              "type": "str",
+              "default": null
+            }
+          ],
+          "members": [],
+          "source": "src/quantvolt/data/datasets.py",
+          "line": 25
+        },
+        {
           "name": "DataSource",
           "module": "data",
           "qualified": "quantvolt.data.base.DataSource",
@@ -12412,6 +12472,48 @@ window.API_DATA = {
           "line": 136
         },
         {
+          "name": "fetch",
+          "module": "data",
+          "qualified": "quantvolt.data.datasets.fetch",
+          "kind": "function",
+          "signature": "fetch(dataset_id: str, *, force: bool=False, offline: bool=False, timeout: float=60.0) -> Path",
+          "summary": "Download and atomically cache one dataset after size and hash verification.",
+          "doc": "Download and atomically cache one dataset after size and hash verification.",
+          "methods": [],
+          "fields": [],
+          "members": [],
+          "source": "src/quantvolt/data/datasets.py",
+          "line": 100
+        },
+        {
+          "name": "info",
+          "module": "data",
+          "qualified": "quantvolt.data.datasets.info",
+          "kind": "function",
+          "signature": "info(dataset_id: str) -> DatasetRecord",
+          "summary": "Return catalog metadata for ``dataset_id`` without network access.",
+          "doc": "Return catalog metadata for ``dataset_id`` without network access.",
+          "methods": [],
+          "fields": [],
+          "members": [],
+          "source": "src/quantvolt/data/datasets.py",
+          "line": 62
+        },
+        {
+          "name": "list_datasets",
+          "module": "data",
+          "qualified": "quantvolt.data.datasets.list_datasets",
+          "kind": "function",
+          "signature": "list_datasets() -> tuple[DatasetRecord, ...]",
+          "summary": "Return every optional dataset in stable ID order without network access.",
+          "doc": "Return every optional dataset in stable ID order without network access.",
+          "methods": [],
+          "fields": [],
+          "members": [],
+          "source": "src/quantvolt/data/datasets.py",
+          "line": 57
+        },
+        {
           "name": "parse_rebap_csv",
           "module": "data",
           "qualified": "quantvolt.data.netztransparenz.parse_rebap_csv",
@@ -12424,6 +12526,34 @@ window.API_DATA = {
           "members": [],
           "source": "src/quantvolt/data/netztransparenz.py",
           "line": 56
+        },
+        {
+          "name": "path",
+          "module": "data",
+          "qualified": "quantvolt.data.datasets.path",
+          "kind": "function",
+          "signature": "path(dataset_id: str) -> Path",
+          "summary": "Return the expected local path for a dataset, whether downloaded or not.",
+          "doc": "Return the expected local path for a dataset, whether downloaded or not.",
+          "methods": [],
+          "fields": [],
+          "members": [],
+          "source": "src/quantvolt/data/datasets.py",
+          "line": 75
+        },
+        {
+          "name": "remove",
+          "module": "data",
+          "qualified": "quantvolt.data.datasets.remove",
+          "kind": "function",
+          "signature": "remove(dataset_id: str) -> bool",
+          "summary": "Remove a cached dataset; return whether a file was removed.",
+          "doc": "Remove a cached dataset; return whether a file was removed.",
+          "methods": [],
+          "fields": [],
+          "members": [],
+          "source": "src/quantvolt/data/datasets.py",
+          "line": 145
         },
         {
           "name": "restore",
@@ -12452,6 +12582,20 @@ window.API_DATA = {
           "members": [],
           "source": "src/quantvolt/data/base.py",
           "line": 149
+        },
+        {
+          "name": "verify",
+          "module": "data",
+          "qualified": "quantvolt.data.datasets.verify",
+          "kind": "function",
+          "signature": "verify(dataset_id: str) -> bool",
+          "summary": "Return whether the cached file exists and matches catalog size and SHA-256.",
+          "doc": "Return whether the cached file exists and matches catalog size and SHA-256.",
+          "methods": [],
+          "fields": [],
+          "members": [],
+          "source": "src/quantvolt/data/datasets.py",
+          "line": 89
         }
       ]
     },
@@ -12680,5 +12824,5 @@ window.API_DATA = {
       ]
     }
   ],
-  "symbolCount": 469
+  "symbolCount": 476
 };

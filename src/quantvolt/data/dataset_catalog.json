@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "release": "data-2026.07",
+  "datasets": {
+    "eia-henry-hub-spot-daily": {"version":"2026.07","filename":"eia_henry_hub_spot_daily.parquet","size":31923,"sha256":"7845fbaccf1f12a11f70e3fa6d01adddba724fab0f0c3ca8f1811c25b2eaa37f","format":"parquet","license":"US government public data","source":"https://www.eia.gov/dnav/ng/ng_pri_fut_s1_d.htm"},
+    "eia-nymex-gas-futures-daily": {"version":"2026.07","filename":"eia_nymex_gas_futures_daily.parquet","size":103627,"sha256":"f83d2ba40dffe1f6272422cd9cf02761e9178cd88e4301f3985fcf09cb2a10eb","format":"parquet","license":"US government public data","source":"https://www.eia.gov/dnav/ng/ng_pri_fut_s1_d.htm"},
+    "jrc-enagad-daily-demand": {"version":"2026.05","filename":"jrc_enagad_daily_demand.parquet","size":1677535,"sha256":"f8159556aedad86ceec614ff596f5ed5146850edf283df9b28e3eb8d7bc8827e","format":"parquet","license":"CC BY 4.0","source":"https://data.jrc.ec.europa.eu/dataset/6b5ce3b7-6ca8-4dc9-b441-e14b76312335"},
+    "smard-de-lu-day-ahead": {"version":"2026.07","filename":"smard_de_lu_day_ahead_native.parquet","size":1021155,"sha256":"cb5c5554c89b9faff529a8eeb585a0f0b83a5d2f7e377cbe904a7ac51c3ce057","format":"parquet","license":"CC BY 4.0","source":"https://www.smard.de/en/downloadcenter/download-market-data"},
+    "smard-de-power-fundamentals": {"version":"2026.07","filename":"smard_de_power_fundamentals_quarter_hour.parquet","size":5366705,"sha256":"1ed2c0533db432c8725aa7dc71fcc2b2a629f48112429c0028242e739f891fbf","format":"parquet","license":"CC BY 4.0","source":"https://www.smard.de/en/downloadcenter/download-market-data"},
+    "smard-de-power-experiment": {"version":"2026.07","filename":"smard_de_power_experiment_intervals.parquet","size":8605770,"sha256":"deec8fa49b9f46b0e74f30cde46c8df7169f18e391d7fd7d126d8bc69e7f6196","format":"parquet","license":"CC BY 4.0","source":"Derived from Bundesnetzagentur SMARD data"},
+    "world-bank-natural-gas-monthly": {"version":"2026.07","filename":"world_bank_natural_gas_monthly.parquet","size":9006,"sha256":"cc5f02ef43749b3177e723b5f3f803e1bc53e5dc0f9dee60860db19f7dc11227","format":"parquet","license":"World Bank Terms of Use","source":"https://www.worldbank.org/en/research/commodity-markets"},
+    "power-ppa-backtest-monthly": {"version":"2026.07","filename":"power_ppa_backtest_monthly.parquet","size":6388,"sha256":"67d6adac8ec1e9afe6b564d9926ce0a0bde8def65462467db0de2b4f280c5c29","format":"parquet","license":"CC BY 4.0 derived data","source":"Derived from Bundesnetzagentur SMARD data"},
+    "power-ppa-backtest-summary": {"version":"2026.07","filename":"power_ppa_backtest_summary.json","size":5699,"sha256":"294e336a115f2fe8b0be5ca76c16db5e39db3cddce479f8f94a22d92b1c8a1de","format":"json","license":"CC BY 4.0 derived data","source":"Derived from Bundesnetzagentur SMARD data"}
+  }
+}

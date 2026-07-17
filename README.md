@@ -306,3 +306,20 @@ cargo test                  # Rust unit tests
 
 `pyproject.toml` is the single configuration source (maturin build backend, ruff, mypy,
 pytest); the Rust crate lives in `rust/` and compiles to `quantvolt._core`.
+
+## Optional research datasets
+
+Large market snapshots are deliberately excluded from package installations. Discover
+and fetch only the versioned data you need:
+
+```bash
+quantvolt data list
+quantvolt data info smard-de-power-experiment
+quantvolt data fetch smard-de-power-experiment
+quantvolt data verify smard-de-power-experiment
+```
+
+Downloads are cached outside the package, verified by byte size and SHA-256, and never
+occur during import. Set `QUANTVOLT_DATA_DIR` to choose another cache or use the Python
+API in `quantvolt.data.datasets`. Provenance and license notes are in
+[`data/README.md`](data/README.md).

@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 import polars as pl
+from data_access import local_or_fetch
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw" / "smard"
@@ -60,9 +61,13 @@ def main() -> None:
     price_manifest = _verify_manifest(PRICE_MANIFEST)
     fundamentals_manifest = _verify_manifest(FUNDAMENTALS_MANIFEST)
 
-    prices = pl.read_parquet(PRICE_DATA)
-    fundamentals = pl.read_parquet(FUNDAMENTALS_DATA)
-    experiment = pl.read_parquet(EXPERIMENT_DATA)
+    prices = pl.read_parquet(local_or_fetch(PRICE_DATA, "smard-de-lu-day-ahead"))
+    fundamentals = pl.read_parquet(
+        local_or_fetch(FUNDAMENTALS_DATA, "smard-de-power-fundamentals")
+    )
+    experiment = pl.read_parquet(
+        local_or_fetch(EXPERIMENT_DATA, "smard-de-power-experiment")
+    )
 
     _require(prices.height == price_manifest["rows"], "price manifest row count mismatch")
     _require(
