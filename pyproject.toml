@@ -64,7 +64,9 @@ dev = [
 [tool.maturin]
 python-source = "src"
 module-name = "quantvolt._core"
-features = ["pyo3/extension-module"]
+# abi3-py312: build a single stable-ABI wheel that works on CPython 3.12+
+# (one compile per platform instead of one per Python version).
+features = ["pyo3/extension-module", "pyo3/abi3-py312"]
 # Keep the sdist to the buildable package only. The docs site, rendered docs,
 # research data, helper scripts, and the logo are not part of the installable
 # library and would only bloat the distribution.

@@ -20,7 +20,10 @@ ndarray = "0.17"
 rand = "0.10"
 rand_distr = "0.6"
 
+# `thin` LTO compiles far faster than fat `lto = true` with near-identical
+# runtime performance; leaving codegen-units at the default keeps codegen
+# parallel. This trades a negligible amount of runtime speed for a large
+# reduction in CI wheel-build time.
 [profile.release]
-lto = true
-codegen-units = 1
+lto = "thin"
 
