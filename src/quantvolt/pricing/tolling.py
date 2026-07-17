@@ -59,7 +59,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date
 
 import numpy as np
 
@@ -71,6 +71,7 @@ from ..models.instruments import PlantConfig
 from ..models.schedule import DeliveryPeriod, DeliverySchedule
 from ..models.vol_surface import VolatilitySurface
 from ..numerics.daycount import actual_365
+from ._dates import gather_discount_factors
 from .spread_option import SpreadOptionRequest, price_spread_option
 
 # Schedule bounds (Req 8.1).
@@ -205,11 +206,6 @@ def _schedule_sigmas(
     return tuple(sigmas)
 
 
-def _settlement_date(period: DeliveryPeriod, settlement_lag_days: int) -> date:
-    """The period's last day plus ``settlement_lag_days`` calendar days (default 0)."""
-    return period.last_day + timedelta(days=settlement_lag_days)
-
-
 def _schedule_discount_factors(
     discount_curve: DiscountCurve,
     periods: tuple[DeliveryPeriod, ...],
@@ -220,20 +216,16 @@ def _schedule_discount_factors(
     Raises :class:`MissingTenorError` naming every period whose settlement date
     falls outside the discount curve's tenor range (the swap-module convention).
     """
-    factors: list[float] = []
-    missing: list[str] = []
-    for period in periods:
-        settlement = _settlement_date(period, settlement_lag_days)
-        try:
-            factors.append(discount_curve.discount_factor(settlement))
-        except MissingTenorError:
-            missing.append(f"{period!r} (settlement {settlement.isoformat()})")
-    if missing:
-        raise MissingTenorError(
-            "discount_curve must cover every delivery-period settlement date in "
-            f"schedule; missing: {', '.join(missing)}"
+    return tuple(
+        gather_discount_factors(
+            periods,
+            discount_curve,
+            settlement_lag_days,
+            not_covered_message=(
+                "discount_curve must cover every delivery-period settlement date in schedule"
+            ),
         )
-    return tuple(factors)
+    )
 
 
 def price_tolling_agreement(

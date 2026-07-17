@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from .black76 import black76_greeks, black76_implied_vol, black76_price
-from .daycount import actual_365
+from .daycount import actual_360, actual_365
 from .exotic import (
     barrier_analytic,
     kemna_vorst,
@@ -43,6 +43,7 @@ __all__ = [
     "DriftKind",
     "InterpolationMethod",
     "PriceOfRiskKind",
+    "actual_360",
     "actual_365",
     "asian_monte_carlo",
     "barrier_analytic",

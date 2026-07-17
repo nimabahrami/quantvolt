@@ -46,7 +46,10 @@ build/
 CLAUDE.md
 AGENTS.md
 GEMINI.md
-/graphify-out/
+graphify-out/
+
+# Disposable local numerical-review scratchpads
+/scratchpad_*.py
 
 # Optional datasets are fetched explicitly into a user cache, never committed.
 /data/raw/

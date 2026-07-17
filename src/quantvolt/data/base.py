@@ -23,6 +23,7 @@ from urllib.parse import urlsplit
 
 import httpx
 
+from .._validation import require_non_negative, require_positive
 from ..exceptions import (
     AuthenticationError,
     DataSourceError,
@@ -198,6 +199,35 @@ def _raise_for_status(provider: str, status_code: int) -> None:
         raise DataSourceError(f"{provider}: provider request failed (HTTP {status_code})")
 
 
+def _json_object(provider: str, response: httpx.Response) -> dict[str, Any]:
+    """Parse ``response`` as JSON and require a top-level JSON object (Req 12.5/12.6).
+
+    Shared by every JSON-based free adapter (ENTSOG, Open-Meteo) so the "provider
+    returned garbage" error messages are defined exactly once: an unparseable body
+    maps to :class:`DataSourceError` naming the provider, and so does a parsed body
+    that is not a JSON object (e.g. a bare list or scalar).
+    """
+    try:
+        payload: object = response.json()
+    except ValueError as exc:
+        raise DataSourceError(f"{provider}: provider returned unparseable JSON") from exc
+    if not isinstance(payload, dict):
+        raise DataSourceError(f"{provider}: unexpected payload shape (not an object)")
+    return payload
+
+
+def _validate_retry_config(
+    timeout_seconds: float, max_retries: int, backoff_seconds: float
+) -> None:
+    """Validate the ``timeout_seconds``/``max_retries``/``backoff_seconds`` knobs every
+    free adapter's constructor exposes (defined once so the three checks, parameter
+    names, and error messages are identical across adapters).
+    """
+    require_positive("timeout_seconds", timeout_seconds)
+    require_non_negative("max_retries", max_retries)
+    require_non_negative("backoff_seconds", backoff_seconds)
+
+
 def _is_transient_status(status_code: int) -> bool:
     """HTTP 5xx or 429 (rate limit) — the only statuses a retry can plausibly help."""
     return status_code >= 500 or status_code == 429
@@ -236,3 +266,29 @@ def _get_with_retries(
                 return response
         time.sleep(backoff_seconds * (2**attempt))
         attempt += 1
+
+
+def _http_get(
+    transport: httpx.BaseTransport | None,
+    base_url: str,
+    params: dict[str, str],
+    *,
+    timeout_seconds: float,
+    max_retries: int,
+    backoff_seconds: float,
+) -> httpx.Response:
+    """One retried HTTPS GET: opens the ``httpx.Client`` and delegates to
+    :func:`_get_with_retries`.
+
+    Shared by every free adapter (ENTSO-E, ENTSOG, Open-Meteo) so the
+    ``httpx.Client(...) as client: ... _get_with_retries(...)`` block is written once.
+    The client is scoped to this single call, matching each adapter's prior behaviour.
+    """
+    with httpx.Client(transport=transport, timeout=timeout_seconds) as client:
+        return _get_with_retries(
+            client,
+            base_url,
+            params,
+            max_retries=max_retries,
+            backoff_seconds=backoff_seconds,
+        )

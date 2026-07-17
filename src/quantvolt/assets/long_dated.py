@@ -64,7 +64,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
 
-from ..exceptions import ValidationError
+from ..exceptions import MissingTenorError, ValidationError
 from ..models.curve import ForwardCurve
 from ..models.schedule import DeliveryPeriod
 from ..numerics.risk_adjustment import PriceOfRiskKind
@@ -334,11 +334,16 @@ def _require_corporate_premium(corporate_premium: CorporatePremium) -> None:
 
 
 def _forward_price_if_liquid(forward_curve: ForwardCurve, period: DeliveryPeriod) -> float | None:
-    """Return the forward price for ``period`` if the curve covers it, else ``None``."""
-    for node in forward_curve.nodes:
-        if node.period == period:
-            return node.price
-    return None
+    """Return the forward price for ``period`` if the curve covers it, else ``None``.
+
+    Tell-Don't-Ask: delegates the node lookup to :meth:`ForwardCurve.price_at` rather
+    than scanning ``forward_curve.nodes`` here, and translates its
+    :class:`~quantvolt.exceptions.MissingTenorError` (illiquid tenor) into ``None``.
+    """
+    try:
+        return forward_curve.price_at(period)
+    except MissingTenorError:
+        return None
 
 
 def _is_projected_valued(position: PricedPosition) -> bool:

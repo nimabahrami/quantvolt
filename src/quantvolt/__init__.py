@@ -33,7 +33,13 @@ from .assets import (
     var_applicability_guard,
 )
 from .curvemodels import MultifactorForwardModel, SchwartzSmithParams
-from .curves import ArbitrageChecker, ArbitrageWarning, CurveBuilder, CurveBuildResult
+from .curves import (
+    ArbitrageChecker,
+    ArbitrageWarning,
+    CurveBuilder,
+    CurveBuildResult,
+    check_arbitrage,
+)
 from .exceptions import (
     ArbitrageError,
     AuthenticationError,
@@ -297,6 +303,7 @@ __all__ = [
     "calendar_spread",
     "calibrate_ppa_nomination",
     "cash_flow_at_risk",
+    "check_arbitrage",
     "classify_moneyness",
     "clean_spread",
     "compare_cashflow_strategies",

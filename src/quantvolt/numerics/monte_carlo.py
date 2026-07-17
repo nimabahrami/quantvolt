@@ -38,6 +38,21 @@ _PSD_EIG_TOL = 1e-10
 _UNIT_DIAGONAL_TOL = 1e-8
 
 
+def _require_finite_vector(name: str, arr: npt.NDArray[np.float64]) -> None:
+    """Validate ``arr`` is a non-empty, finite, 1-D vector, naming ``name`` in errors.
+
+    Shared by :func:`build_covariance`, :func:`simulate_correlated_forwards`, and
+    :func:`simulate_correlated_term_structure`, each of which validates one
+    array-like input against exactly this shape/finiteness contract.
+    """
+    if arr.ndim != 1:
+        raise ValidationError(f"{name} must be 1-D, got shape {arr.shape}")
+    if arr.size == 0:
+        raise ValidationError(f"{name} must be non-empty")
+    if not bool(np.all(np.isfinite(arr))):
+        raise ValidationError(f"{name} must be finite")
+
+
 def _request_field_equal(a: object, b: object) -> bool:
     """Value-equality for one :class:`CorrelatedSimulationRequest` field.
 
@@ -243,13 +258,8 @@ def build_covariance(
     require_positive("unit_diagonal_tol", unit_diagonal_tol)
     sig = np.ascontiguousarray(sigma, dtype=np.float64)
     r = np.ascontiguousarray(corr, dtype=np.float64)
-    if sig.ndim != 1:
-        raise ValidationError(f"sigma must be 1-D, got shape {sig.shape}")
+    _require_finite_vector("sigma", sig)
     d = int(sig.shape[0])
-    if d == 0:
-        raise ValidationError("sigma must be non-empty")
-    if not bool(np.all(np.isfinite(sig))):
-        raise ValidationError("sigma must be finite")
     if bool(np.any(sig < 0.0)):
         raise ValidationError("sigma must be non-negative (per-tenor volatility; 0 = expired)")
     if r.shape != (d, d):
@@ -392,15 +402,10 @@ def simulate_correlated_forwards(
     require_positive("psd_tol", psd_tol)
     z = np.ascontiguousarray(z0, dtype=np.float64)
     mu = np.ascontiguousarray(drift, dtype=np.float64)
-    if z.ndim != 1:
-        raise ValidationError(f"z0 must be 1-D, got shape {z.shape}")
+    _require_finite_vector("z0", z)
     d = int(z.shape[0])
-    if d == 0:
-        raise ValidationError("z0 must be non-empty")
     if mu.shape != (d,):
         raise ValidationError(f"drift must have shape ({d},) to match z0, got {mu.shape}")
-    if not bool(np.all(np.isfinite(z))):
-        raise ValidationError("z0 must be finite")
     if not bool(np.all(np.isfinite(mu))):
         raise ValidationError("drift must be finite")
     c = _validate_covariance(cov, repair=repair, symmetry_tol=symmetry_tol, psd_tol=psd_tol)
@@ -434,8 +439,7 @@ def simulate_correlated_term_structure(
     z0 = np.array(request.z0, dtype=np.float64, copy=True, order="C")
     drift = np.array(request.drift_steps, dtype=np.float64, copy=True, order="C")
     covariances = np.array(request.covariance_steps, dtype=np.float64, copy=True, order="C")
-    if z0.ndim != 1 or z0.size == 0 or not bool(np.all(np.isfinite(z0))):
-        raise ValidationError(f"z0 must be a non-empty finite 1-D vector, got shape {z0.shape}")
+    _require_finite_vector("z0", z0)
     if drift.ndim != 2 or drift.shape[1] != z0.size or drift.shape[0] < 1:
         raise ValidationError(f"drift_steps must have shape (steps, {z0.size}), got {drift.shape}")
     steps, dimension = drift.shape
@@ -467,57 +471,18 @@ def simulate_correlated_term_structure(
             raise ValidationError("active_steps cannot activate a zero-variance coordinate")
     require_integer_at_least("path_count", request.path_count, 1)
     require_integer_at_least("seed", request.seed, 0)
-    native_term = getattr(_core, "simulate_correlated_forwards_term", None)
-    if native_term is not None:
-        try:
-            return np.asarray(
-                native_term(
-                    z0,
-                    drift,
-                    np.ascontiguousarray(validated),
-                    np.ascontiguousarray(active),
-                    request.path_count,
-                    request.seed,
-                    request.antithetic,
-                ),
-                dtype=np.float64,
-            )
-        except (ValueError, OverflowError) as error:
-            raise NumericalError(str(error)) from error
-
-    # Compatibility with an older installed extension: each increment is still drawn and
-    # Cholesky-transformed by the native Rust kernel. SplitMix64 derives independent,
-    # deterministic per-step seeds; simulating from zero exposes the increment, which is
-    # then accumulated onto the already-pathwise state here.
-    effective = ((request.path_count + 1) // 2) * 2 if request.antithetic else request.path_count
-    paths = np.empty((effective, steps + 1, dimension), dtype=np.float64)
-    paths[:, 0, :] = z0
-    state = np.broadcast_to(z0, (effective, dimension)).copy()
-    seed_state = request.seed & ((1 << 64) - 1)
-    for step in range(steps):
-        seed_state = (seed_state + 0x9E3779B97F4A7C15) & ((1 << 64) - 1)
-        mixed = seed_state
-        mixed = ((mixed ^ (mixed >> 30)) * 0xBF58476D1CE4E5B9) & ((1 << 64) - 1)
-        mixed = ((mixed ^ (mixed >> 27)) * 0x94D049BB133111EB) & ((1 << 64) - 1)
-        step_seed = mixed ^ (mixed >> 31)
-        step_covariance = validated[step].copy()
-        step_drift = drift[step].copy()
-        inactive = ~active[step]
-        step_covariance[inactive, :] = 0.0
-        step_covariance[:, inactive] = 0.0
-        step_drift[inactive] = 0.0
-        increments = np.asarray(
-            _core.simulate_correlated_forwards(
-                np.zeros(dimension),
-                step_drift,
-                np.ascontiguousarray(step_covariance),
-                1,
+    try:
+        return np.asarray(
+            _core.simulate_correlated_forwards_term(
+                z0,
+                drift,
+                np.ascontiguousarray(validated),
+                np.ascontiguousarray(active),
                 request.path_count,
-                step_seed,
+                request.seed,
                 request.antithetic,
             ),
             dtype=np.float64,
-        )[:, 1, :]
-        state += increments
-        paths[:, step + 1, :] = state
-    return paths
+        )
+    except (ValueError, OverflowError) as error:
+        raise NumericalError(str(error)) from error

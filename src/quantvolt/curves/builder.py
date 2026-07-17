@@ -24,7 +24,7 @@ from ..models.curve import CurveNode, ForwardCurve
 from ..models.instruments import InstrumentPriceRecord
 from ..models.schedule import DeliveryPeriod
 from ..numerics.interpolation import INTERPOLATION_METHODS
-from .arbitrage import ArbitrageChecker, ArbitrageWarning
+from .arbitrage import ArbitrageWarning, check_arbitrage
 
 # Minimum observed instruments each interpolation method needs (Req 1.8, Property 4).
 _MIN_INSTRUMENTS: dict[str, int] = {
@@ -136,7 +136,7 @@ class CurveBuilder:
             )
 
         curve = self._assemble_curve(commodity, market_date, instruments, interpolation)
-        warnings = ArbitrageChecker().check(curve, storage_cost)
+        warnings = check_arbitrage(curve, storage_cost)
         residuals = {
             instrument.instrument_id: abs(
                 curve.price_at(instrument.delivery_period) - instrument.price

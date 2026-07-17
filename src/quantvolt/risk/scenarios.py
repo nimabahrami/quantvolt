@@ -170,10 +170,13 @@ def carbon_price_shock(*, eua_shock: float = 1.0, power_shock: float = 0.25) -> 
 
 
 BUILT_IN_SCENARIOS: dict[str, ScenarioShock] = {
-    "European Gas Crisis 2022": gas_crisis(),
-    "Cold Snap Winter": cold_snap_winter(),
-    "Mild Winter Demand Slump": mild_winter_demand_slump(),
-    "Carbon Price Shock": carbon_price_shock(),
+    scenario.name: scenario
+    for scenario in (
+        gas_crisis(),
+        cold_snap_winter(),
+        mild_winter_demand_slump(),
+        carbon_price_shock(),
+    )
 }
 
 

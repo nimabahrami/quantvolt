@@ -155,12 +155,24 @@ source with `[tool.ruff]`, `[tool.mypy] strict = true`, `[tool.pytest.ini_option
 
 - **E-1 · No git baseline.** The repo has **0 commits**; the entire tree is untracked. No history to
   diff against. → Recommend an initial commit.
-- **E-2 · Empty file.** `polished_continue.md` at repo root is 0 bytes. → Remove.
-- **E-3 · Duplicated agent definitions.** `agents/` and `.claude/agents/` both hold the specialist
-  agent markdown. → Keep one (`.claude/agents/`) as the source of truth.
+- **E-1 · Git baseline** — ✅ **RESOLVED** 2026-07-16. The user made the initial commit `e3bfb7d`
+  (includes the audit + follow-up changes); future audits can diff against history.
+- **E-2 · Empty file.** `polished_continue.md` at repo root is 0 bytes. → Remove (awaiting explicit
+  go-ahead — it's a committed file, recoverable from history).
+- **E-3 · Two agent-definition dirs — NOT duplicates (corrected).** `agents/` and `.claude/agents/`
+  share the same 10 filenames but **8 of 10 files differ in content** (verified `diff -rq`), so this
+  is divergence, not duplication. → Do **not** blind-delete either; reconcile intended content, then
+  keep one. Left for the user.
 - **E-4 · Script reaches into private API.** `scripts/fetch_smard_power_data.py` imports the
-  underscore-private `_price_frame` from `quantvolt.data.smard`. → Promote a public helper or keep
-  the coupling deliberate and documented.
+  underscore-private `_price_frame` from `quantvolt.data.smard` (also used internally and by
+  `tests/unit/test_smard.py`). → Promote to a public `price_frame` and point the script at it. Left
+  pending (touches PPA-area code under active concurrent development).
+- **E-7 · Committed graphify cache inside the package (NEW, 2026-07-16).** `src/quantvolt/graphify-out/`
+  (92 files, ~2 MB of AST cache) is tracked and was swept into `e3bfb7d`, because `.gitignore` only
+  anchored `/graphify-out/` at the repo root. It would ship in the wheel. → `.gitignore` has been
+  changed to `graphify-out/` (matches any depth); the tracked cache still needs
+  `git rm -r src/quantvolt/graphify-out` (awaiting explicit go-ahead — regenerable, recoverable from
+  history). Origin: a graphify build during this session used `cache_root=src/quantvolt`.
 - **E-5 · Facade inconsistency** — ✅ **RESOLVED (code)** 2026-07-16. `assets/dispatch_approx.py`
   exports (`bang_bang`, `horizon_divide`, `time_aggregate`, `BangBangHedgeWarning`) were in
   `assets/__init__.py` but not hoisted to the top-level `quantvolt` facade. → **Fixed:** hoisted all
@@ -198,12 +210,15 @@ source with `[tool.ruff]`, `[tool.mypy] strict = true`, `[tool.pytest.ini_option
 - ✅ **A-1** — `simulate_ou` exposed through `_core` + `numerics.simulate_ou_paths` (rebuilt, tested).
 - ✅ **D-1** — `.pre-commit-config.yaml` added (uv-driven ruff + mypy).
 - ✅ **E-5** — `dispatch_approx` exports hoisted to the facade (159 names).
-- ⏳ **E-1** (initial git commit), **E-2** (remove empty `polished_continue.md`), **E-3** (dedupe
-  `agents/` vs `.claude/agents/`), **E-4** (script's private `data.smard._price_frame` import),
-  **E-6** (equation registry) — **left for the user to decide.** E-1 is a git write (do only on
-  request); E-2/E-3 are deletions of files this session did not create (the two `agents/` dirs share
-  filenames but were not confirmed byte-identical — surfaced, not auto-removed); E-4/E-6 are
-  low-priority and touch code under active concurrent development.
+- ✅ **E-1** — user made the initial commit `e3bfb7d`.
+- ⏳ **E-2** (remove empty `polished_continue.md`) and **E-7** (remove committed
+  `src/quantvolt/graphify-out/` cache, ~2 MB) — deletions of tracked files; `.gitignore` already
+  updated for E-7. **Awaiting explicit go-ahead** (a blanket "do it" was correctly not treated as
+  consent to delete named files).
+- ⏳ **E-3** — the two `agents/` dirs are **not** duplicates (8/10 files differ); needs manual
+  reconciliation, not deletion.
+- ⏳ **E-4** (promote `_price_frame` → public `price_frame`) and **E-6** (equation registry) —
+  low-priority; E-4 touches PPA-area code under active concurrent development.
 
 ## Update — the PPA feature area has grown (2026-07-16)
 

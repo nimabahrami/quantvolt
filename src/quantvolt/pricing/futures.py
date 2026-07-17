@@ -13,13 +13,14 @@ Properties 10, 11).
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date
 
 from .._validation import require_non_negative, require_positive
 from ..exceptions import ExpiredContractError
 from ..models.curve import ForwardCurve
 from ..models.discount_curve import DiscountCurve
 from ..models.instruments import ForwardContract, FuturesContract
+from ._dates import settlement_date as _settlement_date
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,9 +56,9 @@ def _forward_price_and_discount_factor(
             f"{delivery_end.isoformat()}, strictly before valuation_date "
             f"{valuation_date.isoformat()}; expired contracts cannot be priced"
         )
-    settlement_date = delivery_end + timedelta(days=settlement_lag_days)
+    settlement = _settlement_date(contract.delivery_period, settlement_lag_days)
     forward_price = forward_curve.price_at(contract.delivery_period)
-    discount_factor = discount_curve.discount_factor(settlement_date)
+    discount_factor = discount_curve.discount_factor(settlement)
     return forward_price, discount_factor
 
 
@@ -115,19 +116,21 @@ def futures_delta(
     *,
     settlement_lag_days: int = 0,
 ) -> float:
-    """Delta of the contract NPV to the forward price, by central finite difference.
+    """Delta of the contract NPV to the forward price: ``discount_factor * notional``.
 
-    Reprices at ``forward_price ± bump`` and returns
-    ``(npv_up - npv_down) / (2 * bump)``. The NPV is linear in the forward price,
-    so the central difference is exact for any ``bump > 0`` and always equals
-    ``discount_factor(settlement_date) * notional``.
+    The NPV is linear in the forward price, so this closed form is exact — it is
+    what a central finite difference at ``forward_price ± bump`` would compute for
+    any ``bump > 0`` (up to floating-point round-off), without repricing twice or
+    looking up the forward price at all.
 
     Args:
         contract: The futures or forward contract to price.
         forward_curve: Must have a node for ``contract.delivery_period``.
         valuation_date: The date NPV is computed as of.
         discount_curve: Must cover the settlement date.
-        bump: Forward-price bump size, strictly positive.
+        bump: Retained for signature compatibility with the historical
+            finite-difference form and still validated as strictly positive;
+            unused in the closed-form computation itself.
         settlement_lag_days: Calendar days added to the delivery period's last
             day to get the settlement date, matching :func:`price_futures` so
             price and delta agree (default 0, non-negative).
@@ -141,11 +144,7 @@ def futures_delta(
             or ``discount_curve`` does not cover the settlement date (Req 3.4).
     """
     require_positive("bump", bump)
-    forward_price, discount_factor = _forward_price_and_discount_factor(
+    _, discount_factor = _forward_price_and_discount_factor(
         contract, forward_curve, valuation_date, discount_curve, settlement_lag_days
     )
-    npv_up = discount_factor * (forward_price + bump - contract.contract_price) * contract.notional
-    npv_down = (
-        discount_factor * (forward_price - bump - contract.contract_price) * contract.notional
-    )
-    return (npv_up - npv_down) / (2.0 * bump)
+    return discount_factor * contract.notional

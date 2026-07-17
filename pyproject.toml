@@ -8,13 +8,44 @@ version = "0.1.0"
 description = "Quantitative analysis of European power and energy markets"
 readme = "README.md"
 requires-python = ">=3.12"
-authors = [{ name = "quantvolt" }]
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Nima Bahrami", email = "nima@skillmix.nl" }]
+keywords = [
+    "energy",
+    "power",
+    "gas",
+    "carbon",
+    "quant",
+    "derivatives",
+    "risk-management",
+    "pricing",
+    "monte-carlo",
+    "forward-curve",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Rust",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Typing :: Typed",
+]
 dependencies = [
     "polars>=1.0",
     "numpy>=2.0",
     "scipy>=1.13",
     "statsmodels>=0.14",
 ]
+
+[project.urls]
+Homepage = "https://nimabahrami.github.io/quantvolt/"
+Documentation = "https://nimabahrami.github.io/quantvolt/"
+Repository = "https://github.com/nimabahrami/quantvolt"
+Issues = "https://github.com/nimabahrami/quantvolt/issues"
 
 [project.scripts]
 quantvolt = "quantvolt.cli:main"
@@ -34,6 +65,25 @@ dev = [
 python-source = "src"
 module-name = "quantvolt._core"
 features = ["pyo3/extension-module"]
+# Keep the sdist to the buildable package only. The docs site, rendered docs,
+# research data, helper scripts, and the logo are not part of the installable
+# library and would only bloat the distribution.
+exclude = [
+    "site/**",
+    "docs/**",
+    "data/**",
+    "scripts/**",
+    "tests/**",
+    ".github/**",
+    ".kiro/**",
+    "agents/**",
+    "graphify-out/**",
+    "energy_power_risk_management_ch10_appendices.md",
+    "polished_continue.md",
+    "polished_energy_derivatives_modeling_specification.md",
+    "uv.lock",
+    ".pre-commit-config.yaml",
+]
 
 [tool.ruff]
 line-length = 100

@@ -15,6 +15,15 @@ if TYPE_CHECKING:
 _REQUIRED_COLUMNS = ("location", "date", "temp_celsius")
 
 
+def _degree_days(deviation: float) -> float:
+    """``max(0, deviation)`` — the shared degree-day clip, applied to a signed deviation.
+
+    ``heating_degree_days`` passes ``base - temp`` and ``cooling_degree_days`` passes
+    ``temp - base``; this is the one place the ``max(0, ...)`` formula is written.
+    """
+    return max(0.0, deviation)
+
+
 @dataclass(frozen=True, slots=True)
 class TemperatureData:
     """A single location/day temperature observation.
@@ -32,11 +41,11 @@ class TemperatureData:
 
     @property
     def heating_degree_days(self) -> float:
-        return max(0.0, self.base_celsius - self.temp_celsius)
+        return _degree_days(self.base_celsius - self.temp_celsius)
 
     @property
     def cooling_degree_days(self) -> float:
-        return max(0.0, self.temp_celsius - self.base_celsius)
+        return _degree_days(self.temp_celsius - self.base_celsius)
 
 
 def degree_days(temperatures: pl.DataFrame, base_celsius: float = 18.0) -> pl.DataFrame:

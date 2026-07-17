@@ -44,7 +44,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date
 
 from .._validation import require_non_negative
 from ..exceptions import InsufficientDataError, ValidationError
@@ -53,6 +53,7 @@ from ..models.discount_curve import DiscountCurve
 from ..models.instruments import PipelineRight, TransmissionRight, TransportDirection
 from ..models.schedule import DeliveryPeriod
 from ..numerics.daycount import actual_365
+from ._dates import settlement_date as _settlement_date
 from .spread_option import SpreadOptionRequest, price_spread_option
 
 TransportRight = TransmissionRight | PipelineRight
@@ -322,7 +323,7 @@ def value_transport_right(
     for period in shared:
         price_a = prices_a[period]
         price_b = prices_b[period]
-        settlement = period.last_day + timedelta(days=settlement_lag_days)
+        settlement = _settlement_date(period, settlement_lag_days)
         discount_factor = discount_curve.discount_factor(settlement)
         # Decision horizon (Req 24.2): time_to_expiry is to the period's last delivery
         # day, NOT the (possibly lagged) settlement date used for discounting above.

@@ -18,20 +18,9 @@ import math
 from collections.abc import Callable
 from typing import Literal
 
-from scipy.stats import norm  # type: ignore[import-untyped]
-
+from ._normal import norm_cdf as _norm_cdf
+from ._normal import norm_pdf as _norm_pdf
 from .black76 import black76_price
-
-
-def _norm_cdf(x: float) -> float:
-    """Standard normal cumulative distribution function ``N(x)``."""
-    return float(norm.cdf(x))
-
-
-def _norm_pdf(x: float) -> float:
-    """Standard normal probability density function ``n(x)``."""
-    return float(norm.pdf(x))
-
 
 # --- Asian (Task 16) -------------------------------------------------------
 
@@ -112,9 +101,10 @@ def turnbull_wakeman(
     """
     sqrt_t = math.sqrt(time_to_expiry)
     if sigma * sqrt_t == 0.0:
-        if option_type == "call":
-            return discount_factor * max(forward - strike, 0.0)
-        return discount_factor * max(strike - forward, 0.0)
+        # Same discounted-intrinsic fallback as black76_price's degenerate branch:
+        # delegate rather than duplicate it (the matched sigma_a is moot once the
+        # average is deterministic).
+        return black76_price(option_type, forward, strike, 0.0, time_to_expiry, discount_factor)
     var = sigma**2 * time_to_expiry
     moment_ratio_minus_one = _asian_second_moment_ratio(var)
     sigma_a = math.sqrt(math.log1p(moment_ratio_minus_one) / time_to_expiry)

@@ -98,15 +98,17 @@ from scipy.stats import norm  # type: ignore[import-untyped]
 
 from .._validation import require_probability
 from ..exceptions import ValidationError
+from ._levels import DEFAULT_CONFIDENCES, var_quantiles
+from ._levels import validate_confidence_pair as _validate_confidence_pair
 
 if TYPE_CHECKING:
     from ..portfolio.model import PricedPosition
 
 _ROW_SUM_TOL = 1e-9
 
-#: Default VaR confidence levels (95% / 99%), matching the fraction convention of
-#: risk/parametric_var.py's ``DEFAULT_CONFIDENCES``.
-DEFAULT_CONFIDENCES: tuple[float, float] = (0.95, 0.99)
+# DEFAULT_CONFIDENCES (95% / 99%) is a re-exported public name, sourced from the
+# shared ``risk/_levels.py`` helper (see its module docstring) rather than
+# duplicated here.
 
 
 @dataclass(frozen=True, slots=True)
@@ -202,32 +204,6 @@ def _recovery_for(counterparty: str, recovery: float | Mapping[str, float]) -> f
     return float(recovery)
 
 
-def _validate_confidence_pair(confidences: Sequence[float]) -> tuple[float, float]:
-    """Coerce/validate the two credit-VaR confidence levels (fractions in ``(0, 1)``).
-
-    Returns the corresponding percentage-point pair (``confidence * 100``) for
-    :func:`numpy.percentile`, in ``(credit_var_95_level, credit_var_99_level)`` order.
-    """
-    levels = tuple(float(c) for c in confidences)
-    if len(levels) != 2:
-        raise ValidationError(
-            f"confidences must contain exactly 2 levels (for credit_var_95 and "
-            f"credit_var_99), got {len(levels)}"
-        )
-    for confidence in levels:
-        if not 0.0 < confidence < 1.0:
-            raise ValidationError(
-                f"each confidence must be in the open interval (0, 1), got {confidence!r}"
-            )
-    lo, hi = levels
-    if not lo < hi:
-        raise ValidationError(
-            "confidences must be strictly ascending as (credit_var_95_level, "
-            f"credit_var_99_level) — i.e. confidences[0] < confidences[1] — got {levels!r}"
-        )
-    return lo * 100.0, hi * 100.0
-
-
 def credit_var(
     positions: Sequence[PricedPosition],
     transition: Mapping[str, npt.ArrayLike],
@@ -280,7 +256,9 @@ def credit_var(
     if path_count < 1:
         raise ValidationError(f"path_count must be >= 1, got {path_count}")
     require_probability("asset_correlation", asset_correlation)
-    var_lo_pct, var_hi_pct = _validate_confidence_pair(confidences)
+    var_lo_pct, var_hi_pct = _validate_confidence_pair(
+        confidences, low_name="credit_var_95", high_name="credit_var_99"
+    )
 
     # Validate every supplied transition row (Req 17.4: "any supplied" probability), even
     # for counterparties absent from the book; keep the default probabilities for lookup.
@@ -347,9 +325,10 @@ def credit_var(
     else:
         losses = np.zeros(path_count, dtype=np.float64)
 
+    credit_var_95, credit_var_99 = var_quantiles(losses, var_lo_pct, var_hi_pct)
     return CreditVaRResult(
-        credit_var_95=float(np.percentile(losses, var_lo_pct)),
-        credit_var_99=float(np.percentile(losses, var_hi_pct)),
+        credit_var_95=credit_var_95,
+        credit_var_99=credit_var_99,
         expected_credit_loss=float(losses.mean()),
         per_counterparty=tuple(details),
         credit_risk_free=tuple(credit_risk_free),

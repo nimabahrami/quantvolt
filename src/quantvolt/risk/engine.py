@@ -59,6 +59,10 @@ import numpy.typing as npt
 
 from .._validation import require_positive
 from ..exceptions import ValidationError
+from ._levels import DEFAULT_CONFIDENCES as DEFAULT_VAR_CONFIDENCES
+from ._levels import DEFAULT_CVAR_CONFIDENCE, loss_metrics
+from ._levels import validate_confidence_pair as _validate_var_confidences
+from ._levels import validate_single_confidence as _validate_single_confidence
 from .aggregation import DeltaMatrix
 from .aggregation import aggregate_delta as _aggregate_delta
 from .scenarios import ScenarioCatalogue, ScenarioShock, ShockKey
@@ -66,11 +70,9 @@ from .scenarios import ScenarioCatalogue, ScenarioShock, ShockKey
 if TYPE_CHECKING:
     from ..portfolio.model import PricedPosition
 
-#: Default VaR confidence levels for compute_risk (95% / 99%), matching the fraction
-#: convention of risk/parametric_var.py's ``DEFAULT_CONFIDENCES``.
-DEFAULT_VAR_CONFIDENCES: tuple[float, float] = (0.95, 0.99)
-#: Default CVaR confidence level for compute_risk (97.5%).
-DEFAULT_CVAR_CONFIDENCE: float = 0.975
+# DEFAULT_VAR_CONFIDENCES (95% / 99%) and DEFAULT_CVAR_CONFIDENCE (97.5%) are
+# re-exported public names, sourced from the shared ``risk/_levels.py`` helper
+# (see its module docstring) rather than duplicated here.
 
 
 @dataclass(frozen=True, slots=True)
@@ -149,43 +151,6 @@ def _require_scenario_matrix(scenario_matrix: npt.NDArray[np.float64]) -> None:
         )
     if scenario_matrix.shape[0] == 0:
         raise ValidationError("scenario_matrix must contain at least one scenario row, got 0 rows")
-
-
-def _validate_var_confidences(confidences: Sequence[float]) -> tuple[float, float]:
-    """Coerce/validate the two VaR confidence levels (fractions in the open interval (0, 1)).
-
-    Returns the corresponding percentage-point pair (``confidence * 100``) for
-    :func:`numpy.percentile`, in ``(var_95_level, var_99_level)`` order.
-    """
-    levels = tuple(float(c) for c in confidences)
-    if len(levels) != 2:
-        raise ValidationError(
-            f"confidences must contain exactly 2 levels (for var_95 and var_99), got {len(levels)}"
-        )
-    for confidence in levels:
-        if not 0.0 < confidence < 1.0:
-            raise ValidationError(
-                f"each confidence must be in the open interval (0, 1), got {confidence!r}"
-            )
-    lo, hi = levels
-    if not lo < hi:
-        raise ValidationError(
-            "confidences must be strictly ascending as (var_95_level, var_99_level) "
-            f"— i.e. confidences[0] < confidences[1] — got {levels!r}"
-        )
-    return lo * 100.0, hi * 100.0
-
-
-def _validate_cvar_confidence(cvar_confidence: float) -> float:
-    """Coerce/validate ``cvar_confidence`` (a fraction in the open interval (0, 1)).
-
-    Returns the corresponding percentage point (``cvar_confidence * 100``) for
-    :func:`numpy.percentile`.
-    """
-    level = float(cvar_confidence)
-    if not 0.0 < level < 1.0:
-        raise ValidationError(f"cvar_confidence must be in the open interval (0, 1), got {level!r}")
-    return level * 100.0
 
 
 def _position_pnl(position: PricedPosition, shocks: Mapping[ShockKey, float]) -> float:
@@ -275,7 +240,7 @@ class RiskEngine:
         _require_scenario_matrix(scenario_matrix)
         require_positive("timeout_seconds", timeout_seconds)
         var_lo_pct, var_hi_pct = _validate_var_confidences(confidences)
-        cvar_pct = _validate_cvar_confidence(cvar_confidence)
+        cvar_pct = _validate_single_confidence(cvar_confidence, name="cvar_confidence")
 
         included: list[PricedPosition] = []
         exclusion_report: list[ExcludedPosition] = []
@@ -314,10 +279,7 @@ class RiskEngine:
             pnl = scenario_matrix @ delta_vector
 
         losses = -pnl
-        var_95 = float(np.percentile(losses, var_lo_pct))
-        var_99 = float(np.percentile(losses, var_hi_pct))
-        tail_threshold = np.percentile(losses, cvar_pct)
-        cvar_975 = float(losses[losses >= tail_threshold].mean())
+        var_95, var_99, cvar_975 = loss_metrics(losses, var_lo_pct, var_hi_pct, cvar_pct)
 
         return RiskResult(
             var_95=var_95,

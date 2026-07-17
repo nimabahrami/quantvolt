@@ -173,15 +173,15 @@ def _closed_form_greeks(
     forward_bump = forward_bump_fraction * forward
     vol_bump = min(vol_bump, 0.5 * sigma)
     time_bump = min(time_bump, 0.5 * time_to_expiry)
-    gamma = (
-        value(forward + forward_bump, sigma, time_to_expiry)
-        - 2.0 * value(forward, sigma, time_to_expiry)
-        + value(forward - forward_bump, sigma, time_to_expiry)
-    ) / forward_bump**2
+    # Delta and gamma share the same forward +/- bump evaluations (one kernel call each,
+    # not two); gamma's base term reuses the already-computed `premium` instead of
+    # re-evaluating the kernel at the unbumped inputs.
+    forward_up = value(forward + forward_bump, sigma, time_to_expiry)
+    forward_down = value(forward - forward_bump, sigma, time_to_expiry)
+    delta = (forward_up - forward_down) / (2.0 * forward_bump)
+    gamma = (forward_up - 2.0 * premium + forward_down) / forward_bump**2
     return Greeks(
-        delta=finite_difference_bump(
-            lambda f: value(f, sigma, time_to_expiry), forward, forward_bump
-        ),
+        delta=delta,
         gamma=gamma,
         vega=finite_difference_bump(lambda s: value(forward, s, time_to_expiry), sigma, vol_bump),
         theta=-finite_difference_bump(

@@ -43,11 +43,8 @@ from .._validation import require_correlation, require_positive
 from ..exceptions import ValidationError
 from ..numerics.risk_adjustment import PriceOfRiskKind
 from ..numerics.rootfind import finite_difference_bump
-
-#: Upper bound on the 2-norm condition number of ``Σ_hh`` before it is treated as
-#: numerically singular. ``1/eps`` is the point past which the linear solve loses
-#: all significant digits, so beyond it a returned hedge would be meaningless.
-_CONDITION_LIMIT: float = 1.0 / np.finfo(np.float64).eps
+from ._conditioning import CONDITION_LIMIT as _CONDITION_LIMIT
+from ._conditioning import require_well_conditioned as _require_well_conditioned
 
 
 def variance_min_hedge(
@@ -114,15 +111,17 @@ def variance_min_hedge(
         raise ValidationError("sigma_ht must contain only finite values (no NaN or inf)")
     require_positive("condition_limit", condition_limit)
 
-    condition_number = float(np.linalg.cond(hh))
-    if not np.isfinite(condition_number) or condition_number > condition_limit:
-        raise ValidationError(
+    _require_well_conditioned(
+        hh,
+        condition_limit,
+        lambda condition_number: (
             f"sigma_hh is singular or ill-conditioned (2-norm condition number "
             f"{condition_number:.3e} exceeds the limit {condition_limit:.3e}): the "
             f"variance-minimizing system Σ_hh·h* = Σ_ht cannot be solved stably. No silent "
             f"pseudo-inverse is used -- supply hedge instruments whose covariance matrix is "
             f"non-singular (i.e. no perfectly collinear instruments)."
-        )
+        ),
+    )
 
     return np.asarray(np.linalg.solve(hh, ht), dtype=np.float64)
 

@@ -46,10 +46,10 @@ __all__ = [
     "fetch",
     "info",
     "list_datasets",
-    "path",
     "parse_rebap_csv",
-    "restore",
+    "path",
     "remove",
+    "restore",
     "snapshot",
     "verify",
 ]

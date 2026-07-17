@@ -20,9 +20,15 @@ from datetime import date
 import httpx
 import polars as pl
 
-from .._validation import require_non_negative, require_positive
 from ..exceptions import DataSourceError, DataUnavailableError
-from .base import Credentials, _get_with_retries, _raise_for_status, _require_https
+from .base import (
+    Credentials,
+    _http_get,
+    _json_object,
+    _raise_for_status,
+    _require_https,
+    _validate_retry_config,
+)
 
 _BASE_URL = "https://transparency.entsog.eu/api/v4/operationalData"
 _TIMEOUT_SECONDS = 30.0
@@ -60,9 +66,7 @@ class EntsogSource:
                 retries, ``backoff_seconds * 2**attempt`` (default ``1.0``); must be
                 ``>= 0``.
         """
-        require_positive("timeout_seconds", timeout_seconds)
-        require_non_negative("max_retries", max_retries)
-        require_non_negative("backoff_seconds", backoff_seconds)
+        _validate_retry_config(timeout_seconds, max_retries, backoff_seconds)
         self._credentials = credentials or Credentials.from_env("entsog")
         self._transport = transport
         self._base_url = base_url
@@ -115,21 +119,16 @@ class EntsogSource:
             "to": end.isoformat(),
             "limit": str(limit),
         }
-        with httpx.Client(transport=self._transport, timeout=self._timeout_seconds) as client:
-            response = _get_with_retries(
-                client,
-                self._base_url,
-                params,
-                max_retries=self._max_retries,
-                backoff_seconds=self._backoff_seconds,
-            )
+        response = _http_get(
+            self._transport,
+            self._base_url,
+            params,
+            timeout_seconds=self._timeout_seconds,
+            max_retries=self._max_retries,
+            backoff_seconds=self._backoff_seconds,
+        )
         _raise_for_status(self.provider, response.status_code)
-        try:
-            payload: object = response.json()
-        except ValueError as exc:
-            raise DataSourceError(f"{self.provider}: provider returned unparseable JSON") from exc
-        if not isinstance(payload, dict):
-            raise DataSourceError(f"{self.provider}: unexpected payload shape (not an object)")
+        payload = _json_object(self.provider, response)
         records = payload.get("operationalData")
         if not isinstance(records, list) or not records:
             raise DataUnavailableError(

@@ -10,8 +10,8 @@ kernels both price a *call* on a spread and return the discounted premium:
 - :func:`kirk` — the non-zero-strike spread option, ``max(F1 - F2 - K, 0)``,
   priced by Kirk's approximation. With ``strike == 0`` it reduces to Margrabe.
 
-The standard normal CDF is evaluated via :func:`math.erf`, which is exact and
-fully typed, so no external stubs are required.
+The standard normal CDF is the shared :func:`~quantvolt.numerics._normal.norm_cdf`
+(also used by ``black76.py`` / ``exotic.py``).
 """
 
 from __future__ import annotations
@@ -19,11 +19,7 @@ from __future__ import annotations
 import math
 
 from ..exceptions import ValidationError
-
-
-def _norm_cdf(x: float) -> float:
-    """Standard normal cumulative distribution function ``N(x)``."""
-    return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
+from ._normal import norm_cdf as _norm_cdf
 
 
 def margrabe(

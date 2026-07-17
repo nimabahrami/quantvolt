@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date
 from itertools import pairwise
 
 import numpy as np
@@ -38,6 +38,8 @@ from ..models.discount_curve import DiscountCurve
 from ..models.instruments import SwapContract
 from ..models.schedule import DeliveryPeriod
 from ..numerics.daycount import actual_365
+from ._dates import gather_discount_factors
+from ._dates import settlement_date as _settlement_date
 
 _BASIS_POINT = 1e-4
 
@@ -92,11 +94,6 @@ def _forward_prices(
     return np.asarray(prices, dtype=np.float64)
 
 
-def _settlement_date(period: DeliveryPeriod, settlement_lag_days: int) -> date:
-    """The period's last day plus ``settlement_lag_days`` calendar days (default 0)."""
-    return period.last_day + timedelta(days=settlement_lag_days)
-
-
 def _discount_factors(
     periods: tuple[DeliveryPeriod, ...],
     discount_curve: DiscountCurve,
@@ -108,19 +105,12 @@ def _discount_factors(
     :class:`MissingTenorError` naming *every* period whose settlement date falls
     outside the discount curve's tenor range, rather than extrapolating silently.
     """
-    factors: list[float] = []
-    missing: list[str] = []
-    for period in periods:
-        settlement = _settlement_date(period, settlement_lag_days)
-        try:
-            factors.append(discount_curve.discount_factor(settlement))
-        except MissingTenorError:
-            missing.append(f"{period!r} (settlement {settlement.isoformat()})")
-    if missing:
-        raise MissingTenorError(
-            "discount_curve must cover every settlement date in swap.schedule; "
-            f"missing: {', '.join(missing)}"
-        )
+    factors = gather_discount_factors(
+        periods,
+        discount_curve,
+        settlement_lag_days,
+        not_covered_message="discount_curve must cover every settlement date in swap.schedule",
+    )
     return np.asarray(factors, dtype=np.float64)
 
 

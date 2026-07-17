@@ -80,12 +80,8 @@ from numpy.typing import NDArray
 
 from .._validation import require_positive
 from ..exceptions import ValidationError
-
-#: Upper bound on the 2-norm condition number of ``C`` before the global system
-#: ``C·g = b`` is treated as numerically singular. ``1/eps`` is the point past
-#: which the linear solve loses all significant digits (mirrors the guard in
-#: :mod:`quantvolt.hedging.variance_min`).
-_CONDITION_LIMIT: float = 1.0 / np.finfo(np.float64).eps
+from ._conditioning import CONDITION_LIMIT as _CONDITION_LIMIT
+from ._conditioning import require_well_conditioned as _require_well_conditioned
 
 
 def _validate_increment_covariances(
@@ -222,9 +218,10 @@ def global_mean_variance(
     m, c = _validate_increment_covariances(cov_target_hedge, cov_hedge)
     require_positive("condition_limit", condition_limit)
 
-    condition_number = float(np.linalg.cond(c))
-    if not np.isfinite(condition_number) or condition_number > condition_limit:
-        raise ValidationError(
+    _require_well_conditioned(
+        c,
+        condition_limit,
+        lambda condition_number: (
             f"cov_hedge is singular or ill-conditioned (2-norm condition number "
             f"{condition_number:.3e} exceeds the limit {condition_limit:.3e}): the global "
             f"variance-minimising system C·g = b cannot be solved stably, so the joint "
@@ -232,7 +229,8 @@ def global_mean_variance(
             f"supply hedge increments whose covariance matrix is non-singular (no perfectly "
             f"collinear increments across periods), or use local_mean_variance, which needs "
             f"only per-period variances and always exists."
-        )
+        ),
+    )
 
     b = m.sum(axis=0)
     return np.asarray(np.linalg.solve(c, b), dtype=np.float64)

@@ -78,6 +78,7 @@ from dataclasses import dataclass
 
 from .._validation import require_positive
 from ..exceptions import ValidationError
+from ._tolerance import GRID_EPS
 from .plant import PlantModel
 
 # Commitment status codes for the DP state tuple ``(status, level_idx, timer)``.
@@ -86,8 +87,11 @@ _STARTING = 1
 _ONLINE = 2
 # level_idx placeholder when the unit is not producing.
 _NO_LEVEL = -1
-# Feasibility tolerance for grid / ramp / capacity comparisons (MW).
-_EPS = 1e-9
+# Feasibility tolerance for grid / ramp / capacity comparisons (MW); shared with
+# storage.py (see assets/_tolerance.py). ``dispatch_sdp`` imports this name, so it is
+# a plain module-level assignment (not a re-exported import) to stay import-clean
+# under ``mypy --strict``'s implicit-reexport check.
+_EPS = GRID_EPS
 
 # A DP state: (status, output-level index, timer). See module docstring.
 _State = tuple[int, int, int]

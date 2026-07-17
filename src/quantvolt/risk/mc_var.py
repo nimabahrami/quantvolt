@@ -117,6 +117,10 @@ from ..numerics.monte_carlo import build_covariance, simulate_correlated_forward
 from ..numerics.risk_adjustment import DriftKind, require_physical_drift
 from ..portfolio.model import Portfolio, Position
 from ..portfolio.valuation import MarketData, value_portfolio
+from ._levels import DEFAULT_CONFIDENCES, DEFAULT_CVAR_CONFIDENCE
+from ._levels import loss_metrics as _loss_metrics
+from ._levels import validate_confidence_pair as _validate_confidence_pair
+from ._levels import validate_single_confidence as _validate_single_confidence
 
 #: Minimum path count (Req 15.5). Requests below this raise before any simulation.
 _MIN_PATH_COUNT = 1000
@@ -131,11 +135,9 @@ _BOOTSTRAP_REPLICATES = 500
 #: decoupled from the native simulation stream.
 _BOOTSTRAP_SALT = 0x6D_63_76_61_72  # "mcvar"
 
-#: Default VaR confidence levels (95% / 99%), matching the fraction convention of
-#: risk/parametric_var.py's ``DEFAULT_CONFIDENCES``.
-DEFAULT_CONFIDENCES: tuple[float, float] = (0.95, 0.99)
-#: Default CVaR confidence level (97.5%).
-DEFAULT_CVAR_CONFIDENCE: float = 0.975
+# DEFAULT_CONFIDENCES (95% / 99%) and DEFAULT_CVAR_CONFIDENCE (97.5%) are re-exported
+# public names, sourced from the shared ``risk/_levels.py`` helper (see its module
+# docstring) rather than duplicated here.
 
 FactorLabel = tuple[str, DeliveryPeriod]
 
@@ -269,54 +271,6 @@ class McVaRResult:
     path_count: int
     holding_period: float
     seed: int
-
-
-def _validate_confidence_pair(confidences: Sequence[float]) -> tuple[float, float]:
-    """Coerce/validate the two VaR confidence levels (fractions in the open interval (0, 1)).
-
-    Returns the corresponding percentage-point pair (``confidence * 100``) for
-    :func:`numpy.percentile`, in ``(var_95_level, var_99_level)`` order.
-    """
-    levels = tuple(float(c) for c in confidences)
-    if len(levels) != 2:
-        raise ValidationError(
-            f"confidences must contain exactly 2 levels (for var_95 and var_99), got {len(levels)}"
-        )
-    for confidence in levels:
-        if not 0.0 < confidence < 1.0:
-            raise ValidationError(
-                f"each confidence must be in the open interval (0, 1), got {confidence!r}"
-            )
-    lo, hi = levels
-    if not lo < hi:
-        raise ValidationError(
-            "confidences must be strictly ascending as (var_95_level, var_99_level) "
-            f"— i.e. confidences[0] < confidences[1] — got {levels!r}"
-        )
-    return lo * 100.0, hi * 100.0
-
-
-def _validate_single_confidence(confidence: float, *, name: str) -> float:
-    """Coerce/validate a single confidence level (a fraction in the open interval (0, 1)).
-
-    Returns the corresponding percentage point (``confidence * 100``) for
-    :func:`numpy.percentile`.
-    """
-    level = float(confidence)
-    if not 0.0 < level < 1.0:
-        raise ValidationError(f"{name} must be in the open interval (0, 1), got {level!r}")
-    return level * 100.0
-
-
-def _loss_metrics(
-    losses: npt.NDArray[np.float64], var_lo_pct: float, var_hi_pct: float, cvar_pct: float
-) -> tuple[float, float, float]:
-    """``(var_95, var_99, cvar_975)`` from a loss sample at the given percentile levels."""
-    var_95 = float(np.percentile(losses, var_lo_pct))
-    var_99 = float(np.percentile(losses, var_hi_pct))
-    tail_threshold = np.percentile(losses, cvar_pct)
-    cvar_975 = float(losses[losses >= tail_threshold].mean())
-    return var_95, var_99, cvar_975
 
 
 def _bootstrap_standard_errors(

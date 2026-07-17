@@ -23,21 +23,36 @@ from __future__ import annotations
 import math
 from typing import Literal
 
-from scipy.stats import norm  # type: ignore[import-untyped]
-
 from ..exceptions import NumericalError
 from ..models.greeks import Greeks
+from ._normal import norm_cdf as _norm_cdf
+from ._normal import norm_pdf as _norm_pdf
 from .rootfind import brent_root
 
 
-def _norm_cdf(x: float) -> float:
-    """Standard normal cumulative distribution function ``N(x)``."""
-    return float(norm.cdf(x))
+def _black76_d1(
+    forward: float, strike: float, sigma: float, time_to_expiry: float, sqrt_t: float
+) -> float:
+    """``d1 = (ln(F/K) + 0.5*sigma**2*T) / (sigma*sqrt(T))``, the moneyness term shared
+    by :func:`black76_price` and :func:`black76_greeks`. Callers pass their own
+    already-computed ``sqrt_t`` so it is not recomputed here."""
+    return (math.log(forward / strike) + 0.5 * sigma**2 * time_to_expiry) / (sigma * sqrt_t)
 
 
-def _norm_pdf(x: float) -> float:
-    """Standard normal probability density function ``n(x)``."""
-    return float(norm.pdf(x))
+def _black76_price_from_d(
+    option_type: Literal["call", "put"],
+    forward: float,
+    strike: float,
+    discount_factor: float,
+    d1: float,
+    d2: float,
+) -> float:
+    """``call = DF*(F*N(d1) - K*N(d2))``, ``put = DF*(K*N(-d2) - F*N(-d1))``, given an
+    already-computed ``d1``/``d2`` (the non-degenerate branch of :func:`black76_price`,
+    factored out so :func:`black76_greeks` can reuse it without recomputing ``d1``)."""
+    if option_type == "call":
+        return discount_factor * (forward * _norm_cdf(d1) - strike * _norm_cdf(d2))
+    return discount_factor * (strike * _norm_cdf(-d2) - forward * _norm_cdf(-d1))
 
 
 def black76_price(
@@ -74,11 +89,9 @@ def black76_price(
         if option_type == "call":
             return discount_factor * max(forward - strike, 0.0)
         return discount_factor * max(strike - forward, 0.0)
-    d1 = (math.log(forward / strike) + 0.5 * sigma**2 * time_to_expiry) / (sigma * sqrt_t)
+    d1 = _black76_d1(forward, strike, sigma, time_to_expiry, sqrt_t)
     d2 = d1 - sigma * sqrt_t
-    if option_type == "call":
-        return discount_factor * (forward * _norm_cdf(d1) - strike * _norm_cdf(d2))
-    return discount_factor * (strike * _norm_cdf(-d2) - forward * _norm_cdf(-d1))
+    return _black76_price_from_d(option_type, forward, strike, discount_factor, d1, d2)
 
 
 def _black76_greeks_degenerate(
@@ -187,9 +200,10 @@ def black76_greeks(
         return _black76_greeks_degenerate(
             option_type, forward, strike, time_to_expiry, discount_factor
         )
-    d1 = (math.log(forward / strike) + 0.5 * sigma**2 * time_to_expiry) / (sigma * sqrt_t)
+    d1 = _black76_d1(forward, strike, sigma, time_to_expiry, sqrt_t)
+    d2 = d1 - sigma * sqrt_t
     pdf_d1 = _norm_pdf(d1)
-    price = black76_price(option_type, forward, strike, sigma, time_to_expiry, discount_factor)
+    price = _black76_price_from_d(option_type, forward, strike, discount_factor, d1, d2)
     rate = -math.log(discount_factor) / time_to_expiry
 
     if option_type == "call":

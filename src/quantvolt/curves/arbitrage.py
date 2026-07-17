@@ -67,8 +67,92 @@ class ArbitrageWarning:
     message: str
 
 
+def check_arbitrage(
+    curve: ForwardCurve,
+    storage_cost: float = 0.0,
+    *,
+    eps: float = _ARBITRAGE_EPS,
+) -> list[ArbitrageWarning]:
+    """Return one :class:`ArbitrageWarning` per consecutive pair violating carry.
+
+    The exact inequality flagged for a consecutive pair ``p_early < p_late`` is::
+
+        price(p_late) < price(p_early) - storage_cost * months_between - eps
+
+    i.e. a negative time spread (far below near) steeper than the cost of carry
+    can explain. Returns an empty list when the curve is clean.
+
+    Args:
+        curve: The forward curve to check.
+        storage_cost: Cost of carry per unit per month, non-negative (default
+            0.0: any strict price inversion is flagged).
+        eps: Absolute numerical slack so a spread exactly at the carry bound
+            is treated as clean rather than a floating-point false positive,
+            positive (default ``1e-9``).
+
+    Raises:
+        ValidationError: If ``storage_cost`` is negative (or non-finite), or
+            ``eps`` is not strictly positive.
+        ArbitrageError: if any node price is non-finite, so time spreads are
+            undefined and no violation can be attributed to identifiable nodes.
+    """
+    require_non_negative("storage_cost", storage_cost)
+    require_positive("eps", eps)
+    nodes = curve.nodes
+    prices: NDArray[np.float64] = np.array([node.price for node in nodes], dtype=np.float64)
+
+    finite_mask = np.isfinite(prices)
+    if not bool(finite_mask.all()):
+        non_finite = np.nonzero(~finite_mask)[0]
+        bad_periods = tuple(nodes[int(index)].period for index in non_finite)
+        raise ArbitrageError(
+            "cannot check arbitrage: non-finite forward prices at periods "
+            f"{bad_periods!r} make the calendar time spreads undefined, so a "
+            "violation cannot be attributed to identifiable nodes"
+        )
+
+    # Numeric axis (whole-month index) is monotone in period; consecutive
+    # differences give the far-minus-near spread and the month gap per pair.
+    month_index: NDArray[np.float64] = np.array(
+        [node.period.year * 12 + node.period.month for node in nodes], dtype=np.float64
+    )
+    time_spread = np.diff(prices)  # price(p_late) - price(p_early)
+    months = np.diff(month_index)
+    # slack >= 0 is clean; slack < 0 is a carry-unexplained negative spread.
+    slack = time_spread + storage_cost * months
+    offenders = np.nonzero(slack < -eps)[0]
+
+    warnings: list[ArbitrageWarning] = []
+    for index in offenders:
+        early = nodes[int(index)]
+        late = nodes[int(index) + 1]
+        gap = int(month_index[int(index) + 1] - month_index[int(index)])
+        allowance = storage_cost * gap
+        warnings.append(
+            ArbitrageWarning(
+                periods=(early.period, late.period),
+                message=(
+                    "negative time spread inconsistent with storage: "
+                    f"price({late.period!r})={late.price:.6g} is below "
+                    f"price({early.period!r})={early.price:.6g} by "
+                    f"{early.price - late.price:.6g}, exceeding the cost of carry "
+                    f"{allowance:.6g} (storage_cost={storage_cost:.6g} over "
+                    f"{gap} month(s))"
+                ),
+            )
+        )
+    return warnings
+
+
 class ArbitrageChecker:
-    """Detects storage/cost-of-carry inconsistencies in a forward curve (Task 18)."""
+    """Thin class alias over :func:`check_arbitrage` (Task 18).
+
+    ``ArbitrageChecker`` was originally the sole home of this logic; per
+    ``coding-style.md`` §0/§2 a stateless single-method class is realised as a
+    module function instead (the "lightest Python construct"). The class is kept
+    — delegating to :func:`check_arbitrage` — only because it is part of the
+    public facade and directly exercised by tests as ``ArbitrageChecker().check(...)``.
+    """
 
     def check(
         self,
@@ -77,72 +161,5 @@ class ArbitrageChecker:
         *,
         eps: float = _ARBITRAGE_EPS,
     ) -> list[ArbitrageWarning]:
-        """Return one :class:`ArbitrageWarning` per consecutive pair violating carry.
-
-        The exact inequality flagged for a consecutive pair ``p_early < p_late`` is::
-
-            price(p_late) < price(p_early) - storage_cost * months_between - eps
-
-        i.e. a negative time spread (far below near) steeper than the cost of carry
-        can explain. Returns an empty list when the curve is clean.
-
-        Args:
-            curve: The forward curve to check.
-            storage_cost: Cost of carry per unit per month, non-negative (default
-                0.0: any strict price inversion is flagged).
-            eps: Absolute numerical slack so a spread exactly at the carry bound
-                is treated as clean rather than a floating-point false positive,
-                positive (default ``1e-9``).
-
-        Raises:
-            ValidationError: If ``storage_cost`` is negative (or non-finite), or
-                ``eps`` is not strictly positive.
-            ArbitrageError: if any node price is non-finite, so time spreads are
-                undefined and no violation can be attributed to identifiable nodes.
-        """
-        require_non_negative("storage_cost", storage_cost)
-        require_positive("eps", eps)
-        nodes = curve.nodes
-        prices: NDArray[np.float64] = np.array([node.price for node in nodes], dtype=np.float64)
-
-        finite_mask = np.isfinite(prices)
-        if not bool(finite_mask.all()):
-            non_finite = np.nonzero(~finite_mask)[0]
-            bad_periods = tuple(nodes[int(index)].period for index in non_finite)
-            raise ArbitrageError(
-                "cannot check arbitrage: non-finite forward prices at periods "
-                f"{bad_periods!r} make the calendar time spreads undefined, so a "
-                "violation cannot be attributed to identifiable nodes"
-            )
-
-        # Numeric axis (whole-month index) is monotone in period; consecutive
-        # differences give the far-minus-near spread and the month gap per pair.
-        month_index: NDArray[np.float64] = np.array(
-            [node.period.year * 12 + node.period.month for node in nodes], dtype=np.float64
-        )
-        time_spread = np.diff(prices)  # price(p_late) - price(p_early)
-        months = np.diff(month_index)
-        # slack >= 0 is clean; slack < 0 is a carry-unexplained negative spread.
-        slack = time_spread + storage_cost * months
-        offenders = np.nonzero(slack < -eps)[0]
-
-        warnings: list[ArbitrageWarning] = []
-        for index in offenders:
-            early = nodes[int(index)]
-            late = nodes[int(index) + 1]
-            gap = int(month_index[int(index) + 1] - month_index[int(index)])
-            allowance = storage_cost * gap
-            warnings.append(
-                ArbitrageWarning(
-                    periods=(early.period, late.period),
-                    message=(
-                        "negative time spread inconsistent with storage: "
-                        f"price({late.period!r})={late.price:.6g} is below "
-                        f"price({early.period!r})={early.price:.6g} by "
-                        f"{early.price - late.price:.6g}, exceeding the cost of carry "
-                        f"{allowance:.6g} (storage_cost={storage_cost:.6g} over "
-                        f"{gap} month(s))"
-                    ),
-                )
-            )
-        return warnings
+        """See :func:`check_arbitrage`."""
+        return check_arbitrage(curve, storage_cost, eps=eps)

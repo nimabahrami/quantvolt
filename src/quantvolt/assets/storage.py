@@ -70,12 +70,14 @@ from .._validation import require_non_negative, require_positive
 from ..exceptions import ValidationError
 from ..models.curve import ForwardCurve
 from ..numerics.monte_carlo import build_covariance, simulate_correlated_forwards
+from ._tolerance import GRID_EPS
 
 # Ratchet curve: maximum working-gas change (volume) per period at a given fill level.
 RateCurve = Callable[[float], float]
 
-# Grid-alignment / feasibility tolerance (volume units).
-_EPS = 1e-9
+# Grid-alignment / feasibility tolerance (volume units); shared with
+# dispatch_deterministic (see assets/_tolerance.py).
+_EPS = GRID_EPS
 # Default number of inventory-grid intervals when no ``inventory_step`` is supplied.
 _DEFAULT_GRID_STEPS = 50
 # LSM regression basis degree in the spot price: 1, S, S**2 (documented in storage_value).
