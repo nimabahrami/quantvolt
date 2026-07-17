@@ -110,3 +110,7 @@
 .doc-section-note p{margin:0}
 .doc-section-note.warning-note{border-left:4px solid var(--brand-teal);background:color-mix(in srgb,var(--brand-teal) 7%,var(--bg))}
 .doc-section-note.error-note{border-left:4px solid var(--error);border-color:var(--error-border);background:var(--error-soft)}
+
+/* Keep modal search scrolling isolated from the documentation underneath. */
+html.search-open,html.search-open body{overflow:hidden;overscroll-behavior:none}
+.search-dialog,.search-results{overscroll-behavior:contain}
