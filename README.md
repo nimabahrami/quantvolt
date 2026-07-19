@@ -1,4 +1,22 @@
-# quantvolt
+<p align="center">
+  <a href="https://nimabahrami.github.io/quantvolt/">
+    <img src="https://raw.githubusercontent.com/nimabahrami/quantvolt/main/site/assets/quantvolt-icon.png" alt="QuantVolt logo" width="150">
+  </a>
+</p>
+
+<h1 align="center">QuantVolt</h1>
+
+<p align="center">
+  Quantitative analysis for European power, gas, and carbon markets.
+</p>
+
+<p align="center">
+  <a href="https://github.com/nimabahrami/quantvolt/actions/workflows/tests.yml"><img src="https://github.com/nimabahrami/quantvolt/actions/workflows/tests.yml/badge.svg?branch=main" alt="Tests"></a>
+  <a href="https://pypi.org/project/quantvolt/"><img src="https://img.shields.io/pypi/v/quantvolt.svg?logo=pypi&amp;label=PyPI" alt="PyPI version"></a>
+  <a href="https://pypi.org/project/quantvolt/"><img src="https://img.shields.io/pypi/pyversions/quantvolt.svg?logo=python&amp;logoColor=white" alt="Supported Python versions"></a>
+  <a href="https://nimabahrami.github.io/quantvolt/"><img src="https://img.shields.io/badge/docs-GitHub%20Pages-0f766e" alt="Documentation"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/nimabahrami/quantvolt" alt="MIT license"></a>
+</p>
 
 An experimentation library for **energy risk management across financial positions and
 physical assets** in European power, gas, and carbon markets. It is a pure-computation Python
