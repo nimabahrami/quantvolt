@@ -66,7 +66,7 @@ jobs:
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      - run: uv sync --extra dev
+      - run: uv sync --extra dev --extra data
       - name: Build native extension (release)
         # Release, not debug: the Rust Monte Carlo kernels are 10-50x slower in debug builds,
         # which would risk CI timeouts on convergence/standard-error tests.
