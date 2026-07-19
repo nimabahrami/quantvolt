@@ -1,4 +1,4 @@
-"""Arbitrage-violation detection for forward curves (Task 18, Req 1.4, Property 3).
+"""Arbitrage-violation detection for forward curves.
 
 Storage (cost-of-carry) consistency rule
 -----------------------------------------
@@ -22,7 +22,7 @@ contract priced below the near contract by more than the total storage cost::
 
 Such an unexplained near-to-far decline lets an operator lift the cheap far-dated
 contract against the richer near-dated exposure, capturing the excess beyond
-legitimate carry — a negative time spread inconsistent with storage (Req 1.4).
+legitimate carry — a negative time spread inconsistent with storage.
 Each offending consecutive pair is *localised* to its two identifiable nodes and
 returned as an :class:`ArbitrageWarning`. Contango (far above near) and inversions
 within the carry band are clean. With the default ``storage_cost=0.0`` any strict
@@ -35,8 +35,8 @@ Unattributable violations
 --------------------------
 When a node price is non-finite (``NaN`` / ``±inf``) the time spreads are undefined:
 the curve is plainly inconsistent, yet no violation can be attributed to a specific
-identifiable pair. Per Req 1.4 this raises :class:`ArbitrageError` rather than
-silently returning a clean result (fail loudly).
+identifiable pair. This raises ``ArbitrageError`` rather than
+silently returning a clean result.
 """
 
 from __future__ import annotations
@@ -145,13 +145,11 @@ def check_arbitrage(
 
 
 class ArbitrageChecker:
-    """Thin class alias over :func:`check_arbitrage` (Task 18).
+    """Thin class alias over ``check_arbitrage``.
 
-    ``ArbitrageChecker`` was originally the sole home of this logic; per
-    ``coding-style.md`` §0/§2 a stateless single-method class is realised as a
-    module function instead (the "lightest Python construct"). The class is kept
-    — delegating to :func:`check_arbitrage` — only because it is part of the
-    public facade and directly exercised by tests as ``ArbitrageChecker().check(...)``.
+    A stateless single-method class delegating to ``check_arbitrage``; kept
+    only because it is part of the public facade and directly exercised by
+    tests as ``ArbitrageChecker().check(...)``.
     """
 
     def check(

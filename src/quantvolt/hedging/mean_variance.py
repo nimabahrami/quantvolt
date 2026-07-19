@@ -1,4 +1,4 @@
-"""Local & global mean-variance hedging (Task 70, Requirement 18.4).
+"""Local & global mean-variance hedging.
 
 Dynamic mean-variance hedging of a position whose risk is only partially spanned
 by a traded instrument (Chapter 10, "Mean-Variance Optimization", source pages
@@ -46,7 +46,7 @@ across periods). A singular / ill-conditioned ``C`` raises
 :class:`~quantvolt.exceptions.ValidationError` naming the invertibility condition
 rather than returning a meaningless pseudo-inverse solution.
 
-**When local == global (Req 18.4).** ``g_global = C⁻¹·b`` collapses to
+**When local == global.** ``g_global = C⁻¹·b`` collapses to
 ``g_local_t = M[t, t]/C[t, t]`` exactly when both ``C`` and ``M`` are **diagonal**
 -- i.e. the increments are *uncorrelated across periods*. That holds under
 **independent increments / a martingale hedge instrument** (disjoint-interval
@@ -127,7 +127,7 @@ def _validate_increment_covariances(
 def local_mean_variance(
     cov_target_hedge: NDArray[np.float64], cov_hedge: NDArray[np.float64]
 ) -> NDArray[np.float64]:
-    """Local (one-step) mean-variance hedge ratios -- the default (Req 18.4, Property 56).
+    """Local (one-step) mean-variance hedge ratios -- the default.
 
     Minimises each rebalancing period's one-step variance ``Var(ΔV_t - g·ΔH_t)``
     separately (Föllmer-Sondermann, 1986), returning the per-period projection
@@ -175,7 +175,7 @@ def global_mean_variance(
     *,
     condition_limit: float = _CONDITION_LIMIT,
 ) -> NDArray[np.float64]:
-    """Global (total-horizon) mean-variance hedge ratios (Req 18.4, Property 56).
+    """Global (total-horizon) mean-variance hedge ratios.
 
     Minimises the *total* terminal variance ``Var(ΔV_total - gᵀ·ΔH)`` jointly over
     the whole strategy vector ``g ∈ ℝⁿ`` (``ΔV_total = Σ_t ΔV_t``). The normal
@@ -193,7 +193,7 @@ def global_mean_variance(
     are diagonal (uncorrelated increments across periods) -- e.g. under
     independent increments / a martingale hedge instrument, and in particular for
     a linear product with constant correlation and volatilities, where the common
-    ratio is ``rho·sigma_target/sigma_hedge`` (eq 10.22, Property 56).
+    ratio is ``rho·sigma_target/sigma_hedge`` (eq 10.22).
 
     Args:
         cov_target_hedge: The ``(n, n)`` cross-covariance matrix ``M`` with

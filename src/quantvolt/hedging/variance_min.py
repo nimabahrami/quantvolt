@@ -1,10 +1,10 @@
-"""Variance-minimizing & cross-commodity hedges (Task 69, Requirement 18).
+"""Variance-minimizing & cross-commodity hedges.
 
 Incomplete-market hedging kernels for the case where a position's risk is only
 partially spanned by traded instruments (Chapter 10, "Hedging"):
 
 - :func:`variance_min_hedge` -- the multi-instrument local variance-minimizing
-  hedge ratios ``h* = Σ_hh⁻¹ Σ_ht`` (Req 18.1, Property 54). Uses an explicit
+  hedge ratios ``h* = Σ_hh⁻¹ Σ_ht``. Uses an explicit
   conditioning check plus :func:`numpy.linalg.solve`; a singular / ill-conditioned
   ``Σ_hh`` raises :class:`~quantvolt.exceptions.ValidationError` rather than
   silently falling back to a pseudo-inverse.
@@ -16,7 +16,7 @@ partially spanned by traded instruments (Chapter 10, "Hedging"):
   uncorrelated unhedgeable basis (eq 10.15) whose expectation is taken under an
   *explicit corporate* risk adjustment (eq 10.16, Req 18.3 / 18.6, Property 55).
 
-**Measure discipline (Req 18.6).** The unhedgeable basis is, by construction, not
+**Measure discipline.** The unhedgeable basis is, by construction, not
 spanned by traded instruments, so there is no market price of risk to imply for
 it. Its expectation therefore requires an explicit *corporate* risk preference
 (eq 10.16 text: "it requires explicit corporate risk preferences"). Rather than
@@ -53,7 +53,7 @@ def variance_min_hedge(
     *,
     condition_limit: float = _CONDITION_LIMIT,
 ) -> NDArray[np.float64]:
-    """Variance-minimizing hedge ratios ``h* = Σ_hh⁻¹ Σ_ht`` (Req 18.1, Property 54).
+    """Variance-minimizing hedge ratios ``h* = Σ_hh⁻¹ Σ_ht``.
 
     Given a target exposure and ``n`` hedge instruments described by their return
     covariance with the target (``Σ_ht``) and with each other (``Σ_hh``), returns
@@ -78,7 +78,7 @@ def variance_min_hedge(
     Returns:
         The ``(n,)`` ``float64`` array of variance-minimizing hedge ratios. For a
         single instrument (``n == 1``) this collapses to
-        :func:`linear_cross_hedge`'s ``rho·sigma_t/sigma_h`` (Property 54).
+        :func:`linear_cross_hedge`'s ``rho·sigma_t/sigma_h``.
 
     Raises:
         ValidationError: If ``sigma_hh`` is not a non-empty square 2-D matrix, is
@@ -127,7 +127,7 @@ def variance_min_hedge(
 
 
 def linear_cross_hedge(rho: float, sigma_target: float, sigma_hedge: float) -> float:
-    """Linear two-asset cross-commodity hedge ratio ``rho·sigma_t/sigma_h`` (eq 10.22, Req 18.2).
+    """Linear two-asset cross-commodity hedge ratio ``rho·sigma_t/sigma_h`` (eq 10.22).
 
     The optimal local variance-minimizing hedge of one forward (the target, with
     volatility ``sigma_t``) with another (the hedge instrument, volatility ``sigma_h``)
@@ -190,12 +190,12 @@ def decomposed_delta(
     its risk-adjusted mean); passing the risk-adjusted expectation itself makes
     the corporate risk adjustment explicit at the call site.
 
-    **Divergence from the complete-market delta (Req 18.6 / eq 10.18).** The
+    **Divergence from the complete-market delta (eq 10.18).** The
     complete-market delta ``Δ_t = ∂V/∂F`` (eq 10.14) is taken on the fully
     hedgeable value ``V = df · E*[Payoff]`` (eq 10.13), which knows nothing of the
     basis. The forms of eqs 10.14 and 10.17 are *identical*, but their values
     differ because eqs 10.13 and 10.16 differ whenever the basis has a non-zero
-    mean or variance -- hence in general ``Δ̃_t ≠ Δ_t`` (eq 10.18, Property 55).
+    mean or variance -- hence in general ``Δ̃_t ≠ Δ_t`` (eq 10.18).
     Only for a *zero* basis (zero mean and variance) does ``E^RA_ε[Payoff] =
     Payoff``, so ``Ṽ = V`` and the two deltas coincide. For a *linear* product the
     basis enters ``Ṽ`` only as an additive constant in ``F``, so it drops out of
@@ -203,8 +203,8 @@ def decomposed_delta(
     adjustment (Example 10.2, eq 10.25); for a non-linear product the basis
     couples to ``F`` and the delta genuinely shifts.
 
-    **Explicit corporate risk adjustment (Req 18.6).** ``risk_adjustment`` is a
-    required keyword routed through the Task 63
+    **Explicit corporate risk adjustment.** ``risk_adjustment`` is a
+    required keyword routed through the
     :class:`~quantvolt.numerics.risk_adjustment.PriceOfRiskKind` vocabulary. Only
     :attr:`PriceOfRiskKind.CORPORATE` is accepted: the unhedgeable basis is not
     spanned by traded instruments, so a market/risk-neutral price of risk cannot
@@ -218,7 +218,7 @@ def decomposed_delta(
             basis, held fixed while ``forward`` is bumped.
         bump: Strictly positive central-difference step in ``forward``.
         risk_adjustment: Provenance of the basis risk adjustment; must be
-            :attr:`PriceOfRiskKind.CORPORATE` (Req 18.6).
+            :attr:`PriceOfRiskKind.CORPORATE`.
 
     Returns:
         The incomplete-market delta ``∂Ṽ/∂F`` (eq 10.17).

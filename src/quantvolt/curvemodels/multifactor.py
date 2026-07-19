@@ -1,4 +1,4 @@
-"""Multifactor & multi-commodity lognormal forward-curve models (Task 82, Req 25.3-25.6).
+"""Multifactor & multi-commodity lognormal forward-curve models.
 
 Model specification
 -------------------
@@ -33,10 +33,10 @@ whose integrated (lognormal) solution
                     + \\sum_k\\!\\int_0^t \\sigma_k\\,dW_k^{Q}\\big]
 
 **matches the initial curve** ``F(0, T)`` by construction and carries no ``Q``-drift in
-``F`` (a martingale, Property 71). §33 specialises this to monthly multi-commodity prices
+``F`` (a martingale). This specialises to monthly multi-commodity prices
 with loadings ``sigma_(i,k,m)`` (commodity ``i``, delivery month ``k``, factor ``m``) and
-three matching conditions -- forward-matching (§33.2), option-variance-matching (§33.3),
-and correlation-matching (§33.4) -- plus the cumulative covariance ``Gamma`` (§33).
+three matching conditions: forward-matching, option-variance-matching,
+and correlation-matching, plus the cumulative covariance ``Gamma``.
 
 Loadings representation
 -----------------------
@@ -92,7 +92,7 @@ _POWER_ID_SUBSTRINGS: tuple[str, ...] = ("EPEX", "PHELIX", "POWER", "NORDPOOL", 
 
 
 class LognormalPowerWarning(UserWarning):
-    """Advisory that a lognormal (``dF/F``) forward model is being used on power (Req 25.5).
+    """Advisory that a lognormal (``dF/F``) forward model is being used on power.
 
     Lognormal forward dynamics keep forwards strictly positive and impose Gaussian
     log-returns; they cannot reproduce the price spikes, negative prices, and heavy tails
@@ -113,9 +113,9 @@ class MultifactorForwardModel:
         dt: Uniform time-step ``Delta t`` in years over which each bucket's loadings hold.
             Defaults to ``1/12`` (monthly, §33). Must be ``> 0``.
 
-    The initial curve ``F(0, T)`` is *not* stored: it is supplied to :func:`simulate_forwards`
+    The initial curve ``F(0, T)`` is not stored: it is supplied to ``simulate_forwards``
     and matched by construction (the dynamics are a driftless-in-``F`` martingale from any
-    positive ``F(0, T)``; Property 71). Validation is eager (Req 11.5): 3-D shape with every
+    positive ``F(0, T)``). Validation is eager: 3-D shape with every
     axis non-empty, all-finite loadings, and ``dt > 0``.
     """
 
@@ -281,7 +281,7 @@ def induced_correlation(model: MultifactorForwardModel, step: int) -> npt.NDArra
     ``rho[i, j] = Sigma[i, j] / (sqrt(Sigma[i, i])·sqrt(Sigma[j, j]))`` ("Induced Forward
     Correlation", §32.2). By Cauchy-Schwarz on the Gram matrix ``rho in [-1, 1]`` with
     ``rho[i, i] = 1`` for every tenor of non-zero variance; the result is clipped to
-    ``[-1, 1]`` to absorb float round-off, so the bound holds exactly (Property 72). A tenor
+    ``[-1, 1]`` to absorb float round-off, so the bound holds exactly. A tenor
     with zero instantaneous variance (expired, eq A.5) has an undefined off-diagonal
     correlation with every other tenor, so those entries are set to ``0``; its OWN diagonal
     entry, however, is set to ``1`` (a unit-diagonal convention, not a claim of unit
@@ -316,7 +316,7 @@ def cumulative_covariance(
     ``integral_0^{T*} sum_k sigma_k(s, T_i) sigma_k(s, T_j) ds`` with ``T* = n·dt``. With
     ``upto_step is None`` the whole horizon (all ``n_steps`` buckets) is used. As a sum of
     Gram matrices scaled by ``dt > 0``, ``Gamma`` is symmetric and positive semidefinite by
-    construction (Property 72).
+    construction.
     """
     if upto_step is None:
         n = model.n_steps
@@ -417,7 +417,7 @@ def risk_neutral_drift(cov: npt.ArrayLike) -> npt.NDArray[np.float64]:
     The integrated multifactor solution carries the Ito correction ``-1/2 integral sum_k
     sigma_k^2 ds`` in log space, so under ``Q`` the per-step drift of ``ln F`` is
     ``-1/2·diag(C)`` where ``C`` is the one-step covariance. This drift makes the simulated
-    ``F = exp(Z)`` a martingale, ``E^Q[F(t, T)] = F(0, T)`` (Property 71). Feed it as the
+    ``F = exp(Z)`` a martingale, ``E^Q[F(t, T)] = F(0, T)``. Feed it as the
     ``drift`` argument of ``simulate_correlated_forwards``.
     """
     c = np.ascontiguousarray(cov, dtype=np.float64)
@@ -429,7 +429,7 @@ def risk_neutral_drift(cov: npt.ArrayLike) -> npt.NDArray[np.float64]:
 def mc_inputs(
     model: MultifactorForwardModel, step: int
 ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
-    """Produce the ``(sigma, corr)`` structure for the correlated MC engine (§2.20, Task 62).
+    """Produce the ``(sigma, corr)`` structure for the correlated MC engine.
 
     Decomposes the bucket-``step`` induced covariance rate into the per-index instantaneous
     volatility ``sigma_i = sqrt(Sigma[i, i])`` and the induced correlation ``R`` so the caller
@@ -437,7 +437,7 @@ def mc_inputs(
     ``numerics.monte_carlo.build_covariance(sigma, corr, model.dt)`` -- which reproduces
     ``induced_covariance(model, step)·dt`` exactly. ``sigma`` is non-negative and ``corr`` is
     symmetric, unit-diagonal, and PSD, so it passes ``build_covariance``'s validation and the
-    engine's Property-61 PSD gate. Expired tenors surface as ``sigma_i = 0`` (eq A.5).
+    engine's PSD gate. Expired tenors surface as ``sigma_i = 0`` (eq A.5).
     """
     cov = induced_covariance(model, step)
     sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
@@ -446,7 +446,7 @@ def mc_inputs(
 
 
 def warn_if_power_like(commodity_ids: Sequence[str]) -> tuple[str, ...]:
-    """Emit the lognormal-not-for-power advisory for any power-like id (Req 25.5).
+    """Emit the lognormal-not-for-power advisory for any power-like id.
 
     A lognormal ``dF/F`` forward model is *not automatically appropriate for spiky power
     prices*. This scans ``commodity_ids`` (against the built-in power ids and power-market

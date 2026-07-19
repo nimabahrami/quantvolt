@@ -1,5 +1,5 @@
 window.API_DATA = {
-  "version": "0.2.0",
+  "version": "0.2.1",
   "modules": [
     {
       "name": "quantvolt",
@@ -12,8 +12,8 @@ window.API_DATA = {
           "qualified": "quantvolt.curves.arbitrage.ArbitrageChecker",
           "kind": "class",
           "signature": "ArbitrageChecker()",
-          "summary": "Thin class alias over :func:`check_arbitrage` (Task 18).",
-          "doc": "Thin class alias over :func:`check_arbitrage` (Task 18).\n\n``ArbitrageChecker`` was originally the sole home of this logic; per\n``coding-style.md`` §0/§2 a stateless single-method class is realised as a\nmodule function instead (the \"lightest Python construct\"). The class is kept\n— delegating to :func:`check_arbitrage` — only because it is part of the\npublic facade and directly exercised by tests as ``ArbitrageChecker().check(...)``.",
+          "summary": "Thin class alias over ``check_arbitrage``.",
+          "doc": "Thin class alias over ``check_arbitrage``.\n\nA stateless single-method class delegating to ``check_arbitrage``; kept\nonly because it is part of the public facade and directly exercised by\ntests as ``ArbitrageChecker().check(...)``.",
           "methods": [
             {
               "name": "check",
@@ -128,7 +128,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 60
+          "line": 58
         },
         {
           "name": "AuthenticationError",
@@ -200,8 +200,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.bachelier.BachelierOptionResult",
           "kind": "class",
           "signature": "BachelierOptionResult(premium: float, greeks: Greeks)",
-          "summary": "Bachelier (normal-model) option output containing the discounted premium and the complete analytical Greeks object..",
-          "doc": "Bachelier (normal-model) option output containing the discounted premium and the complete analytical Greeks object.",
+          "summary": "Bachelier (normal-model) option output containing the discounted premium and the complete analytical Greeks object.",
+          "doc": "Bachelier (normal-model) option output containing the discounted premium and the\ncomplete analytical Greeks object.",
           "methods": [],
           "fields": [
             {
@@ -225,8 +225,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.dispatch_approx.BangBangHedgeWarning",
           "kind": "class",
           "signature": "BangBangHedgeWarning()",
-          "summary": "Advisory that bang-bang state aggregation biases hedges far more than values (Req 21.3).",
-          "doc": "Advisory that bang-bang state aggregation biases hedges far more than values (Req 21.3).\n\nCollapsing the output grid to {0, c_max} pins the operating point to full load,\nso the plant value loses only the (often small) part-load optionality. The\n*sensitivities* — the deltas and critical-dispatch surfaces used to hedge — are\na different matter: they read the slope of value against price, and the\napproximation replaces the true, curved heat-rate response with a single kink\nat the on/off boundary. A hedge derived from a bang-bang model can therefore be\nbadly wrong even when the headline value looks reasonable. The approximation is\nnot rejected — for a sufficiently steep heat curve the value error is genuinely\nnegligible — but the caller is warned so the choice is deliberate.",
+          "summary": "Advisory that bang-bang state aggregation biases hedges far more than values.",
+          "doc": "Advisory that bang-bang state aggregation biases hedges far more than values.\n\nCollapsing the output grid to {0, c_max} pins the operating point to full load,\nso the plant value loses only the (often small) part-load optionality. The\nsensitivities (the deltas and critical-dispatch surfaces used to hedge) are\na different matter: they read the slope of value against price, and the\napproximation replaces the true, curved heat-rate response with a single kink\nat the on/off boundary. A hedge derived from a bang-bang model can therefore be\nbadly wrong even when the headline value looks reasonable. The approximation is\nnot rejected: for a sufficiently steep heat curve the value error is genuinely\nnegligible, but the caller is warned so the choice is deliberate.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -286,7 +286,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 74
+          "line": 72
         },
         {
           "name": "CachedAssetValuation",
@@ -294,8 +294,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.CachedAssetValuation",
           "kind": "class",
           "signature": "CachedAssetValuation(asset_id: str, npv: float, delta: Mapping[tuple[str, DeliveryPeriod], float], valuation_date: date, source: ValuationSource, standard_error: float | None = None)",
-          "summary": "A precomputed, staleness-checked LSMC/dispatch valuation cache (DEFERRED roadmap, portfolio-native-pricers spec Req 19).",
-          "doc": "A precomputed, staleness-checked LSMC/dispatch valuation cache (DEFERRED roadmap,\nportfolio-native-pricers spec Req 19).\n\nFolds an expensive Monte-Carlo/dispatch-priced asset (a long-dated power plant,\nstorage position, ...) into a ``Portfolio`` as an already-computed number.\n``portfolio.valuation._price_cached_asset_valuation`` -- the pricer registered for this\ntype -- never runs an LSMC or dispatch engine itself (Req 19.2); it only re-emits this\nwrapper's ``npv``/``delta`` as a ``PricedPosition``, after checking that ``valuation_date``\nstill matches ``MarketData.valuation_date``. A mismatch means the cache is stale relative\nto the book being valued and the pricer raises a :class:`ValidationError` naming both\ndates rather than silently repricing or reusing it (Req 19.2).\n\nThe pricer also propagates :attr:`source` onto the re-emitted position's ``tags`` (the\n:class:`ValuationSource` Property-66 pattern of ``assets/long_dated.py``: downstream risk\ncode, e.g. ``var_applicability_guard``, reads the tag from ``position.position.tags``), so\na cached/simulated valuation is as visibly tagged as a projected-spot one.\n\nFields:\n    asset_id: Identifier for the underlying asset the cache was computed for -- an audit\n        trail back to the LSMC/dispatch run that produced ``npv``/``delta``.\n    npv: The precomputed net present value as of ``valuation_date``. Must be finite.\n    delta: Precomputed per-``(commodity_id, delivery period)`` exposure, in the same\n        convention as every other native pricer's ``PricedPosition.delta``. Defensively\n        copied at construction.\n    valuation_date: The date the cache was computed as of. Must equal\n        ``MarketData.valuation_date`` when priced (Req 19.2) or the pricer raises.\n    source: The :class:`ValuationSource` provenance tag for this cache -- ordinarily\n        :attr:`ValuationSource.SIMULATED` (an LSMC/dispatch cache is neither a liquid\n        forward quote nor a simple projected-spot figure); accepted as a field rather than\n        hard-coded so a caller with a different provenance can still state it explicitly.\n    standard_error: Optional Monte-Carlo standard error of ``npv``, carried through for\n        audit. ``None`` for a deterministic dispatch valuation. Must be finite and >= 0\n        when given.",
+          "summary": "A precomputed, staleness-checked LSMC/dispatch valuation cache.",
+          "doc": "A precomputed, staleness-checked LSMC/dispatch valuation cache.\n\nFolds an expensive Monte-Carlo/dispatch-priced asset (a long-dated power plant,\nstorage position, ...) into a ``Portfolio`` as an already-computed number. This\nlibrary does not itself run an LSMC or dispatch engine: it is the caller's\nresponsibility to produce ``npv``/``delta`` (e.g. via ``assets.long_dated`` or a\ncaller's own simulation) and wrap the result in this type.\n``portfolio.valuation._price_cached_asset_valuation``, the pricer registered for this\ntype, only re-emits this wrapper's ``npv``/``delta`` as a ``PricedPosition``, after\nchecking that ``valuation_date`` still matches ``MarketData.valuation_date``. A\nmismatch means the cache is stale relative to the book being valued and the pricer\nraises a ``ValidationError`` naming both dates rather than silently repricing or\nreusing it.\n\nThe pricer also propagates ``source`` onto the re-emitted position's ``tags``\n(downstream risk code, e.g. ``var_applicability_guard``, reads the tag from\n``position.position.tags``), so a cached/simulated valuation is as visibly tagged as\na projected-spot one.\n\nFields:\n    asset_id: Identifier for the underlying asset the cache was computed for -- an audit\n        trail back to the LSMC/dispatch run that produced ``npv``/``delta``.\n    npv: The precomputed net present value as of ``valuation_date``. Must be finite.\n    delta: Precomputed per-``(commodity_id, delivery period)`` exposure, in the same\n        convention as every other native pricer's ``PricedPosition.delta``. Defensively\n        copied at construction.\n    valuation_date: The date the cache was computed as of. Must equal\n        ``MarketData.valuation_date`` when priced, or the pricer raises.\n    source: The ``ValuationSource`` provenance tag for this cache -- ordinarily\n        ``ValuationSource.SIMULATED`` (an LSMC/dispatch cache is neither a liquid\n        forward quote nor a simple projected-spot figure); accepted as a field rather than\n        hard-coded so a caller with a different provenance can still state it explicitly.\n    standard_error: Optional Monte-Carlo standard error of ``npv``, carried through for\n        audit. ``None`` for a deterministic dispatch valuation. Must be finite and >= 0\n        when given.",
           "methods": [],
           "fields": [
             {
@@ -331,7 +331,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 405
+          "line": 398
         },
         {
           "name": "CapFloorRequest",
@@ -339,8 +339,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.vanilla.CapFloorRequest",
           "kind": "class",
           "signature": "CapFloorRequest(option_type: Literal['cap', 'floor'], strike: float, notional: float, caplets: tuple[VanillaOptionRequest, ...])",
-          "summary": "Inputs for a cap or floor strip over aligned forward, strike, volatility, expiry and discount-factor sequences..",
-          "doc": "Inputs for a cap or floor strip over aligned forward, strike, volatility, expiry and discount-factor sequences.",
+          "summary": "Inputs for a cap or floor strip over aligned forward, strike, volatility, expiry and discount-factor sequences.",
+          "doc": "Inputs for a cap or floor strip over aligned forward, strike, volatility, expiry and\ndiscount-factor sequences.",
           "methods": [],
           "fields": [
             {
@@ -366,7 +366,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/vanilla.py",
-          "line": 45
+          "line": 50
         },
         {
           "name": "CapFloorResult",
@@ -374,8 +374,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.vanilla.CapFloorResult",
           "kind": "class",
           "signature": "CapFloorResult(premium: float, greeks: Greeks, per_period: tuple[VanillaOptionResult, ...])",
-          "summary": "Aggregate cap/floor premium together with the individual caplet or floorlet contributions used to reconcile it..",
-          "doc": "Aggregate cap/floor premium together with the individual caplet or floorlet contributions used to reconcile it.",
+          "summary": "Aggregate cap/floor premium together with the individual caplet or floorlet contributions used to reconcile it.",
+          "doc": "Aggregate cap/floor premium together with the individual caplet or floorlet\ncontributions used to reconcile it.",
           "methods": [],
           "fields": [
             {
@@ -396,7 +396,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/vanilla.py",
-          "line": 53
+          "line": 61
         },
         {
           "name": "CapFloorStripContract",
@@ -404,8 +404,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.CapFloorStripContract",
           "kind": "class",
           "signature": "CapFloorStripContract(commodity: CommodityConfig, schedule: DeliverySchedule, cap_floor_type: CapFloorType, strike: float, notional: float, side: OptionSide = OptionSide.LONG)",
-          "summary": "A cap or floor strip on one commodity's forward curve (DEFERRED roadmap, portfolio-native-pricers spec Req 20).",
-          "doc": "A cap or floor strip on one commodity's forward curve (DEFERRED roadmap,\nportfolio-native-pricers spec Req 20).\n\nPriced natively by ``portfolio.valuation._price_cap_floor_strip``, which builds one\n``VanillaOptionRequest`` caplet per :attr:`schedule` period -- forward/vol/discount-factor\nsourced exactly like :class:`VanillaOptionContract`'s adapter (``actual_365(valuation_date,\nperiod.last_day)`` time-to-expiry, discount factor at that same date, premium already\ndiscounted -- never twice) -- and delegates the assembled strip to\n:func:`quantvolt.pricing.vanilla.price_cap_floor`.\n\n**Declared design decision** (Task-24 grounding, Requirement 20 is roadmap-thin): ONE\n``strike`` and ONE ``notional`` apply to every caplet/floorlet in the strip. This mirrors\nthe kernel's own ``CapFloorRequest`` invariant exactly (Req 5.6: \"a cap/floor strip has ONE\nstrike ... and ONE notional\"; only forward, discount factor and time-to-expiry vary\ncaplet-by-caplet) -- a per-period notional would let this value object represent a request\nthe kernel itself rejects, so it is not offered. There is also no separate ``expiry``\noverride field (unlike :class:`VanillaOptionContract`): each caplet's decision horizon is\nalways its own period's ``last_day``, the convention every per-period strip in this library\nalready uses (:class:`TollingAgreement`, ``pricing/tolling.py``).\n\nFields:\n    commodity: The single underlying commodity every caplet/floorlet strikes against.\n    schedule: The delivery periods the strip covers (kernel-enforced 1-120 caplets by\n        default -- ``price_cap_floor``'s ``max_strip_periods``).\n    cap_floor_type: :attr:`CapFloorType.CAP` (call side) or :attr:`CapFloorType.FLOOR`\n        (put side); feeds the kernel's ``option_type`` literal via ``.value``.\n    strike: The strip's single cap/floor rate, strictly positive.\n    notional: The strip's single per-period notional, strictly positive.\n    side: Direction, exactly as :class:`VanillaOptionContract` / :class:`SpreadOptionContract`\n        -- never a signed notional.",
+          "summary": "A cap or floor strip on one commodity's forward curve.",
+          "doc": "A cap or floor strip on one commodity's forward curve.\n\nPriced natively by ``portfolio.valuation._price_cap_floor_strip``, which builds one\n``VanillaOptionRequest`` caplet per ``schedule`` period, forward/vol/discount-factor\nsourced exactly like ``VanillaOptionContract``'s adapter (``actual_365(valuation_date,\nperiod.last_day)`` time-to-expiry, discount factor at that same date, premium already\ndiscounted -- never twice), and delegates the assembled strip to\n``quantvolt.pricing.vanilla.price_cap_floor``.\n\nONE ``strike`` and ONE ``notional`` apply to every caplet/floorlet in the strip. This\nmirrors the kernel's own ``CapFloorRequest`` invariant exactly (\"a cap/floor strip has\nONE strike ... and ONE notional\"; only forward, discount factor and time-to-expiry vary\ncaplet-by-caplet); a per-period notional would let this value object represent a request\nthe kernel itself rejects, so it is not offered. There is also no separate ``expiry``\noverride field (unlike ``VanillaOptionContract``): each caplet's decision horizon is\nalways its own period's ``last_day``, the convention every per-period strip in this\nlibrary already uses (``TollingAgreement``, ``pricing/tolling.py``).\n\nFields:\n    commodity: The single underlying commodity every caplet/floorlet strikes against.\n    schedule: The delivery periods the strip covers (kernel-enforced 1-120 caplets by\n        default -- ``price_cap_floor``'s ``max_strip_periods``).\n    cap_floor_type: ``CapFloorType.CAP`` (call side) or ``CapFloorType.FLOOR``\n        (put side); feeds the kernel's ``option_type`` literal via ``.value``.\n    strike: The strip's single cap/floor rate, strictly positive.\n    notional: The strip's single per-period notional, strictly positive.\n    side: Direction, exactly as ``VanillaOptionContract`` / ``SpreadOptionContract``,\n        never a signed notional.",
           "methods": [],
           "fields": [
             {
@@ -441,7 +441,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 472
+          "line": 467
         },
         {
           "name": "CapFloorType",
@@ -449,8 +449,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.CapFloorType",
           "kind": "class",
           "signature": "CapFloorType()",
-          "summary": "Whether a cap/floor strip prices call-side (``CAP``) or put-side (``FLOOR``) caplets/floorlets (DEFERRED roadmap, portfolio-native-pricers spec Req 20).",
-          "doc": "Whether a cap/floor strip prices call-side (``CAP``) or put-side (``FLOOR``)\ncaplets/floorlets (DEFERRED roadmap, portfolio-native-pricers spec Req 20).\n\nMirrors the existing ``Literal[\"cap\", \"floor\"]`` vocabulary of\n:class:`~quantvolt.pricing.vanilla.CapFloorRequest` / ``VanillaOptionRequest`` as a typed\nenum field on the instrument -- exactly as :class:`OptionType` does for\n:class:`VanillaOptionContract`'s ``Literal[\"call\", \"put\"]``.",
+          "summary": "Whether a cap/floor strip prices call-side (``CAP``) or put-side (``FLOOR``) caplets/floorlets.",
+          "doc": "Whether a cap/floor strip prices call-side (``CAP``) or put-side (``FLOOR``)\ncaplets/floorlets.\n\nMirrors the existing ``Literal[\"cap\", \"floor\"]`` vocabulary of\n``quantvolt.pricing.vanilla.CapFloorRequest`` / ``VanillaOptionRequest`` as a typed\nenum field on the instrument, exactly as ``OptionType`` does for\n``VanillaOptionContract``'s ``Literal[\"call\", \"put\"]``.",
           "methods": [],
           "fields": [],
           "members": [
@@ -464,7 +464,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 457
+          "line": 452
         },
         {
           "name": "CashflowStrategyComparison",
@@ -615,7 +615,7 @@ window.API_DATA = {
           "qualified": "quantvolt.models.commodity.CommodityConfig",
           "kind": "class",
           "signature": "CommodityConfig(commodity_id: str, price_unit: str, hub: Hub)",
-          "summary": "Immutable commodity definition containing the stable commodity ID, human-readable name and delivery hub..",
+          "summary": "Immutable commodity definition containing the stable commodity ID, human-readable name and delivery hub.",
           "doc": "Immutable commodity definition containing the stable commodity ID, human-readable name and delivery hub.",
           "methods": [],
           "fields": [
@@ -685,7 +685,7 @@ window.API_DATA = {
           "fields": [],
           "members": [],
           "source": "src/quantvolt/curves/builder.py",
-          "line": 56
+          "line": 55
         },
         {
           "name": "CurveBuildResult",
@@ -715,7 +715,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/curves/builder.py",
-          "line": 38
+          "line": 37
         },
         {
           "name": "CurveNode",
@@ -950,7 +950,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "DispatchFactorModel(log_forward0: Vector, drift: Vector, covariance: Vector, drift_kind: DriftKind, peak_kinds: tuple[PeakKind, ...], temperatures: tuple[float, ...], power_on_index: int = 0, power_off_index: int = 1, gas_index: int = 2, temperature_factor: PhysicalFactorMapping | None = None, availability_factor: PhysicalFactorMapping | None = None)",
           "summary": "Risk-adjusted factor dynamics driving stochastic dispatch (eqs. B.2-B.4).",
-          "doc": "Risk-adjusted factor dynamics driving stochastic dispatch (eqs. B.2-B.4).\n\nThe stochastic factors are correlated log-forwards evolved by the Task-62\nengine ``ΔZ = mu + L·ε`` (GBM). At least a power and a gas coordinate are\nrequired; the on-peak / off-peak Markov split (eq. B.4) is expressed by naming\ntwo power coordinates (which may coincide) and a per-period peak label.\nTemperature is supplied deterministically (``temperatures``) -- it drives\n``HR`` and ``c_max`` but is not simulated here; a stochastic temperature factor\nwould simply be another simulated coordinate added to the basis.\n\nAttributes:\n    log_forward0: Initial log-forward vector ``z0 = log F(0, ·)`` over the\n        flattened factor state, dimension ``D`` (``>= 2``).\n    drift: Per-step drift ``mu`` (length ``D``). Must be the **risk-adjusted**\n        (pricing-measure) drift and is tagged by ``drift_kind``.\n    covariance: Per-step covariance ``C`` (``D x D``), assembled by\n        :func:`~quantvolt.numerics.monte_carlo.build_covariance`.\n    drift_kind: Measure tag on ``drift``; ``dispatch_value`` requires\n        :attr:`DriftKind.RISK_NEUTRAL` (Req 21.5).\n    peak_kinds: Per-period :class:`PeakKind` selecting the active power\n        coordinate; its length is the dispatch horizon ``H`` (``>= 1``).\n    temperatures: Per-period ambient temperature ``S_t`` (length ``H``).\n    power_on_index: Coordinate of ``z0`` used as the on-peak power spot.\n    power_off_index: Coordinate used as the off-peak power spot (may equal\n        ``power_on_index`` when the horizon is single-regime).\n    gas_index: Coordinate used as the gas / fuel price.",
+          "doc": "Risk-adjusted factor dynamics driving stochastic dispatch (eqs. B.2-B.4).\n\nThe stochastic factors are correlated log-forwards evolved by the shared\nsimulation engine ``ΔZ = mu + L·ε`` (GBM). At least a power and a gas coordinate are\nrequired; the on-peak / off-peak Markov split (eq. B.4) is expressed by naming\ntwo power coordinates (which may coincide) and a per-period peak label.\nTemperature is supplied deterministically (``temperatures``) -- it drives\n``HR`` and ``c_max`` but is not simulated here; a stochastic temperature factor\nwould simply be another simulated coordinate added to the basis.\n\nAttributes:\n    log_forward0: Initial log-forward vector ``z0 = log F(0, ·)`` over the\n        flattened factor state, dimension ``D`` (``>= 2``).\n    drift: Per-step drift ``mu`` (length ``D``). Must be the risk-adjusted\n        (pricing-measure) drift and is tagged by ``drift_kind``.\n    covariance: Per-step covariance ``C`` (``D x D``), assembled by\n        ``quantvolt.numerics.monte_carlo.build_covariance``.\n    drift_kind: Measure tag on ``drift``; ``dispatch_value`` requires\n        ``DriftKind.RISK_NEUTRAL``.\n    peak_kinds: Per-period ``PeakKind`` selecting the active power\n        coordinate; its length is the dispatch horizon ``H`` (``>= 1``).\n    temperatures: Per-period ambient temperature ``S_t`` (length ``H``).\n    power_on_index: Coordinate of ``z0`` used as the on-peak power spot.\n    power_off_index: Coordinate used as the off-peak power spot (may equal\n        ``power_on_index`` when the horizon is single-regime).\n    gas_index: Coordinate used as the gas / fuel price.",
           "methods": [
             {
               "name": "horizon",
@@ -965,7 +965,7 @@ window.API_DATA = {
             {
               "name": "simulate",
               "signature": "simulate(self, seed: int, path_count: int, *, antithetic: bool=True) -> Vector",
-              "summary": "Simulate ``(n_paths, H + 1, D)`` log-forward paths (Task-62 engine)."
+              "summary": "Simulate ``(n_paths, H + 1, D)`` log-forward paths."
             }
           ],
           "fields": [
@@ -1094,7 +1094,7 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.engine.ExcludedPosition",
           "kind": "class",
           "signature": "ExcludedPosition(index: int, reason: Literal['missing_delta', 'missing_npv', 'unresolvable_instrument'])",
-          "summary": "A portfolio position omitted from a risk calculation together with the actionable reason for exclusion..",
+          "summary": "A portfolio position omitted from a risk calculation together with the actionable reason for exclusion.",
           "doc": "A portfolio position omitted from a risk calculation together with the actionable reason for exclusion.",
           "methods": [],
           "fields": [
@@ -1119,7 +1119,7 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.exotic.ExoticOptionResult",
           "kind": "class",
           "signature": "ExoticOptionResult(premium: float, greeks: Greeks, standard_error: float | None = None)",
-          "summary": "Typed exotic-option output containing premium, method attribution and optional Monte Carlo standard error..",
+          "summary": "Typed exotic-option output containing premium, method attribution and optional Monte Carlo standard error.",
           "doc": "Typed exotic-option output containing premium, method attribution and optional Monte Carlo standard error.",
           "methods": [],
           "fields": [
@@ -1141,7 +1141,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 97
+          "line": 95
         },
         {
           "name": "ExpiredContractError",
@@ -1190,8 +1190,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.ForwardContract",
           "kind": "class",
           "signature": "ForwardContract(commodity: CommodityConfig, delivery_period: DeliveryPeriod, contract_price: float, notional: float, granularity: Granularity = Granularity.MONTHLY, settlement_type: SettlementType = SettlementType.PHYSICAL, counterparty: str | None = None, side: OptionSide = OptionSide.LONG)",
-          "summary": "Bilateral forward — customisable, OTC, physical or financial settlement.",
-          "doc": "Bilateral forward — customisable, OTC, physical or financial settlement.\n\n``counterparty`` is retained for credit-risk tracking. Direction lives only in\n:attr:`side` (``short-side-instruments`` spec); :attr:`notional` is always strictly\npositive and ``side`` defaults to ``LONG`` (byte-identical to the pre-side behaviour).",
+          "summary": "Bilateral forward: customisable, OTC, physical or financial settlement.",
+          "doc": "Bilateral forward: customisable, OTC, physical or financial settlement.\n\n``counterparty`` is retained for credit-risk tracking. Direction lives only in\n``side``; ``notional`` is always strictly positive and ``side`` defaults to ``LONG``.",
           "methods": [],
           "fields": [
             {
@@ -1237,7 +1237,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 140
+          "line": 136
         },
         {
           "name": "ForwardCurve",
@@ -1291,8 +1291,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.FuturesContract",
           "kind": "class",
           "signature": "FuturesContract(commodity: CommodityConfig, delivery_period: DeliveryPeriod, contract_price: float, notional: float, granularity: Granularity = Granularity.MONTHLY, settlement_type: SettlementType = SettlementType.FINANCIAL, side: OptionSide = OptionSide.LONG)",
-          "summary": "Exchange-traded futures — standardised, margined, typically financial settlement.",
-          "doc": "Exchange-traded futures — standardised, margined, typically financial settlement.\n\nDirection lives only in :attr:`side` (``short-side-instruments`` spec); :attr:`notional`\nis always strictly positive. A ``SHORT`` future prices to the exact negation of the ``LONG``\nposition (``portfolio.valuation._price_forward_like`` sign-flips npv and delta), exactly as\n:class:`VanillaOptionContract` does. ``side`` defaults to ``LONG`` so every existing\nconstruction site is byte-identical.",
+          "summary": "Exchange-traded futures: standardised, margined, typically financial settlement.",
+          "doc": "Exchange-traded futures: standardised, margined, typically financial settlement.\n\nDirection lives only in ``side``; ``notional`` is always strictly positive. A\n``SHORT`` future prices to the exact negation of the ``LONG`` position\n(``portfolio.valuation._price_forward_like`` sign-flips npv and delta), exactly as\n``VanillaOptionContract`` does. ``side`` defaults to ``LONG``.",
           "methods": [],
           "fields": [
             {
@@ -1333,7 +1333,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 117
+          "line": 114
         },
         {
           "name": "FuturesPricingResult",
@@ -1366,8 +1366,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.schedule.Granularity",
           "kind": "class",
           "signature": "Granularity()",
-          "summary": "Single source of delivery granularity, reused by instruments (Task 3).",
-          "doc": "Single source of delivery granularity, reused by instruments (Task 3).",
+          "summary": "Single source of delivery granularity, reused by instruments.",
+          "doc": "Single source of delivery granularity, reused by instruments.",
           "methods": [],
           "fields": [],
           "members": [
@@ -1452,7 +1452,7 @@ window.API_DATA = {
           "qualified": "quantvolt.models.commodity.Hub",
           "kind": "class",
           "signature": "Hub(hub_id: str, exchange: str, price_unit: str)",
-          "summary": "Immutable market hub definition with stable ID, display name and country or market area..",
+          "summary": "Immutable market hub definition with stable ID, display name and country or market area.",
           "doc": "Immutable market hub definition with stable ID, display name and country or market area.",
           "methods": [],
           "fields": [
@@ -1483,7 +1483,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "ImpliedVolResult(implied_vol: float, moneyness: Moneyness, iteration_count: int, converged: bool)",
           "summary": "Outcome of a premium inversion (design \"Implied Volatility Calculator\").",
-          "doc": "Outcome of a premium inversion (design \"Implied Volatility Calculator\").\n\n``iteration_count`` is the number of objective (Black-76 repricing) evaluations\nBrent performed, including the two bracket-endpoint evaluations — the closest\nobservable proxy for the solver's iteration count. This matches\n:func:`scipy.optimize.brentq`'s own evaluation count exactly (verified by\n``test_implied_vol.py::test_iteration_count_matches_scipy_brentq_call_count_exactly``):\n:func:`~quantvolt.numerics.rootfind.brent_root` no longer pre-evaluates the\nendpoints itself before delegating to ``brentq`` (which evaluates them again\ninternally), a redundant pre-check that previously double-counted them and\ninflated this value by exactly 2. ``converged`` is ``True`` whenever a result is\nreturned; non-convergence raises instead of returning a partial result (fail\nloudly, ``coding-style.md`` §7).",
+          "doc": "Outcome of a premium inversion (design \"Implied Volatility Calculator\").\n\n``iteration_count`` is the number of objective (Black-76 repricing) evaluations\nBrent performed, including the two bracket-endpoint evaluations — the closest\nobservable proxy for the solver's iteration count. This matches\n:func:`scipy.optimize.brentq`'s own evaluation count exactly (verified by\n``test_implied_vol.py::test_iteration_count_matches_scipy_brentq_call_count_exactly``):\n:func:`~quantvolt.numerics.rootfind.brent_root` no longer pre-evaluates the\nendpoints itself before delegating to ``brentq`` (which evaluates them again\ninternally), a redundant pre-check that previously double-counted them and\ninflated this value by exactly 2. ``converged`` is ``True`` whenever a result is\nreturned; non-convergence raises instead of returning a partial result.",
           "methods": [],
           "fields": [
             {
@@ -1569,7 +1569,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 85
+          "line": 83
         },
         {
           "name": "InsufficientDataError",
@@ -1591,7 +1591,7 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.exotic.LookbackOptionRequest",
           "kind": "class",
           "signature": "LookbackOptionRequest(option_type: Literal['call', 'put'], strike_type: Literal['floating', 'fixed'], forward: float, sigma: float, time_to_expiry: float, discount_factor: float, strike: float | None = None)",
-          "summary": "Inputs for a fixed- or floating-strike lookback option, including observed extrema, volatility, expiry, discounting and notional..",
+          "summary": "Inputs for a fixed- or floating-strike lookback option, including observed extrema, volatility, expiry, discounting and notional.",
           "doc": "Inputs for a fixed- or floating-strike lookback option, including observed extrema, volatility, expiry, discounting and notional.",
           "methods": [],
           "fields": [
@@ -1633,7 +1633,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 86
+          "line": 84
         },
         {
           "name": "MarketData",
@@ -1641,13 +1641,13 @@ window.API_DATA = {
           "qualified": "quantvolt.portfolio.valuation.MarketData",
           "kind": "class",
           "signature": "MarketData(forward_curves: dict[str, ForwardCurve], discount_curve: DiscountCurve, valuation_date: date, vol_surfaces: dict[str, VolatilitySurface] = field(default_factory=dict), correlations: dict[tuple[str, str], float] = field(default_factory=dict))",
-          "summary": "The market inputs needed to value a portfolio (Req 13.2; portfolio-native-pricers Req 1: ``vol_surfaces`` / ``correlations`` extension).",
-          "doc": "The market inputs needed to value a portfolio (Req 13.2; portfolio-native-pricers\nReq 1: ``vol_surfaces`` / ``correlations`` extension).\n\n``forward_curves``, ``vol_surfaces`` and ``correlations`` are all defensively copied\ninto fresh ``dict``s at construction (the ``object.__setattr__`` pattern), so later\nmutation of a caller's mapping cannot reach into this frozen value object. The stored\ncopies are treated as immutable by convention from then on — nothing in the library\nwrites to them. ``vol_surfaces`` and ``correlations`` both default to empty, so every\nexisting ``MarketData(...)`` call site (and the futures/forward/swap/transport\npricers, which never touch either field) continues to work unchanged.\n\nEvery ``correlations`` value is validated once, here, to lie strictly inside\n``(-1, 1)`` via :func:`~quantvolt._validation.require_correlation`; :meth:`correlation_for`\nis therefore a pure lookup that never re-validates.",
+          "summary": "The market inputs needed to value a portfolio: forward curves, a discount curve, the valuation date, and optional volatility surfaces and correlations.",
+          "doc": "The market inputs needed to value a portfolio: forward curves, a discount curve,\nthe valuation date, and optional volatility surfaces and correlations.\n\n``forward_curves``, ``vol_surfaces`` and ``correlations`` are all defensively copied\ninto fresh ``dict``s at construction, so later mutation of a caller's mapping cannot\nreach into this frozen value object. The stored copies are treated as immutable by\nconvention from then on; nothing in the library writes to them. ``vol_surfaces`` and\n``correlations`` both default to empty.\n\nEvery ``correlations`` value is validated once, here, to lie strictly inside ``(-1, 1)``;\n``correlation_for`` is therefore a pure lookup that never re-validates.",
           "methods": [
             {
               "name": "curve_for",
               "signature": "curve_for(self, commodity_id: str) -> ForwardCurve",
-              "summary": "Return the forward curve for ``commodity_id``; raise if absent (Task 61)."
+              "summary": "Return the forward curve for ``commodity_id``; raise if absent."
             },
             {
               "name": "surface_for",
@@ -1689,7 +1689,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/portfolio/valuation.py",
-          "line": 70
+          "line": 68
         },
         {
           "name": "MissingImbalancePricePolicy",
@@ -1791,8 +1791,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.mark_to_market.MtMPosition",
           "kind": "class",
           "signature": "MtMPosition(commodity_id: str, delivery_period: DeliveryPeriod, notional: float, trade_price: float, prior_mark_price: float)",
-          "summary": "An open position to be marked to market (Req 10.1).",
-          "doc": "An open position to be marked to market (Req 10.1).\n\n``prior_mark_price`` is the mark from the previous valuation date and\n``trade_price`` the original contract price. Both may be negative — negative\nenergy prices are real in European markets — but ``notional`` must be\nstrictly positive (validated eagerly at construction).",
+          "summary": "An open position to be marked to market.",
+          "doc": "An open position to be marked to market.\n\n``prior_mark_price`` is the mark from the previous valuation date and\n``trade_price`` the original contract price. Both may be negative — negative\nenergy prices are real in European markets — but ``notional`` must be\nstrictly positive (validated eagerly at construction).",
           "methods": [],
           "fields": [
             {
@@ -1831,8 +1831,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.mark_to_market.MtMPositionResult",
           "kind": "class",
           "signature": "MtMPositionResult(daily_pnl: float, cumulative_pnl: float, current_mark: float, status: Literal['settled', 'estimated'])",
-          "summary": "Per-position mark, P&L pair, and how the mark was sourced (Req 10.1, 10.2).",
-          "doc": "Per-position mark, P&L pair, and how the mark was sourced (Req 10.1, 10.2).",
+          "summary": "Per-position mark, P&L pair, and how the mark was sourced.",
+          "doc": "Per-position mark, P&L pair, and how the mark was sourced.",
           "methods": [],
           "fields": [
             {
@@ -1892,7 +1892,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "MultifactorForwardModel(loadings: npt.NDArray[np.float64], dt: float = 1.0 / 12.0)",
           "summary": "Frozen config over factor loadings ``sigma_k(t, T)`` for the §32-33 forward model.",
-          "doc": "Frozen config over factor loadings ``sigma_k(t, T)`` for the §32-33 forward model.\n\nAttributes:\n    loadings: ``(n_steps, n_factors, n_tenors)`` ``float64`` array; ``loadings[b, k, j]``\n        is ``sigma_k(t_b, T_j)``, the instantaneous loading of factor ``k`` on tenor\n        (or ``(commodity, month)``) ``j`` over time bucket ``b`` of width ``dt``. Copied\n        and made read-only at construction so the config is genuinely immutable.\n    dt: Uniform time-step ``Delta t`` in years over which each bucket's loadings hold.\n        Defaults to ``1/12`` (monthly, §33). Must be ``> 0``.\n\nThe initial curve ``F(0, T)`` is *not* stored: it is supplied to :func:`simulate_forwards`\nand matched by construction (the dynamics are a driftless-in-``F`` martingale from any\npositive ``F(0, T)``; Property 71). Validation is eager (Req 11.5): 3-D shape with every\naxis non-empty, all-finite loadings, and ``dt > 0``.",
+          "doc": "Frozen config over factor loadings ``sigma_k(t, T)`` for the §32-33 forward model.\n\nAttributes:\n    loadings: ``(n_steps, n_factors, n_tenors)`` ``float64`` array; ``loadings[b, k, j]``\n        is ``sigma_k(t_b, T_j)``, the instantaneous loading of factor ``k`` on tenor\n        (or ``(commodity, month)``) ``j`` over time bucket ``b`` of width ``dt``. Copied\n        and made read-only at construction so the config is genuinely immutable.\n    dt: Uniform time-step ``Delta t`` in years over which each bucket's loadings hold.\n        Defaults to ``1/12`` (monthly, §33). Must be ``> 0``.\n\nThe initial curve ``F(0, T)`` is not stored: it is supplied to ``simulate_forwards``\nand matched by construction (the dynamics are a driftless-in-``F`` martingale from any\npositive ``F(0, T)``). Validation is eager: 3-D shape with every\naxis non-empty, all-finite loadings, and ``dt > 0``.",
           "methods": [
             {
               "name": "n_steps",
@@ -1952,7 +1952,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "NegativePriceClause(treatment: NegativePriceTreatment, threshold_per_mwh: float = 0.0, min_consecutive_intervals: int | None = None)",
           "summary": "How the fixed leg behaves when spot is strictly below a threshold.",
-          "doc": "How the fixed leg behaves when spot is strictly below a threshold.\n\nThe clause triggers for an interval **iff** the interval's spot price is\nstrictly less than ``threshold_per_mwh``; a spot exactly equal to the\nthreshold does NOT trigger (a declared design decision).\n\n``min_consecutive_intervals`` (default ``None``) is the optional EEG-style\nconsecutive-hour trigger length (Requirement 11): when set, the clause\nonly applies to a *maximal run* of intervals whose spot is strictly below\n``threshold_per_mwh`` that reaches or exceeds this length. **A consecutive-\nhour clause cannot be evaluated interval-locally** — determining run\nmembership needs neighbouring-row state that a single\n:func:`~quantvolt.pricing.ppa.settle_ppa_interval` call does not have. This\nis a **declared design decision**: when ``min_consecutive_intervals`` is\nset, the interval pass treats the clause as inert (``K_eff`` is resolved\nexactly as if no negative-price clause were attached at all) and the\ncross-row suspension is instead computed entirely by the post-processing\n:func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger` pass, as an explicit\n``consecutive_hour_true_up`` cash flow per reconciliation period\n(Requirement 11.2). A length of 1 would be indistinguishable from the\nordinary per-interval clause already covered by Requirement 3, so\n``min_consecutive_intervals``, when given, must be an integer ``>= 2``.",
+          "doc": "How the fixed leg behaves when spot is strictly below a threshold.\n\nThe clause triggers for an interval **iff** the interval's spot price is\nstrictly less than ``threshold_per_mwh``; a spot exactly equal to the\nthreshold does NOT trigger (a declared design decision).\n\n``min_consecutive_intervals`` (default ``None``) is the optional EEG-style\nconsecutive-hour trigger length: when set, the clause\nonly applies to a *maximal run* of intervals whose spot is strictly below\n``threshold_per_mwh`` that reaches or exceeds this length. **A consecutive-\nhour clause cannot be evaluated interval-locally** — determining run\nmembership needs neighbouring-row state that a single\n:func:`~quantvolt.pricing.ppa.settle_ppa_interval` call does not have. This\nis a **declared design decision**: when ``min_consecutive_intervals`` is\nset, the interval pass treats the clause as inert (``K_eff`` is resolved\nexactly as if no negative-price clause were attached at all) and the\ncross-row suspension is instead computed entirely by the post-processing\n:func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger` pass, as an explicit\n``consecutive_hour_true_up`` cash flow per reconciliation period.\nA length of 1 would be indistinguishable from the\nordinary per-interval clause already covered by the interval-local trigger, so\n``min_consecutive_intervals``, when given, must be an integer ``>= 2``.",
           "methods": [
             {
               "name": "triggers",
@@ -2039,7 +2039,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "OptionSide()",
           "summary": "Direction of a position, expressed only through ``side`` (never a signed notional): notional is always positive; ``LONG`` is a holder/buyer, ``SHORT`` a writer/seller.",
-          "doc": "Direction of a position, expressed only through ``side`` (never a signed notional):\nnotional is always positive; ``LONG`` is a holder/buyer, ``SHORT`` a writer/seller.\n\nFirst introduced for the option contracts, this enum now also governs the direction of\nthe forward-like instruments (:class:`FuturesContract`, :class:`ForwardContract`,\n:class:`SwapContract`) — see the ``short-side-instruments`` spec. It is deliberately\nnamed ``OptionSide`` (not a generic ``Side``) to keep the public facade export unchanged;\nthe members are the plain ``LONG``/``SHORT`` pair, correct for any two-sided position.",
+          "doc": "Direction of a position, expressed only through ``side`` (never a signed notional):\nnotional is always positive; ``LONG`` is a holder/buyer, ``SHORT`` a writer/seller.\n\nAlso governs the direction of the forward-like instruments (``FuturesContract``,\n``ForwardContract``, ``SwapContract``). It is deliberately named ``OptionSide`` (not a\ngeneric ``Side``) to keep the public facade export unchanged; the members are the\nplain ``LONG``/``SHORT`` pair, correct for any two-sided position.",
           "methods": [],
           "fields": [],
           "members": [
@@ -2053,7 +2053,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 101
+          "line": 99
         },
         {
           "name": "OptionType",
@@ -2061,8 +2061,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.OptionType",
           "kind": "class",
           "signature": "OptionType()",
-          "summary": "Whether a vanilla option is a call or a put (portfolio-native-pricers spec, Req 4).",
-          "doc": "Whether a vanilla option is a call or a put (portfolio-native-pricers spec, Req 4).",
+          "summary": "Whether a vanilla option is a call or a put.",
+          "doc": "Whether a vanilla option is a call or a put.",
           "methods": [],
           "fields": [],
           "members": [
@@ -2076,7 +2076,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 94
+          "line": 92
         },
         {
           "name": "PhysicalFactorMapping",
@@ -2125,8 +2125,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.PipelineRight",
           "kind": "class",
           "signature": "PipelineRight(origin: str, destination: str, tariff: float, quantity: float, schedule: DeliverySchedule, direction: TransportDirection = TransportDirection.A_TO_B, loss: float = 0.0, capacity: float | None = None, reverse_tariff: float | None = None)",
-          "summary": "A right to move **gas** from origin hub A to destination hub B (Req 24).",
-          "doc": "A right to move **gas** from origin hub A to destination hub B (Req 24).\n\nEconomically identical to :class:`TransmissionRight` — same payoff\n``Q_delivered * max(P_B - P_A - T_AB, 0)`` and the same field set — differing\nonly in intent (gas pipeline capacity rather than power transmission). Kept a\ndistinct type so a book never silently conflates power transmission with gas\ntransport; both are priced by the one ``value_transport_right`` engine.\n\nSee :class:`TransmissionRight` for the field semantics.",
+          "summary": "A right to move gas from origin hub A to destination hub B.",
+          "doc": "A right to move gas from origin hub A to destination hub B.\n\nEconomically identical to ``TransmissionRight``: same payoff\n``Q_delivered * max(P_B - P_A - T_AB, 0)`` and the same field set, differing only\nin intent (gas pipeline capacity rather than power transmission). Kept a distinct\ntype so a book never silently conflates power transmission with gas transport;\nboth are priced by the one ``value_transport_right`` engine.\n\nSee ``TransmissionRight`` for the field semantics.",
           "methods": [],
           "fields": [
             {
@@ -2177,7 +2177,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 328
+          "line": 325
         },
         {
           "name": "PlantConfig",
@@ -2212,7 +2212,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 249
+          "line": 246
         },
         {
           "name": "PlantModel",
@@ -2322,7 +2322,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "Portfolio(positions: tuple[Position, ...], name: str | None = None)",
           "summary": "An immutable, iterable Composite of positions — one and many handled uniformly.",
-          "doc": "An immutable, iterable Composite of positions — one and many handled uniformly.\n\nSatisfies Req 13.1: an ordered, immutable collection whose positions can be iterated\nand counted without mutation — ``__iter__`` delegates to the underlying tuple in\nconstruction order and ``__len__`` counts without side effects.",
+          "doc": "An immutable, iterable Composite of positions — one and many handled uniformly.\n\nAn ordered, immutable collection whose positions can be iterated and counted without\nmutation — ``__iter__`` delegates to the underlying tuple in construction order and\n``__len__`` counts without side effects.",
           "methods": [],
           "fields": [
             {
@@ -2376,8 +2376,8 @@ window.API_DATA = {
           "qualified": "quantvolt.portfolio.valuation.PortfolioValuation",
           "kind": "class",
           "signature": "PortfolioValuation(total_npv: float, priced: tuple[PricedPosition, ...], unpriced: tuple[Position, ...])",
-          "summary": "Aggregate NPV plus per-position results, in portfolio order (Req 13.2, 13.3).",
-          "doc": "Aggregate NPV plus per-position results, in portfolio order (Req 13.2, 13.3).",
+          "summary": "Aggregate NPV plus per-position results, in portfolio order.",
+          "doc": "Aggregate NPV plus per-position results, in portfolio order.",
           "methods": [],
           "fields": [
             {
@@ -2398,7 +2398,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/portfolio/valuation.py",
-          "line": 159
+          "line": 149
         },
         {
           "name": "Position",
@@ -2672,8 +2672,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.ppa_terms.PpaAvailabilityGuarantee",
           "kind": "class",
           "signature": "PpaAvailabilityGuarantee(deemed_availability_fraction: float)",
-          "summary": "A one-directional deemed-vs-measured availability guarantee (Requirement 10).",
-          "doc": "A one-directional deemed-vs-measured availability guarantee (Requirement 10).\n\n``deemed_availability_fraction`` is the contractually guaranteed minimum\nfraction of contracted volume the asset must make available over a\nreconciliation period. This is a **declared design decision**: the\nguarantee is modelled as **shortfall-only** — it charges a true-up when\nmeasured availability falls below the deemed threshold, and pays nothing\nback when measured availability exceeds it. It is not a symmetric two-way\ntrue-up.",
+          "summary": "A one-directional deemed-vs-measured availability guarantee.",
+          "doc": "A one-directional deemed-vs-measured availability guarantee.\n\n``deemed_availability_fraction`` is the contractually guaranteed minimum\nfraction of contracted volume the asset must make available over a\nreconciliation period. This is a **declared design decision**: the\nguarantee is modelled as **shortfall-only** — it charges a true-up when\nmeasured availability falls below the deemed threshold, and pays nothing\nback when measured availability exceeds it. It is not a symmetric two-way\ntrue-up.",
           "methods": [
             {
               "name": "shortfall_fraction",
@@ -2764,8 +2764,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.ppa_terms.PpaContractMetadata",
           "kind": "class",
           "signature": "PpaContractMetadata(goo_transfer: bool = False, goo_price_per_mwh: float | None = None, credit_support_type: PpaCreditSupportType = PpaCreditSupportType.NONE, credit_support_amount: float | None = None, credit_support_threshold: float | None = None, change_in_law_allocation: ChangeInLawAllocation | None = None)",
-          "summary": "Carried contract metadata with **ZERO settlement semantics** (Requirement 12).",
-          "doc": "Carried contract metadata with **ZERO settlement semantics** (Requirement 12).\n\nGuarantee-of-Origin, credit-support, and change-in-law fields are carried\nand validated but never enter ``K_eff`` resolution, any ledger component,\n``component_sum``, or ``net_cashflow`` — this is verified by the\nmetadata-only branch of Property 85 (Requirement 12.2), which holds for\n*any* metadata content, not only the all-default instance.",
+          "summary": "Carried contract metadata with **ZERO settlement semantics**.",
+          "doc": "Carried contract metadata with **ZERO settlement semantics**.\n\nGuarantee-of-Origin, credit-support, and change-in-law fields are carried\nand validated but never enter ``K_eff`` resolution, any ledger component,\n``component_sum``, or ``net_cashflow`` — this is verified by\nproperty-based tests covering arbitrary metadata content, not only the\nall-default instance.",
           "methods": [],
           "fields": [
             {
@@ -3204,8 +3204,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.ppa_valuation.PpaPeriodValuation",
           "kind": "class",
           "signature": "PpaPeriodValuation(period: DeliveryPeriod, forward: float, discount_factor: float, expected_mwh: float, capture_factor: float, cashflow: float, delta: float)",
-          "summary": "One period's detail behind the aggregate :class:`PpaValuationResult` (Req 15.2).",
-          "doc": "One period's detail behind the aggregate :class:`PpaValuationResult` (Req 15.2).",
+          "summary": "One period's detail behind the aggregate :class:`PpaValuationResult`.",
+          "doc": "One period's detail behind the aggregate :class:`PpaValuationResult`.",
           "methods": [],
           "fields": [
             {
@@ -3254,8 +3254,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.ppa_valuation.PpaPeriodVolume",
           "kind": "class",
           "signature": "PpaPeriodVolume(period: DeliveryPeriod, expected_mwh: float, capture_factor: float = 1.0)",
-          "summary": "Expected delivered energy and capture factor for one delivery period (Req 15.1).",
-          "doc": "Expected delivered energy and capture factor for one delivery period (Req 15.1).\n\n``expected_mwh`` is the forecast delivered energy for the period (non-negative — a\nperiod with no expected generation is a legitimate, zero-value input, not an error).\n``capture_factor`` scales the flat forward down (or up) to the plant's expected\nrealised price relative to the flat baseload forward; it defaults to ``1.0`` (a\nbaseload-like assumption) and must be strictly positive.",
+          "summary": "Expected delivered energy and capture factor for one delivery period.",
+          "doc": "Expected delivered energy and capture factor for one delivery period.\n\n``expected_mwh`` is the forecast delivered energy for the period (non-negative — a\nperiod with no expected generation is a legitimate, zero-value input, not an error).\n``capture_factor`` scales the flat forward down (or up) to the plant's expected\nrealised price relative to the flat baseload forward; it defaults to ``1.0`` (a\nbaseload-like assumption) and must be strictly positive.",
           "methods": [],
           "fields": [
             {
@@ -3326,7 +3326,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "PpaReconciliationColumns(interval_start_utc: str = 'interval_start_utc', interval_end_utc: str = 'interval_end_utc', contracted_mwh: str = 'contracted_mwh', metered_generation_mwh: str = 'metered_generation_mwh', effective_fixed_price_per_mwh: str = 'effective_fixed_price_per_mwh', spot_price_per_mwh: str = 'spot_price_per_mwh')",
           "summary": "Map caller-owned column names onto :func:`reconcile_ppa_ledger`'s ledger inputs.",
-          "doc": "Map caller-owned column names onto :func:`reconcile_ppa_ledger`'s ledger inputs.\n\nAll five columns are ordinary columns of a :func:`settle_ppa_frame` ledger\n**except** ``spot_price_per_mwh``, which that ledger does not carry (the\ninterval pass never records raw spot — see Requirement 5/6). A caller\nwhose ``contract.terms.negative_price`` carries a consecutive-hour trigger\nlength must join a spot-price column onto the ledger themselves (for\nexample from the original input frame) before calling\n:func:`reconcile_ppa_ledger`; it is required only in that case.",
+          "doc": "Map caller-owned column names onto :func:`reconcile_ppa_ledger`'s ledger inputs.\n\nAll five columns are ordinary columns of a :func:`settle_ppa_frame` ledger\n**except** ``spot_price_per_mwh``, which that ledger does not carry (the\ninterval pass never records raw spot). A caller\nwhose ``contract.terms.negative_price`` carries a consecutive-hour trigger\nlength must join a spot-price column onto the ledger themselves (for\nexample from the original input frame) before calling\n:func:`reconcile_ppa_ledger`; it is required only in that case.",
           "methods": [],
           "fields": [
             {
@@ -3362,7 +3362,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/ppa.py",
-          "line": 555
+          "line": 552
         },
         {
           "name": "PpaReconciliationPeriod",
@@ -3397,8 +3397,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.ppa_terms.PpaReconciliationTerms",
           "kind": "class",
           "signature": "PpaReconciliationTerms(period: PpaReconciliationPeriod, true_up_price_per_mwh: float, volume_band: PpaToleranceBand | None = None, availability: PpaAvailabilityGuarantee | None = None)",
-          "summary": "Period reconciliation and true-up terms (Requirements 9-11).",
-          "doc": "Period reconciliation and true-up terms (Requirements 9-11).\n\n``period`` (Requirement 9.1) sets the aggregation cadence used by\n:func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger`, a **pure post-\nprocessing pass over an already-settled interval ledger that makes no\nchange to the interval pass** (Requirement 9.2). ``volume_band``, when\npresent, reuses :class:`PpaToleranceBand` **applied to the period's\naggregate** contracted/metered MWh (summed across the period's rows)\nrather than to a single interval — this is economically distinct from any\ninterval-level ``PpaVolumeTerms.tolerance`` (Requirement 4), which the two\nmay coexist with; its own ``penalty_per_mwh`` prices the aggregate true-up.\n``true_up_price_per_mwh`` (Requirement 9.1's \"explicit true-up price\nbasis\") is a **caller-supplied price, not derived from spot or any ledger\ncolumn** — consistent with this framework's I/O-boundary doctrine\n(:class:`IndexationStep` is likewise a precomputed restatement); it prices\nonly the availability true-up (Requirement 10) when ``availability`` is\nattached. This split (the volume band prices itself via\n``penalty_per_mwh``; the availability guarantee is priced by\n``true_up_price_per_mwh``) is a **declared design decision** resolving the\notherwise-ambiguous \"an aggregate volume band, and an explicit true-up\nprice basis\" wording of Requirement 9.1 into two independently\nconfigurable true-up mechanisms.",
+          "summary": "Period reconciliation and true-up terms.",
+          "doc": "Period reconciliation and true-up terms.\n\n``period`` sets the aggregation cadence used by\n:func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger`, a **pure post-\nprocessing pass over an already-settled interval ledger that makes no\nchange to the interval pass**. ``volume_band``, when\npresent, reuses :class:`PpaToleranceBand` **applied to the period's\naggregate** contracted/metered MWh (summed across the period's rows)\nrather than to a single interval — this is economically distinct from any\ninterval-level ``PpaVolumeTerms.tolerance``, which the two\nmay coexist with; its own ``penalty_per_mwh`` prices the aggregate true-up.\n``true_up_price_per_mwh`` (the explicit true-up price basis) is a\n**caller-supplied price, not derived from spot or any ledger column** —\nconsistent with this framework's I/O-boundary doctrine\n(:class:`IndexationStep` is likewise a precomputed restatement); it prices\nonly the availability true-up when ``availability`` is\nattached. This split (the volume band prices itself via\n``penalty_per_mwh``; the availability guarantee is priced by\n``true_up_price_per_mwh``) is a **declared design decision** resolving the\notherwise-ambiguous case of an aggregate volume band coexisting with an\nexplicit true-up price basis into two independently configurable true-up\nmechanisms.",
           "methods": [],
           "fields": [
             {
@@ -3456,7 +3456,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "PpaTerms(price: PpaPriceTerms | None = None, negative_price: NegativePriceClause | None = None, volume: PpaVolumeTerms | None = None, reconciliation: PpaReconciliationTerms | None = None, metadata: PpaContractMetadata | None = None)",
           "summary": "Optional bundle of composable PPA settlement terms.",
-          "doc": "Optional bundle of composable PPA settlement terms.\n\nEvery field defaults to ``None``. ``PpaTerms()`` (all fields ``None``)\nrepresents \"no additional terms\" and is semantically equivalent to\nattaching no terms at all (Property 85). ``reconciliation`` (Requirements\n9-11), when attached, drives :func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger`'s\nperiod-level true-ups (volume-band and availability) via its four fields\n(:class:`PpaReconciliationTerms`); ``metadata`` (:class:`PpaContractMetadata`)\nremains a settlement-inert bundle of non-computational, world-facing facts\n(Requirement 12) that no pricing or reconciliation path ever reads.",
+          "doc": "Optional bundle of composable PPA settlement terms.\n\nEvery field defaults to ``None``. ``PpaTerms()`` (all fields ``None``)\nrepresents \"no additional terms\" and is semantically equivalent to\nattaching no terms at all. ``reconciliation`` (Requirements\n9-11), when attached, drives :func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger`'s\nperiod-level true-ups (volume-band and availability) via its four fields\n(:class:`PpaReconciliationTerms`); ``metadata`` (:class:`PpaContractMetadata`)\nremains a settlement-inert bundle of non-computational, world-facing facts\nthat no pricing or reconciliation path ever reads.",
           "methods": [],
           "fields": [
             {
@@ -3531,8 +3531,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.ppa_valuation.PpaValuationResult",
           "kind": "class",
           "signature": "PpaValuationResult(npv: float, per_period: tuple[PpaPeriodValuation, ...], delta: dict[tuple[str, DeliveryPeriod], float])",
-          "summary": "Producer-side intrinsic mark-to-market: aggregate NPV plus per-period detail and per-period producer delta, keyed ``(contract.bidding_zone, period)`` (Req 15.3).",
-          "doc": "Producer-side intrinsic mark-to-market: aggregate NPV plus per-period detail\nand per-period producer delta, keyed ``(contract.bidding_zone, period)`` (Req 15.3).",
+          "summary": "Producer-side intrinsic mark-to-market: aggregate NPV plus per-period detail and per-period producer delta, keyed ``(contract.bidding_zone, period)``.",
+          "doc": "Producer-side intrinsic mark-to-market: aggregate NPV plus per-period detail\nand per-period producer delta, keyed ``(contract.bidding_zone, period)``.",
           "methods": [],
           "fields": [
             {
@@ -3588,8 +3588,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.ppa_valuation.PpaVolumeProfile",
           "kind": "class",
           "signature": "PpaVolumeProfile(volumes: tuple[PpaPeriodVolume, ...])",
-          "summary": "A non-empty, strictly period-increasing run of :class:`PpaPeriodVolume` (Req 15.1).",
-          "doc": "A non-empty, strictly period-increasing run of :class:`PpaPeriodVolume` (Req 15.1).",
+          "summary": "A non-empty, strictly period-increasing run of :class:`PpaPeriodVolume`.",
+          "doc": "A non-empty, strictly period-increasing run of :class:`PpaPeriodVolume`.",
           "methods": [],
           "fields": [
             {
@@ -3665,7 +3665,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "PricedPosition(position: Position, npv: float, delta: dict[tuple[str, DeliveryPeriod], float] = field(default_factory=dict), greeks: Greeks | None = None, reference_prices: dict[tuple[str, DeliveryPeriod], float] = field(default_factory=dict))",
           "summary": "A position after valuation — exactly what RiskEngine and mark_to_market consume.",
-          "doc": "A position after valuation — exactly what RiskEngine and mark_to_market consume.\n\nInvariants enforced at construction (eager boundary validation, ``coding-style.md`` §7):\n\n- ``npv`` must be finite. A NaN or ±inf NPV would silently poison every downstream\n  aggregate (portfolio NPV, VaR loss quantiles), so it is rejected here with a\n  :class:`~quantvolt.exceptions.ValidationError` naming ``npv``.\n- ``delta`` is defensively copied: the mapping is snapshot into a fresh ``dict`` at\n  construction, so later mutation of the caller's dict cannot reach into this frozen\n  value object. The stored copy is treated as immutable by convention from then on —\n  nothing in the library writes to it. (``object.__setattr__`` is the sanctioned way\n  to assign inside ``__post_init__`` of a frozen dataclass and works with ``slots``.)\n- ``reference_prices`` is defensively copied the same way. It optionally records the\n  forward price level ``value_portfolio`` observed for each ``delta`` entry's\n  ``(commodity_id, delivery period)`` key, in the same units as that commodity's\n  forward curve. ``RiskEngine.apply_scenario`` needs this to correctly scale a\n  *relative* (fractional) scenario shock into currency P&L\n  (``delta x reference_price x shock`` — see :mod:`quantvolt.risk.scenarios`); a key\n  absent from ``reference_prices`` (including an entirely empty mapping, the default)\n  falls back to a reference price of ``1.0``, preserving the legacy\n  ``delta x shock`` behaviour for hand-built positions that never populate it.",
+          "doc": "A position after valuation — exactly what RiskEngine and mark_to_market consume.\n\nInvariants enforced eagerly at construction:\n\n- ``npv`` must be finite. A NaN or ±inf NPV would silently poison every downstream\n  aggregate (portfolio NPV, VaR loss quantiles), so it is rejected here with a\n  :class:`~quantvolt.exceptions.ValidationError` naming ``npv``.\n- ``delta`` is defensively copied: the mapping is snapshot into a fresh ``dict`` at\n  construction, so later mutation of the caller's dict cannot reach into this frozen\n  value object. The stored copy is treated as immutable by convention from then on —\n  nothing in the library writes to it. (``object.__setattr__`` is the sanctioned way\n  to assign inside ``__post_init__`` of a frozen dataclass and works with ``slots``.)\n- ``reference_prices`` is defensively copied the same way. It optionally records the\n  forward price level ``value_portfolio`` observed for each ``delta`` entry's\n  ``(commodity_id, delivery period)`` key, in the same units as that commodity's\n  forward curve. ``RiskEngine.apply_scenario`` needs this to correctly scale a\n  *relative* (fractional) scenario shock into currency P&L\n  (``delta x reference_price x shock`` — see :mod:`quantvolt.risk.scenarios`); a key\n  absent from ``reference_prices`` (including an entirely empty mapping, the default)\n  falls back to a reference price of ``1.0``, preserving the legacy\n  ``delta x shock`` behaviour for hand-built positions that never populate it.",
           "methods": [],
           "fields": [
             {
@@ -3704,13 +3704,13 @@ window.API_DATA = {
           "qualified": "quantvolt.models.units.PriceUnit",
           "kind": "class",
           "signature": "PriceUnit(currency: str, denominator: str)",
-          "summary": "A validated ``currency/denominator`` price unit (Req 1).",
-          "doc": "A validated ``currency/denominator`` price unit (Req 1).\n\n``currency`` is either three uppercase ASCII letters (ISO 4217, e.g. ``\"EUR\"``,\n``\"GBP\"``, ``\"USD\"``) or the literal ``\"GBp\"`` (pence sterling). ``denominator``\nis one of ``{\"MWh\", \"therm\", \"MMBtu\", \"tCO2\", \"bbl\", \"t\"}``. ``\"tCO2\"`` (emissions),\n``\"bbl\"`` (barrel, crude/refined products), and ``\"t\"`` (metric tonne, e.g. coal) are\n*energy-inconvertible*: they parse and round-trip like any other denominator, but\n:func:`convert_price` refuses to convert between them and an energy denominator (no\ncalorific-value assumption is made).",
+          "summary": "A validated ``currency/denominator`` price unit.",
+          "doc": "A validated ``currency/denominator`` price unit.\n\n``currency`` is either three uppercase ASCII letters (ISO 4217, e.g. ``\"EUR\"``,\n``\"GBP\"``, ``\"USD\"``) or the literal ``\"GBp\"`` (pence sterling). ``denominator``\nis one of ``{\"MWh\", \"therm\", \"MMBtu\", \"tCO2\", \"bbl\", \"t\"}``. ``\"tCO2\"`` (emissions),\n``\"bbl\"`` (barrel, crude/refined products), and ``\"t\"`` (metric tonne, e.g. coal) are\n*energy-inconvertible*: they parse and round-trip like any other denominator, but\n:func:`convert_price` refuses to convert between them and an energy denominator (no\ncalorific-value assumption is made).",
           "methods": [
             {
               "name": "parse",
               "signature": "parse(cls, text: str) -> PriceUnit",
-              "summary": "Parse ``\"CCY/denominator\"`` into a validated :class:`PriceUnit` (Req 2)."
+              "summary": "Parse ``\"CCY/denominator\"`` into a validated :class:`PriceUnit`."
             }
           ],
           "fields": [
@@ -3749,8 +3749,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.engine.RiskEngine",
           "kind": "class",
           "signature": "RiskEngine(catalogue: ScenarioCatalogue | None=None)",
-          "summary": "Portfolio risk metrics: VaR / CVaR, delta aggregation, stress scenarios (Req 9).",
-          "doc": "Portfolio risk metrics: VaR / CVaR, delta aggregation, stress scenarios (Req 9).\n\nA configured service, not a Singleton: it holds the scenario catalogue used to\nresolve named scenarios and nothing else. All methods are pure with respect to\ntheir inputs.",
+          "summary": "Portfolio risk metrics: VaR / CVaR, delta aggregation, stress scenarios.",
+          "doc": "Portfolio risk metrics: VaR / CVaR, delta aggregation, stress scenarios.\n\nA configured service, not a Singleton: it holds the scenario catalogue used to\nresolve named scenarios and nothing else. All methods are pure with respect to\ntheir inputs.",
           "methods": [
             {
               "name": "compute_risk",
@@ -3760,12 +3760,12 @@ window.API_DATA = {
             {
               "name": "aggregate_delta",
               "signature": "aggregate_delta(self, positions: list[PricedPosition]) -> DeltaMatrix",
-              "summary": "Net delta by commodity x delivery period (Req 9.3)."
+              "summary": "Net delta by commodity x delivery period."
             },
             {
               "name": "apply_scenario",
               "signature": "apply_scenario(self, positions: list[PricedPosition], scenario: str | ScenarioShock) -> ScenarioResult",
-              "summary": "Apply a named or user-defined stress scenario to the book (Req 9.4)."
+              "summary": "Apply a named or user-defined stress scenario to the book."
             }
           ],
           "fields": [],
@@ -3779,7 +3779,7 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.engine.RiskResult",
           "kind": "class",
           "signature": "RiskResult(var_95: float, var_99: float, cvar_975: float, delta_matrix: DeltaMatrix, exclusion_report: list[ExcludedPosition], partial: bool, unprocessed_indices: list[int])",
-          "summary": "Portfolio tail-risk output containing VaR and CVaR levels, scenario P&L observations, factor ordering and excluded-position diagnostics..",
+          "summary": "Portfolio tail-risk output containing VaR and CVaR levels, scenario P&L observations, factor ordering and excluded-position diagnostics.",
           "doc": "Portfolio tail-risk output containing VaR and CVaR levels, scenario P&L observations, factor ordering and excluded-position diagnostics.",
           "methods": [],
           "fields": [
@@ -3860,7 +3860,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 73
+          "line": 71
         },
         {
           "name": "ScenarioCatalogue",
@@ -3868,8 +3868,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.scenarios.ScenarioCatalogue",
           "kind": "class",
           "signature": "ScenarioCatalogue(extra_scenarios: dict[str, ScenarioShock] | None=None)",
-          "summary": "Resolves scenario names to :class:`ScenarioShock` vectors (Req 9.4, 9.7).",
-          "doc": "Resolves scenario names to :class:`ScenarioShock` vectors (Req 9.4, 9.7).\n\nA config-holding service over :data:`BUILT_IN_SCENARIOS` — not a Singleton.\nCaller-supplied ``extra_scenarios`` are merged OVER the built-ins (caller\nwins on name collision); neither input dict is mutated, and later mutation\nof ``extra_scenarios`` by the caller does not affect the catalogue.",
+          "summary": "Resolves scenario names to :class:`ScenarioShock` vectors.",
+          "doc": "Resolves scenario names to :class:`ScenarioShock` vectors.\n\nA config-holding service over :data:`BUILT_IN_SCENARIOS` — not a Singleton.\nCaller-supplied ``extra_scenarios`` are merged OVER the built-ins (caller\nwins on name collision); neither input dict is mutated, and later mutation\nof ``extra_scenarios`` by the caller does not affect the catalogue.",
           "methods": [
             {
               "name": "get",
@@ -3907,8 +3907,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.engine.ScenarioResult",
           "kind": "class",
           "signature": "ScenarioResult(scenario_name: str, total_pnl: float, per_position_pnl: tuple[float, ...])",
-          "summary": "Outcome of applying one stress scenario to a book (Req 9.4).",
-          "doc": "Outcome of applying one stress scenario to a book (Req 9.4).\n\n``per_position_pnl`` is ordered exactly like the input position list, and\n``total_pnl`` is the plain left-to-right sum of those contributions, so\n``total_pnl == sum(per_position_pnl)`` holds exactly (Property 23).",
+          "summary": "Outcome of applying one stress scenario to a book.",
+          "doc": "Outcome of applying one stress scenario to a book.\n\n``per_position_pnl`` is ordered exactly like the input position list, and\n``total_pnl`` is the plain left-to-right sum of those contributions, so\n``total_pnl == sum(per_position_pnl)`` holds exactly.",
           "methods": [],
           "fields": [
             {
@@ -3962,8 +3962,8 @@ window.API_DATA = {
           "qualified": "quantvolt.curvemodels.schwartz_smith.SchwartzSmithParams",
           "kind": "class",
           "signature": "SchwartzSmithParams(kappa: float, sigma_chi: float, sigma_xi: float, mu_xi: float, rho: float, lambda_chi: float, lambda_xi: float)",
-          "summary": "Risk-neutral parameters of the two-factor Schwartz-Smith model (§31.1).",
-          "doc": "Risk-neutral parameters of the two-factor Schwartz-Smith model (§31.1).\n\nFields match Req 25.1 / design ``SchwartzSmithParams``:\n\n* ``kappa`` — short-factor mean-reversion speed (``> 0``).\n* ``sigma_chi`` — short-factor volatility (``> 0``).\n* ``sigma_xi`` — long-factor volatility (``> 0``).\n* ``mu_xi`` — physical long-term drift of ``xi`` (unconstrained).\n* ``rho`` — instantaneous correlation of the two Brownian factors, ``in (-1, 1)``.\n* ``lambda_chi`` — short-factor risk premium (unconstrained).\n* ``lambda_xi`` — long-factor risk premium (unconstrained).\n\n:attr:`mu_xi_star` = ``mu_xi - lambda_xi`` is the risk-neutral long-term drift that\nenters the forward curve (§31.2).",
+          "summary": "Risk-neutral parameters of the two-factor Schwartz-Smith model.",
+          "doc": "Risk-neutral parameters of the two-factor Schwartz-Smith model.\n\n* ``kappa`` — short-factor mean-reversion speed (``> 0``).\n* ``sigma_chi`` — short-factor volatility (``> 0``).\n* ``sigma_xi`` — long-factor volatility (``> 0``).\n* ``mu_xi`` — physical long-term drift of ``xi`` (unconstrained).\n* ``rho`` — instantaneous correlation of the two Brownian factors, ``in (-1, 1)``.\n* ``lambda_chi`` — short-factor risk premium (unconstrained).\n* ``lambda_xi`` — long-factor risk premium (unconstrained).\n\n``mu_xi_star`` = ``mu_xi - lambda_xi`` is the risk-neutral long-term drift that\nenters the forward curve.",
           "methods": [
             {
               "name": "mu_xi_star",
@@ -4063,7 +4063,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 51
+          "line": 50
         },
         {
           "name": "SpreadOptionContract",
@@ -4071,8 +4071,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.SpreadOptionContract",
           "kind": "class",
           "signature": "SpreadOptionContract(commodity_1: str, commodity_2: str, delivery_period: DeliveryPeriod, strike: float, notional: float, leg2_weight: float = 1.0, side: OptionSide = OptionSide.LONG, expiry: date | None = None)",
-          "summary": "A spread (or spark-spread) option between two forward-curve commodities (Req 5).",
-          "doc": "A spread (or spark-spread) option between two forward-curve commodities (Req 5).\n\nPriced natively by ``portfolio.valuation._price_spread_option``, which delegates to\n:func:`quantvolt.pricing.spread_option.price_spread_option` (``leg2_weight == 1.0``,\nMargrabe/Kirk selection by strike) or\n:func:`quantvolt.pricing.spread_option.price_spark_spread_option` (``leg2_weight !=\n1.0``, e.g. a heat rate), base design §2.9.\n\n``commodity_1`` / ``commodity_2`` are forward-curve keys (``MarketData.curve_for``),\nnot :class:`CommodityConfig` objects — the two legs may live on different curves\n(e.g. power vs. gas). ``strike == 0.0`` selects the exact Margrabe exchange-option\nbranch; any other non-negative strike selects Kirk's approximation. ``expiry``\ndefaults to ``delivery_period.last_day``, exactly as :class:`VanillaOptionContract`.",
+          "summary": "A spread (or spark-spread) option between two forward-curve commodities.",
+          "doc": "A spread (or spark-spread) option between two forward-curve commodities.\n\nPriced natively by ``portfolio.valuation._price_spread_option``, which delegates to\n``quantvolt.pricing.spread_option.price_spread_option`` (``leg2_weight == 1.0``,\nMargrabe/Kirk selection by strike) or\n``quantvolt.pricing.spread_option.price_spark_spread_option`` (``leg2_weight != 1.0``,\ne.g. a heat rate).\n\n``commodity_1`` / ``commodity_2`` are forward-curve keys (``MarketData.curve_for``),\nnot ``CommodityConfig`` objects; the two legs may live on different curves (e.g.\npower vs. gas). ``strike == 0.0`` selects the exact Margrabe exchange-option branch;\nany other non-negative strike selects Kirk's approximation. ``expiry`` defaults to\n``delivery_period.last_day``, exactly as ``VanillaOptionContract``.",
           "methods": [],
           "fields": [
             {
@@ -4118,7 +4118,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 217
+          "line": 214
         },
         {
           "name": "SpreadOptionRequest",
@@ -4126,8 +4126,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spread_option.SpreadOptionRequest",
           "kind": "class",
           "signature": "SpreadOptionRequest(forward1: float, forward2: float, strike: float, sigma1: float, sigma2: float, correlation: float, time_to_expiry: float, discount_factor: float, notional: float = 1.0)",
-          "summary": "Inputs for a call on ``forward1 - forward2 - strike`` (Req 7.1).",
-          "doc": "Inputs for a call on ``forward1 - forward2 - strike`` (Req 7.1).",
+          "summary": "Inputs for a call on ``forward1 - forward2 - strike``.",
+          "doc": "Inputs for a call on ``forward1 - forward2 - strike``.",
           "methods": [],
           "fields": [
             {
@@ -4186,8 +4186,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spread_option.SpreadOptionResult",
           "kind": "class",
           "signature": "SpreadOptionResult(premium: float, delta1: float, delta2: float, vega1: float, vega2: float, correlation_sensitivity: float)",
-          "summary": "Premium plus finite-difference sensitivities, all scaled by notional (Req 7.2).",
-          "doc": "Premium plus finite-difference sensitivities, all scaled by notional (Req 7.2).\n\n``delta1``/``delta2`` are sensitivities to ``forward1``/``forward2`` exactly as\npassed to :func:`price_spread_option`. :func:`price_spark_spread_option` is the\none exception: it chain-rules ``delta2`` back onto the RAW gas forward it was\ngiven (``request.forward2``, before the internal ``heat_rate`` scaling), so that\n``delta2`` always means \"sensitivity to the underlying commodity forward the\ncaller supplied\" — the same convention :mod:`quantvolt.pricing.tolling` uses when\nit chain-rules a spread option's ``delta2`` onto the raw fuel/EUA forwards.",
+          "summary": "Premium plus finite-difference sensitivities, all scaled by notional.",
+          "doc": "Premium plus finite-difference sensitivities, all scaled by notional.\n\n``delta1``/``delta2`` are sensitivities to ``forward1``/``forward2`` exactly as\npassed to :func:`price_spread_option`. :func:`price_spark_spread_option` is the\none exception: it chain-rules ``delta2`` back onto the RAW gas forward it was\ngiven (``request.forward2``, before the internal ``heat_rate`` scaling), so that\n``delta2`` always means \"sensitivity to the underlying commodity forward the\ncaller supplied\" — the same convention :mod:`quantvolt.pricing.tolling` uses when\nit chain-rules a spread option's ``delta2`` onto the raw fuel/EUA forwards.",
           "methods": [],
           "fields": [
             {
@@ -4231,8 +4231,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.storage.StorageModel",
           "kind": "class",
           "signature": "StorageModel(min_inventory: float, max_inventory: float, initial_inventory: float, terminal_inventory: float, injection_rate: RateCurve, withdrawal_rate: RateCurve, injection_cost: float = 0.0, withdrawal_cost: float = 0.0, injection_loss: float = 0.0, withdrawal_loss: float = 0.0, carry_cost: float = 0.0, terminal_penalty: float | None = None)",
-          "summary": "Physical + commercial parameters of a gas store (Req 22.1, 22.3).",
-          "doc": "Physical + commercial parameters of a gas store (Req 22.1, 22.3).\n\nInventory bounds are time-invariant scalars — the lightest faithful representation;\ntime-varying bounds would be a strictly heavier model with no bearing on the Task-75\nproperties and are deferred until a requirement needs them. Ratchets carry the only\nstate-dependence that matters here, as callables of the current fill level.\n\nAll consistency constraints are validated eagerly in :meth:`__post_init__` (rate-curve\nnon-negativity, which cannot be checked over all inventories for an opaque callable, is\nchecked at every grid level when a valuation runs). Inconsistent bounds raise a\n:class:`~quantvolt.exceptions.ValidationError` naming the offending fields (Req 22.3).\n\nAttributes:\n    min_inventory: Minimum working-gas inventory (volume).\n    max_inventory: Maximum working-gas inventory (volume); must be ``>= min_inventory``.\n    initial_inventory: Inventory entering the horizon; must lie in the bounds and on the\n        grid.\n    terminal_inventory: Target inventory at the horizon end; must lie in the bounds and\n        on the grid.\n    injection_rate: Ratchet ``injection_rate(inventory) -> max working-gas injected this\n        period`` (``>= 0``).\n    withdrawal_rate: Ratchet ``withdrawal_rate(inventory) -> max working-gas withdrawn\n        this period`` (``>= 0``).\n    injection_cost: Variable cost per unit working gas injected (``>= 0``).\n    withdrawal_cost: Variable cost per unit working gas withdrawn (``>= 0``).\n    injection_loss: Fuel-in-kind fraction burned on injection, in ``[0, 1)``.\n    withdrawal_loss: Fuel-in-kind fraction burned on withdrawal, in ``[0, 1)``.\n    carry_cost: Carry/financing cost per unit inventory held per period (``>= 0``).\n    terminal_penalty: If ``None`` the terminal inventory is a hard constraint; otherwise a\n        per-unit penalty (``>= 0``) on the terminal deviation from ``terminal_inventory``.",
+          "summary": "Physical + commercial parameters of a gas store.",
+          "doc": "Physical + commercial parameters of a gas store.\n\nInventory bounds are time-invariant scalars, the lightest faithful representation;\ntime-varying bounds would be a strictly heavier model and are deferred until a\ncaller needs them. Ratchets carry the only state-dependence that matters here,\nas callables of the current fill level.\n\nAll consistency constraints are validated eagerly in ``__post_init__`` (rate-curve\nnon-negativity, which cannot be checked over all inventories for an opaque callable, is\nchecked at every grid level when a valuation runs). Inconsistent bounds raise a\n``ValidationError`` naming the offending fields.\n\nAttributes:\n    min_inventory: Minimum working-gas inventory (volume).\n    max_inventory: Maximum working-gas inventory (volume); must be ``>= min_inventory``.\n    initial_inventory: Inventory entering the horizon; must lie in the bounds and on the\n        grid.\n    terminal_inventory: Target inventory at the horizon end; must lie in the bounds and\n        on the grid.\n    injection_rate: Ratchet ``injection_rate(inventory) -> max working-gas injected this\n        period`` (``>= 0``).\n    withdrawal_rate: Ratchet ``withdrawal_rate(inventory) -> max working-gas withdrawn\n        this period`` (``>= 0``).\n    injection_cost: Variable cost per unit working gas injected (``>= 0``).\n    withdrawal_cost: Variable cost per unit working gas withdrawn (``>= 0``).\n    injection_loss: Fuel-in-kind fraction burned on injection, in ``[0, 1)``.\n    withdrawal_loss: Fuel-in-kind fraction burned on withdrawal, in ``[0, 1)``.\n    carry_cost: Carry/financing cost per unit inventory held per period (``>= 0``).\n    terminal_penalty: If ``None`` the terminal inventory is a hard constraint; otherwise a\n        per-unit penalty (``>= 0``) on the terminal deviation from ``terminal_inventory``.",
           "methods": [
             {
               "name": "working_capacity",
@@ -4312,8 +4312,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.SwapContract",
           "kind": "class",
           "signature": "SwapContract(commodity: CommodityConfig, fixed_rate: float, floating_index: str, notional: float, schedule: DeliverySchedule, granularity: Granularity = Granularity.MONTHLY, side: OptionSide = OptionSide.LONG)",
-          "summary": "Fixed-for-floating swap — OTC, customisable, financial settlement.",
-          "doc": "Fixed-for-floating swap — OTC, customisable, financial settlement.\n\nDirection lives only in :attr:`side` (``short-side-instruments`` spec): ``LONG`` is the\npay-fixed / receive-floating leg (the pricer's native perspective), ``SHORT`` its exact\nnegation (receive-fixed / pay-floating). :attr:`notional` is always strictly positive and\n``side`` defaults to ``LONG`` (byte-identical to the pre-side behaviour).",
+          "summary": "Fixed-for-floating swap: OTC, customisable, financial settlement.",
+          "doc": "Fixed-for-floating swap: OTC, customisable, financial settlement.\n\nDirection lives only in ``side``: ``LONG`` is the pay-fixed / receive-floating leg\n(the pricer's native perspective), ``SHORT`` its exact negation (receive-fixed /\npay-floating). ``notional`` is always strictly positive and ``side`` defaults to\n``LONG``.",
           "methods": [],
           "fields": [
             {
@@ -4354,7 +4354,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 162
+          "line": 157
         },
         {
           "name": "SwapPricingResult",
@@ -4362,7 +4362,7 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.swap.SwapPricingResult",
           "kind": "class",
           "signature": "SwapPricingResult(npv: float, delta: tuple[float, ...], rho: float)",
-          "summary": "Swap valuation output containing total NPV, one forward delta per schedule period and rho for the documented parallel rate bump..",
+          "summary": "Swap valuation output containing total NPV, one forward delta per schedule period and rho for the documented parallel rate bump.",
           "doc": "Swap valuation output containing total NPV, one forward delta per schedule period and rho for the documented parallel rate bump.",
           "methods": [],
           "fields": [
@@ -4392,8 +4392,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.TollingAgreement",
           "kind": "class",
           "signature": "TollingAgreement(plant: PlantConfig, power_commodity_id: str, fuel_commodity_id: str, eua_commodity_id: str, schedule: DeliverySchedule, capacity: float = 1.0, settlement_lag_days: int = 0)",
-          "summary": "A tolling (conversion) agreement, priced as a strip of clean spread options (portfolio-native-pricers spec, Req 14; base design section 2.10).",
-          "doc": "A tolling (conversion) agreement, priced as a strip of clean spread options\n(portfolio-native-pricers spec, Req 14; base design section 2.10).\n\nGrounding note (Task 0/16): no tolling *instrument* value object existed before this\nspec -- only the stateless kernel :func:`quantvolt.pricing.tolling.price_tolling_agreement`,\nwhich takes curves/vol-surface/correlation-matrix as loose positional arguments. This\ntype is therefore ADDED (not reused) so a tolling position can sit in a ``Portfolio``\nlike any other instrument.\n\nPriced natively by ``portfolio.valuation._price_tolling_agreement``, which assembles the\n3x3 ``[power, fuel, eua]`` correlation matrix from three pairwise\n``MarketData.correlations`` entries (via ``correlation_for``, failing loud if any of\n``(power, fuel)``, ``(power, eua)``, ``(fuel, eua)`` is missing) and delegates to\n:func:`~quantvolt.pricing.tolling.price_tolling_agreement`.\n\n``power_commodity_id`` / ``fuel_commodity_id`` / ``eua_commodity_id`` are forward-curve\nkeys (``MarketData.curve_for``). Following the kernel's documented \"ONE volatility\nsurface serves both legs\" simplification, the adapter uses\n``market_data.surface_for(power_commodity_id)`` for every period of the strip.\n\nFields:\n    plant: Heat rate, variable O&M cost, emissions intensity, fuel type.\n    power_commodity_id: Forward-curve key for the power leg.\n    fuel_commodity_id: Forward-curve key for the fuel (gas/coal) leg.\n    eua_commodity_id: Forward-curve key for the EUA (carbon) leg.\n    schedule: The delivery periods the strip covers (1-1200 periods, kernel-enforced).\n    capacity: Per-period notional in MWh, strictly positive (default 1.0 -- unit\n        capacity, the kernel's historical default).\n    settlement_lag_days: Calendar days added to each period's last day to get the\n        discount-factor settlement date (default 0, non-negative); does not affect\n        the option's time-to-expiry (the kernel's decision-horizon convention).",
+          "summary": "A tolling (conversion) agreement, priced as a strip of clean spread options.",
+          "doc": "A tolling (conversion) agreement, priced as a strip of clean spread options.\n\nLets a tolling position sit in a ``Portfolio`` like any other instrument, backed\nby the stateless kernel ``quantvolt.pricing.tolling.price_tolling_agreement``.\n\nPriced natively by ``portfolio.valuation._price_tolling_agreement``, which assembles the\n3x3 ``[power, fuel, eua]`` correlation matrix from three pairwise\n``MarketData.correlations`` entries (via ``correlation_for``, failing loud if any of\n``(power, fuel)``, ``(power, eua)``, ``(fuel, eua)`` is missing) and delegates to\n``quantvolt.pricing.tolling.price_tolling_agreement``.\n\n``power_commodity_id`` / ``fuel_commodity_id`` / ``eua_commodity_id`` are forward-curve\nkeys (``MarketData.curve_for``). Following the kernel's documented \"ONE volatility\nsurface serves both legs\" simplification, the adapter uses\n``market_data.surface_for(power_commodity_id)`` for every period of the strip.\n\nFields:\n    plant: Heat rate, variable O&M cost, emissions intensity, fuel type.\n    power_commodity_id: Forward-curve key for the power leg.\n    fuel_commodity_id: Forward-curve key for the fuel (gas/coal) leg.\n    eua_commodity_id: Forward-curve key for the EUA (carbon) leg.\n    schedule: The delivery periods the strip covers (1-1200 periods, kernel-enforced).\n    capacity: Per-period notional in MWh, strictly positive (default 1.0 -- unit\n        capacity, the kernel's historical default).\n    settlement_lag_days: Calendar days added to each period's last day to get the\n        discount-factor settlement date (default 0, non-negative); does not affect\n        the option's time-to-expiry (the kernel's decision-horizon convention).",
           "methods": [],
           "fields": [
             {
@@ -4434,7 +4434,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 357
+          "line": 354
         },
         {
           "name": "TollingResult",
@@ -4443,7 +4443,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "TollingResult(npv: float, intrinsic_value: float, time_value: float, per_period_values: tuple[float, ...], per_period_deltas: dict[str, tuple[float, ...]], aggregate_deltas: dict[str, float])",
           "summary": "Strip-level tolling valuation: NPV decomposition plus per-period detail.",
-          "doc": "Strip-level tolling valuation: NPV decomposition plus per-period detail.\n\n``per_period_values`` are the discounted per-period spread-option values in\nschedule order; ``npv`` is their sum. ``per_period_deltas`` and\n``aggregate_deltas`` are keyed ``\"power\"``/``\"fuel\"``/``\"eua\"``, and each\naggregate equals the sum of its per-period tuple exactly (Property 20).",
+          "doc": "Strip-level tolling valuation: NPV decomposition plus per-period detail.\n\n``per_period_values`` are the discounted per-period spread-option values in\nschedule order; ``npv`` is their sum. ``per_period_deltas`` and\n``aggregate_deltas`` are keyed ``\"power\"``/``\"fuel\"``/``\"eua\"``, and each\naggregate equals the sum of its per-period tuple exactly.",
           "methods": [],
           "fields": [
             {
@@ -4479,7 +4479,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/tolling.py",
-          "line": 90
+          "line": 89
         },
         {
           "name": "TransmissionRight",
@@ -4487,8 +4487,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.TransmissionRight",
           "kind": "class",
           "signature": "TransmissionRight(origin: str, destination: str, tariff: float, quantity: float, schedule: DeliverySchedule, direction: TransportDirection = TransportDirection.A_TO_B, loss: float = 0.0, capacity: float | None = None, reverse_tariff: float | None = None)",
-          "summary": "A right to move **power** from origin hub A to destination hub B (Req 24).",
-          "doc": "A right to move **power** from origin hub A to destination hub B (Req 24).\n\nThe per-period payoff to the holder is ``Q_delivered * max(P_B - P_A - T_AB, 0)``\n(§12): buy at the origin ``P_A``, pay the transport tariff ``T_AB``, sell at the\ndestination ``P_B`` — an option exercised only when the locational spread covers\nthe tariff. ``delivered = quantity * (1 - loss)``, further capped by ``capacity``.\n\nFields:\n    origin: commodity_id of hub A (the origin forward curve). Matched against\n        the origin curve's commodity when priced.\n    destination: commodity_id of hub B (the destination forward curve).\n    tariff: per-period transport cost T_AB (>= 0), in the price unit.\n    quantity: per-period available quantity Q (>= 0).\n    schedule: the delivery periods the right covers.\n    direction: A_TO_B (default), B_TO_A, or BIDIRECTIONAL.\n    loss: transmission loss fraction in [0, 1); delivered = Q * (1 - loss).\n    capacity: optional physical cap; effective quantity = min(Q, capacity).\n    reverse_tariff: T_BA (>= 0) for the B->A leg of a BIDIRECTIONAL right;\n        when omitted a bidirectional right reuses ``tariff`` symmetrically.",
+          "summary": "A right to move power from origin hub A to destination hub B.",
+          "doc": "A right to move power from origin hub A to destination hub B.\n\nThe per-period payoff to the holder is ``Q_delivered * max(P_B - P_A - T_AB, 0)``:\nbuy at the origin ``P_A``, pay the transport tariff ``T_AB``, sell at the\ndestination ``P_B``, an option exercised only when the locational spread covers\nthe tariff. ``delivered = quantity * (1 - loss)``, further capped by ``capacity``.\n\nFields:\n    origin: commodity_id of hub A (the origin forward curve). Matched against\n        the origin curve's commodity when priced.\n    destination: commodity_id of hub B (the destination forward curve).\n    tariff: per-period transport cost T_AB (>= 0), in the price unit.\n    quantity: per-period available quantity Q (>= 0).\n    schedule: the delivery periods the right covers.\n    direction: A_TO_B (default), B_TO_A, or BIDIRECTIONAL.\n    loss: transmission loss fraction in [0, 1); delivered = Q * (1 - loss).\n    capacity: optional physical cap; effective quantity = min(Q, capacity).\n    reverse_tariff: T_BA (>= 0) for the B->A leg of a BIDIRECTIONAL right;\n        when omitted a bidirectional right reuses ``tariff`` symmetrically.",
           "methods": [],
           "fields": [
             {
@@ -4539,7 +4539,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 289
+          "line": 286
         },
         {
           "name": "TransportDirection",
@@ -4548,7 +4548,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "TransportDirection()",
           "summary": "Permitted flow direction of a transmission (power) or pipeline (gas) right.",
-          "doc": "Permitted flow direction of a transmission (power) or pipeline (gas) right.\n\n``A_TO_B`` / ``B_TO_A`` are one-way rights (origin A -> destination B, or the\nreverse). ``BIDIRECTIONAL`` is a single capacity unit usable in *either*\ndirection per period — the holder commits it to the economically best flow, so\na bidirectional right is worth no more than owning both one-way rights (Property\n68 subadditivity).",
+          "doc": "Permitted flow direction of a transmission (power) or pipeline (gas) right.\n\n``A_TO_B`` / ``B_TO_A`` are one-way rights (origin A -> destination B, or the\nreverse). ``BIDIRECTIONAL`` is a single capacity unit usable in either direction\nper period; the holder commits it to the economically best flow, so a\nbidirectional right is worth no more than owning both one-way rights.",
           "methods": [],
           "fields": [],
           "members": [
@@ -4566,7 +4566,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 58
+          "line": 57
         },
         {
           "name": "TransportRightResult",
@@ -4574,8 +4574,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.transmission_right.TransportRightResult",
           "kind": "class",
           "signature": "TransportRightResult(origin: str, destination: str, intrinsic: float, extrinsic: float, total: float, delta_origin: float, delta_destination: float, per_period: tuple[TransportPeriodValue, ...])",
-          "summary": "Aggregate transport-right value plus per-period detail (Req 24.1-24.3).",
-          "doc": "Aggregate transport-right value plus per-period detail (Req 24.1-24.3).\n\n``intrinsic``/``extrinsic``/``total`` are the sums over ``per_period`` with\n``total == intrinsic + extrinsic``. ``delta_origin``/``delta_destination`` are the\naggregate per-hub deltas (opposite-signed nets), keyed for the portfolio adapter\nby ``origin``/``destination`` commodity ids.",
+          "summary": "Aggregate transport-right value plus per-period detail.",
+          "doc": "Aggregate transport-right value plus per-period detail.\n\n``intrinsic``/``extrinsic``/``total`` are the sums over ``per_period`` with\n``total == intrinsic + extrinsic``. ``delta_origin``/``delta_destination`` are the\naggregate per-hub deltas (opposite-signed nets), keyed for the portfolio adapter\nby ``origin``/``destination`` commodity ids.",
           "methods": [],
           "fields": [
             {
@@ -4643,8 +4643,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.ValuationSource",
           "kind": "class",
           "signature": "ValuationSource()",
-          "summary": "Provenance tag for a valuation regime -- the single shared vocabulary a caller propagates onto a :class:`~quantvolt.portfolio.model.Position`'s ``tags`` so that downstream risk/portfolio code can tell how a number was produced.",
-          "doc": "Provenance tag for a valuation regime -- the single shared vocabulary a caller\npropagates onto a :class:`~quantvolt.portfolio.model.Position`'s ``tags`` so that\ndownstream risk/portfolio code can tell how a number was produced.\n\nDefined here (not in ``assets/long_dated.py``, which produces two of its three\nvalues) because this leaf-ish module is importable from both ``assets/long_dated.py``\n(via ``portfolio/model.py``) and from :class:`CachedAssetValuation` below without\ncreating an import cycle -- see this module's own dependency-direction note in the\n``portfolio-native-pricers`` design.\n\n- ``FORWARD`` / ``PROJECTED``: the long-dated valuation-governance regimes produced by\n  :func:`quantvolt.assets.long_dated.valuation_benchmark` (base design Req 23.1-23.2).\n- ``SIMULATED``: a precomputed LSMC/dispatch valuation cache, produced by\n  :class:`CachedAssetValuation` (portfolio-native-pricers spec, Req 19 roadmap) -- neither\n  a liquid forward quote nor a simple projected-spot-plus-premium figure, so it is tagged\n  as its own third regime rather than folded into ``PROJECTED``.",
+          "summary": "Provenance tag for a valuation regime: the shared vocabulary a caller propagates onto a ``Position``'s ``tags`` so that downstream risk/portfolio code can tell how a number was produced.",
+          "doc": "Provenance tag for a valuation regime: the shared vocabulary a caller propagates\nonto a ``Position``'s ``tags`` so that downstream risk/portfolio code can tell how a\nnumber was produced.\n\nDefined here (not in ``assets/long_dated.py``, which produces two of its three\nvalues) because this leaf-ish module is importable from both ``assets/long_dated.py``\n(via ``portfolio/model.py``) and from ``CachedAssetValuation`` below without creating\nan import cycle.\n\n- ``FORWARD`` / ``PROJECTED``: the long-dated valuation-governance regimes produced by\n  ``quantvolt.assets.long_dated.valuation_benchmark``.\n- ``SIMULATED``: a precomputed LSMC/dispatch valuation cache, produced by\n  ``CachedAssetValuation``; neither a liquid forward quote nor a simple\n  projected-spot-plus-premium figure, so it is tagged as its own third regime rather\n  than folded into ``PROJECTED``.",
           "methods": [],
           "fields": [],
           "members": [
@@ -4670,8 +4670,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.VanillaOptionContract",
           "kind": "class",
           "signature": "VanillaOptionContract(commodity: CommodityConfig, delivery_period: DeliveryPeriod, option_type: OptionType, strike: float, notional: float, side: OptionSide = OptionSide.LONG, expiry: date | None = None)",
-          "summary": "A European vanilla option on one commodity's forward (Req 4).",
-          "doc": "A European vanilla option on one commodity's forward (Req 4).\n\nPriced natively by ``portfolio.valuation._price_vanilla_option``, which delegates to\n:func:`quantvolt.pricing.vanilla.price_vanilla_option` (Black-76, base design §2.7).\nDirection lives only in :attr:`side`; :attr:`notional` is always strictly positive.\n\n``expiry`` defaults to ``None``, in which case the pricer treats expiry as\n``delivery_period.last_day`` — the same decision-horizon convention\n:mod:`quantvolt.pricing.tolling` uses (the option is exercised over the whole\ndelivery period, not before it).\n\nBlack-76 requires a strictly positive forward. A delivery period whose observed\nforward is ``<= 0`` (a real occurrence for European power) makes this contract\nunpriceable under Black-76: the pricer propagates the kernel's ``ValidationError``\nrather than clamping or flooring the forward (Req 12; no Bachelier/normal-model\nkernel exists in this library — deferred roadmap).",
+          "summary": "A European vanilla option on one commodity's forward.",
+          "doc": "A European vanilla option on one commodity's forward.\n\nPriced natively by ``portfolio.valuation._price_vanilla_option``, which delegates to\n``quantvolt.pricing.vanilla.price_vanilla_option`` (Black-76). Direction lives only\nin ``side``; ``notional`` is always strictly positive.\n\n``expiry`` defaults to ``None``, in which case the pricer treats expiry as\n``delivery_period.last_day``, the same decision-horizon convention\n``quantvolt.pricing.tolling`` uses (the option is exercised over the whole delivery\nperiod, not before it).\n\nBlack-76 requires a strictly positive forward and strike. A delivery period whose\nobserved forward is ``<= 0`` (a real occurrence for European power) makes this\ncontract unpriceable under Black-76: the pricer propagates the kernel's\n``ValidationError`` rather than clamping or flooring the forward. For a forward that\nmay be zero or negative, price the equivalent request with the separate Bachelier\n(normal-model) pricer, ``quantvolt.pricing.bachelier.price_bachelier_option``;\nthis library never switches models automatically.",
           "methods": [],
           "fields": [
             {
@@ -4712,7 +4712,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 184
+          "line": 179
         },
         {
           "name": "VanillaOptionRequest",
@@ -4720,8 +4720,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.vanilla.VanillaOptionRequest",
           "kind": "class",
           "signature": "VanillaOptionRequest(option_type: Literal['call', 'put', 'cap', 'floor'], strike: float, notional: float, forward: float, sigma: float, time_to_expiry: float, discount_factor: float)",
-          "summary": "Complete Black–76 call or put inputs: type, strike, notional, forward, volatility, time to expiry and discount factor..",
-          "doc": "Complete Black–76 call or put inputs: type, strike, notional, forward, volatility, time to expiry and discount factor.",
+          "summary": "Complete Black-76 call or put inputs: type, strike, notional, forward, volatility, time to expiry and discount factor.",
+          "doc": "Complete Black-76 call or put inputs: type, strike, notional, forward, volatility,\ntime to expiry and discount factor.",
           "methods": [],
           "fields": [
             {
@@ -4762,7 +4762,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/vanilla.py",
-          "line": 28
+          "line": 27
         },
         {
           "name": "VanillaOptionResult",
@@ -4770,8 +4770,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.vanilla.VanillaOptionResult",
           "kind": "class",
           "signature": "VanillaOptionResult(premium: float, greeks: Greeks)",
-          "summary": "Vanilla option output containing discounted premium and the complete analytical Greeks object..",
-          "doc": "Vanilla option output containing discounted premium and the complete analytical Greeks object.",
+          "summary": "Vanilla option output containing discounted premium and the complete analytical Greeks object.",
+          "doc": "Vanilla option output containing discounted premium and the complete analytical\nGreeks object.",
           "methods": [],
           "fields": [
             {
@@ -4787,7 +4787,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/vanilla.py",
-          "line": 39
+          "line": 41
         },
         {
           "name": "VolatilitySurface",
@@ -4851,8 +4851,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.aggregation.aggregate_delta",
           "kind": "function",
           "signature": "aggregate_delta(positions: list[PricedPosition]) -> DeltaMatrix",
-          "summary": "Net position-level delta by commodity (rows) x delivery period (cols) — Property 22.",
-          "doc": "Net position-level delta by commodity (rows) x delivery period (cols) — Property 22.\n\nEach cell is the sum of that ``(commodity, period)`` delta across all positions.\nThe grid is the sorted union of the key sets of every position's ``delta`` mapping:\npositions with an empty ``delta`` contribute nothing, and an empty ``positions``\nlist yields the empty matrix (no rows, no columns). Inputs are never mutated —\ntotals accumulate in a fresh dict and the result is built from new tuples.",
+          "summary": "Net position-level delta by commodity (rows) x delivery period (cols).",
+          "doc": "Net position-level delta by commodity (rows) x delivery period (cols).\n\nEach cell is the sum of that ``(commodity, period)`` delta across all positions.\nThe grid is the sorted union of the key sets of every position's ``delta`` mapping:\npositions with an empty ``delta`` contribute nothing, and an empty ``positions``\nlist yields the empty matrix (no rows, no columns). Inputs are never mutated —\ntotals accumulate in a fresh dict and the result is built from new tuples.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -4879,8 +4879,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.dispatch_approx.bang_bang",
           "kind": "function",
           "signature": "bang_bang(plant: PlantModel, power_prices: Sequence[float], fuel_prices: Sequence[float], temperatures: Sequence[float], *, initial_online: bool=False, initial_output: float=0.0, initial_uptime: int | None=None, initial_downtime: int | None=None, output_step: float | None=None, discount_factors: Sequence[float] | None=None) -> DispatchSchedule",
-          "summary": "Bang-bang state aggregation: run at full load or off, {0, c_max} (Req 21.3).",
-          "doc": "Bang-bang state aggregation: run at full load or off, {0, c_max} (Req 21.3).\n\nCollapses the online output grid to a single full-load level so the unit is\neither off or running at ``c_max`` — the state aggregation Appendix B recommends\nfor a *sufficiently steep* heat-rate curve, where the optimal load is (almost)\nalways a corner. Implemented by solving the deterministic DP on a derived plant\nwhose ``c_min`` and ``c_max`` are both pinned to that full-load level; every\nother operating characteristic (heat-rate curve, start costs, ramp, durations)\nis unchanged. The input plant is **not** mutated — a new :class:`PlantModel` is\nderived.\n\nFull-load level. With a constant capacity the pinned level *is* ``c_max``. With a\ntemperature-dependent ``c_max(temp)`` the level is the horizon-minimum ``c_max``\n(the largest constant full-output level feasible in every period); a period\nwhose capacity falls below the plant's own ``c_min`` makes the plant infeasible\nthere and is rejected, mirroring the deterministic solver's curve check.\n\nExactness and bias. For a **linear** (constant-marginal) heat rate the per-MWh\nmargin is output-independent, so the exact optimum is a corner and bang-bang is\nexact. For a **steep** (rising-marginal) curve the exact optimum may run at an\nefficient part load that bang-bang cannot represent, so the value is a\n**downward-biased lower bound**: whenever the full-load level is reachable in one\nstep (ramp rate >= operating range) the bang-bang on/off policy set is a strict\nsubset of the exact one, and restricting the load choice can only lose value.\n\nWarning (Req 21.3). Emits :class:`BangBangHedgeWarning`: hedges (sensitivities\nand critical-dispatch surfaces) are far more sensitive than the value itself to\nthe heat-rate-curve approximation, because they read the *slope* of value\nagainst price, which the single on/off kink distorts even where the value error\nis negligible.\n\nArgs:\n    plant: The operating model; a full-load-pinned copy is derived from it.\n    power_prices: Power price ``P_t`` per period.\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period.\n    initial_online: Whether the unit is producing entering the horizon; an\n        online unit is treated as running at the full-load level.\n    initial_output: Ignored when ``initial_online`` (the unit is pinned to full\n        load); retained for signature parity with the deterministic solver.\n    initial_uptime: Producing periods already accrued (min-run).\n    initial_downtime: Offline periods already accrued (start bucket / min-down).\n    output_step: Output-grid spacing (MW); immaterial here (single online level)\n        but validated ``> 0`` by the solver; defaults to the ramp rate.\n    discount_factors: Per-period to-today discount factors (default all 1.0).\n\nReturns:\n    The bang-bang :class:`DispatchSchedule` (outputs are 0 or the full-load\n    level).\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a discount\n        factor or ``output_step`` is non-positive; if ``c_max`` falls below\n        ``c_min`` at some temperature; or if the initial condition admits no\n        feasible schedule (delegated to the deterministic solver).",
+          "summary": "Bang-bang state aggregation: run at full load or off, {0, c_max}.",
+          "doc": "Bang-bang state aggregation: run at full load or off, {0, c_max}.\n\nCollapses the online output grid to a single full-load level so the unit is\neither off or running at ``c_max``, recommended for a sufficiently steep\nheat-rate curve, where the optimal load is (almost)\nalways a corner. Implemented by solving the deterministic DP on a derived plant\nwhose ``c_min`` and ``c_max`` are both pinned to that full-load level; every\nother operating characteristic (heat-rate curve, start costs, ramp, durations)\nis unchanged. The input plant is not mutated: a new ``PlantModel`` is\nderived.\n\nFull-load level. With a constant capacity the pinned level is ``c_max``. With a\ntemperature-dependent ``c_max(temp)`` the level is the horizon-minimum ``c_max``\n(the largest constant full-output level feasible in every period); a period\nwhose capacity falls below the plant's own ``c_min`` makes the plant infeasible\nthere and is rejected, mirroring the deterministic solver's curve check.\n\nExactness and bias. For a linear (constant-marginal) heat rate the per-MWh\nmargin is output-independent, so the exact optimum is a corner and bang-bang is\nexact. For a steep (rising-marginal) curve the exact optimum may run at an\nefficient part load that bang-bang cannot represent, so the value is a\ndownward-biased lower bound: whenever the full-load level is reachable in one\nstep (ramp rate >= operating range) the bang-bang on/off policy set is a strict\nsubset of the exact one, and restricting the load choice can only lose value.\n\nWarning. Emits ``BangBangHedgeWarning``: hedges (sensitivities\nand critical-dispatch surfaces) are far more sensitive than the value itself to\nthe heat-rate-curve approximation, because they read the slope of value\nagainst price, which the single on/off kink distorts even where the value error\nis negligible.\n\nArgs:\n    plant: The operating model; a full-load-pinned copy is derived from it.\n    power_prices: Power price ``P_t`` per period.\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period.\n    initial_online: Whether the unit is producing entering the horizon; an\n        online unit is treated as running at the full-load level.\n    initial_output: Ignored when ``initial_online`` (the unit is pinned to full\n        load); retained for signature parity with the deterministic solver.\n    initial_uptime: Producing periods already accrued (min-run).\n    initial_downtime: Offline periods already accrued (start bucket / min-down).\n    output_step: Output-grid spacing (MW); immaterial here (single online level)\n        but validated ``> 0`` by the solver; defaults to the ramp rate.\n    discount_factors: Per-period to-today discount factors (default all 1.0).\n\nReturns:\n    The bang-bang :class:`DispatchSchedule` (outputs are 0 or the full-load\n    level).\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a discount\n        factor or ``output_step`` is non-positive; if ``c_max`` falls below\n        ``c_min`` at some temperature; or if the initial condition admits no\n        feasible schedule (delegated to the deterministic solver).",
           "methods": [],
           "fields": [],
           "members": [],
@@ -4893,13 +4893,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spreads.basis",
           "kind": "function",
           "signature": "basis(curve_a: ForwardCurve, curve_b: ForwardCurve, start: date, end: date, *, lower_percentile: float=5.0, upper_percentile: float=95.0, ddof: int=0) -> BasisResult",
-          "summary": "Locational basis ``price(A) - price(B)`` per period in ``[start, end]`` (Req 2.4).",
-          "doc": "Locational basis ``price(A) - price(B)`` per period in ``[start, end]`` (Req 2.4).\n\nThe computation covers the shared delivery periods whose last calendar day\nfalls within the inclusive ``[start, end]`` range; no such period raises\n:class:`InsufficientDataError` naming both commodities and the range rather\nthan returning empty statistics (Property 9). Summary statistics: mean,\nstandard deviation (``ddof=0`` by default — the periods are the whole\npopulation of interest, not a sample), and the ``lower_percentile``/\n``upper_percentile`` (default 5th/95th) via :func:`numpy.percentile`\n(linear interpolation).\n\nArgs:\n    curve_a: First curve of the basis (``A`` in ``A - B``).\n    curve_b: Second curve of the basis.\n    start: Inclusive lower bound on each period's last calendar day.\n    end: Inclusive upper bound; must be ``>= start``.\n    lower_percentile: Percentile reported as ``p5``, in ``[0, 100]``\n        (default 5.0) and strictly below ``upper_percentile``.\n    upper_percentile: Percentile reported as ``p95``, in ``[0, 100]``\n        (default 95.0).\n    ddof: Delta degrees of freedom for :func:`numpy.std`, non-negative\n        (default 0, population standard deviation).",
+          "summary": "Locational basis ``price(A) - price(B)`` per period in ``[start, end]``.",
+          "doc": "Locational basis ``price(A) - price(B)`` per period in ``[start, end]``.\n\nThe computation covers the shared delivery periods whose last calendar day\nfalls within the inclusive ``[start, end]`` range; no such period raises\n``InsufficientDataError`` naming both commodities and the range rather than\nreturning empty statistics. Summary statistics: mean, standard deviation\n(``ddof=0`` by default; the periods are the whole population of interest,\nnot a sample), and the ``lower_percentile``/``upper_percentile`` (default\n5th/95th) via ``numpy.percentile`` (linear interpolation).\n\nArgs:\n    curve_a: First curve of the basis (``A`` in ``A - B``).\n    curve_b: Second curve of the basis.\n    start: Inclusive lower bound on each period's last calendar day.\n    end: Inclusive upper bound; must be ``>= start``.\n    lower_percentile: Percentile reported as ``p5``, in ``[0, 100]``\n        (default 5.0) and strictly below ``upper_percentile``.\n    upper_percentile: Percentile reported as ``p95``, in ``[0, 100]``\n        (default 95.0).\n    ddof: Delta degrees of freedom for ``numpy.std``, non-negative\n        (default 0, population standard deviation).",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 318
+          "line": 316
         },
         {
           "name": "build_volatility_surface",
@@ -4907,13 +4907,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.implied_vol.build_volatility_surface",
           "kind": "function",
           "signature": "build_volatility_surface(option_quotes: list[OptionQuote], interpolation: Literal['linear', 'cubic_spline']='linear', extrapolate: bool=False, *, commodity: CommodityConfig) -> VolatilitySurface",
-          "summary": "Build an implied-volatility surface from option quotes (Task 36).",
-          "doc": "Build an implied-volatility surface from option quotes (Task 36).\n\nEvery quote is inverted through :func:`implied_vol` (so every quote is fully\nvalidated — a bad quote fails loudly rather than being dropped). Because\n:class:`~quantvolt.models.vol_surface.VolatilitySurface` holds **one sigma per\nperiod tenor** (a term structure), multiple strikes quoted for the same period\nare aggregated to the *ATM-nearest* quote's vol: the quote whose strike is\nclosest to its forward (relative distance; first quote wins a tie). This\nanchors each tenor at the most liquid, smile-neutral point; the smile across\nstrikes is thereby collapsed by nearest-ATM selection.\n\nCalendar months missing between the first and last quoted period are filled by\ninterpolating the vol term structure on a monotone month axis with the selected\nmethod; quoted periods keep their exactly inverted vols. With\n``extrapolate=False`` the surface covers only ``[first, last]`` quoted period.\n\n``commodity`` is required and keyword-only: the stub signature carried no\ncommodity, but :class:`VolatilitySurface` requires one, and guessing a default\nwould silently mislabel the surface — an additive keyword parameter completes\nthe stub without breaking positional callers.\n\nArgs:\n    option_quotes: Non-empty list of :class:`OptionQuote` observations.\n    interpolation: ``\"linear\"`` (piecewise linear) or ``\"cubic_spline\"``\n        (natural cubic spline), selected via a dispatch dict.\n    extrapolate: Must be ``False``; extrapolation beyond the quoted period\n        range is not supported (there is no principled extension target).\n    commodity: The commodity the surface belongs to (keyword-only, required).\n\nReturns:\n    A :class:`VolatilitySurface` with one tenor per calendar month from the\n    first to the last quoted period, inclusive. Inputs are never mutated.\n\nRaises:\n    ValidationError: If ``option_quotes`` is empty, ``interpolation`` is\n        unknown, ``extrapolate`` is ``True``, or any quote fails the\n        :func:`implied_vol` domain / no-arbitrage checks.",
+          "summary": "Build an implied-volatility surface from option quotes.",
+          "doc": "Build an implied-volatility surface from option quotes.\n\nEvery quote is inverted through :func:`implied_vol` (so every quote is fully\nvalidated — a bad quote fails loudly rather than being dropped). Because\n:class:`~quantvolt.models.vol_surface.VolatilitySurface` holds **one sigma per\nperiod tenor** (a term structure), multiple strikes quoted for the same period\nare aggregated to the *ATM-nearest* quote's vol: the quote whose strike is\nclosest to its forward (relative distance; first quote wins a tie). This\nanchors each tenor at the most liquid, smile-neutral point; the smile across\nstrikes is thereby collapsed by nearest-ATM selection.\n\nCalendar months missing between the first and last quoted period are filled by\ninterpolating the vol term structure on a monotone month axis with the selected\nmethod; quoted periods keep their exactly inverted vols. With\n``extrapolate=False`` the surface covers only ``[first, last]`` quoted period.\n\n``commodity`` is required and keyword-only: the stub signature carried no\ncommodity, but :class:`VolatilitySurface` requires one, and guessing a default\nwould silently mislabel the surface — an additive keyword parameter completes\nthe stub without breaking positional callers.\n\nArgs:\n    option_quotes: Non-empty list of :class:`OptionQuote` observations.\n    interpolation: ``\"linear\"`` (piecewise linear) or ``\"cubic_spline\"``\n        (natural cubic spline), selected via a dispatch dict.\n    extrapolate: Must be ``False``; extrapolation beyond the quoted period\n        range is not supported (there is no principled extension target).\n    commodity: The commodity the surface belongs to (keyword-only, required).\n\nReturns:\n    A :class:`VolatilitySurface` with one tenor per calendar month from the\n    first to the last quoted period, inclusive. Inputs are never mutated.\n\nRaises:\n    ValidationError: If ``option_quotes`` is empty, ``interpolation`` is\n        unknown, ``extrapolate`` is ``True``, or any quote fails the\n        :func:`implied_vol` domain / no-arbitrage checks.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/implied_vol.py",
-          "line": 309
+          "line": 308
         },
         {
           "name": "calendar_spread",
@@ -4921,13 +4921,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spreads.calendar_spread",
           "kind": "function",
           "signature": "calendar_spread(curve: ForwardCurve, period_early: DeliveryPeriod, period_late: DeliveryPeriod, storage_cost: float=0.0) -> CalendarSpreadResult",
-          "summary": "Storage-related calendar spread on one curve (Task 34, Property 44).",
-          "doc": "Storage-related calendar spread on one curve (Task 34, Property 44).\n\n``spread = price(period_late) - price(period_early) - storage_cost * months``\nwhere ``months`` is the whole-month distance between the two delivery periods\nand ``storage_cost`` is the cost of carry per month. This is the spread a\nstorage operator captures by injecting in ``period_early`` and withdrawing in\n``period_late``; positive means contango net of carry, negative means\nbackwardation.\n\nRaises :class:`~quantvolt.exceptions.ValidationError` unless\n``period_early < period_late`` and ``storage_cost >= 0``; a period absent from\nthe curve raises :class:`~quantvolt.exceptions.MissingTenorError` (via\n:meth:`ForwardCurve.price_at`).",
+          "summary": "Storage-related calendar spread on one curve.",
+          "doc": "Storage-related calendar spread on one curve.\n\n``spread = price(period_late) - price(period_early) - storage_cost * months``\nwhere ``months`` is the whole-month distance between the two delivery periods\nand ``storage_cost`` is the cost of carry per month. This is the spread a\nstorage operator captures by injecting in ``period_early`` and withdrawing in\n``period_late``; positive means contango net of carry, negative means\nbackwardation.\n\nRaises ``ValidationError`` unless ``period_early < period_late`` and\n``storage_cost >= 0``; a period absent from the curve raises\n``MissingTenorError`` (via ``ForwardCurve.price_at``).",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 456
+          "line": 452
         },
         {
           "name": "calibrate_ppa_nomination",
@@ -4949,8 +4949,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.cfar.cash_flow_at_risk",
           "kind": "function",
           "signature": "cash_flow_at_risk(cashflow_model: CashFlowModel, scenarios: Sequence[Scenario], horizon: int, seed: int, consistency: Mapping[str, str] | None=None, *, confidence_level: float=0.95) -> CFaRResult",
-          "summary": "Compute CFaR plus summary statistics over a factor scenario set (Req 16).",
-          "doc": "Compute CFaR plus summary statistics over a factor scenario set (Req 16).\n\nFor every scenario the pure ``cashflow_model`` is called exactly once, its returned\nper-period vector is validated to have length ``horizon`` and aggregated (summed)\ninto one realised aggregate cash flow. Across scenarios this forms the distribution\nof aggregated cash flow, from which the mean, the percentiles, and the\nshortfall-below-expected at ``confidence_level`` are computed. See the module\ndocstring for the request surface, the exact CFaR definition, and the sign\nconvention.\n\nArgs:\n    cashflow_model: Pure callable mapping one scenario to a 1-D per-period\n        cash-flow vector of length ``horizon``. Called once per scenario; never\n        mutated.\n    scenarios: Non-empty exhaustive factor scenario set (market + operational\n        factors keyed by name).\n    horizon: Number of periods, ``>= 1``.\n    seed: Reproducibility seed, echoed on the result (Req 16.3).\n    consistency: Optional market/operational consistency metadata, carried through\n        to the result verbatim (Req 16.2).\n    confidence_level: Confidence level for the ``cfar_95`` / ``p5`` shortfall\n        measure; defaults to ``0.95``, reproducing the 5th-percentile shortfall\n        documented in the module docstring. Must be in ``[0, 1]``. ``p50`` / ``p95``\n        always report the 50th / 95th percentiles regardless of this parameter.\n\nReturns:\n    A :class:`CFaRResult`.\n\nRaises:\n    ValidationError: If ``horizon < 1``; if ``scenarios`` is empty; if\n        ``confidence_level`` is outside ``[0, 1]``; or if the model returns, for\n        any scenario, a vector whose shape is not ``(horizon,)`` — the message\n        names the returned shape, the horizon, and the scenario index (Req 16.4).",
+          "summary": "Compute CFaR plus summary statistics over a factor scenario set.",
+          "doc": "Compute CFaR plus summary statistics over a factor scenario set.\n\nFor every scenario the pure ``cashflow_model`` is called exactly once, its returned\nper-period vector is validated to have length ``horizon`` and aggregated (summed)\ninto one realised aggregate cash flow. Across scenarios this forms the distribution\nof aggregated cash flow, from which the mean, the percentiles, and the\nshortfall-below-expected at ``confidence_level`` are computed. See the module\ndocstring for the request surface, the exact CFaR definition, and the sign\nconvention.\n\nArgs:\n    cashflow_model: Pure callable mapping one scenario to a 1-D per-period\n        cash-flow vector of length ``horizon``. Called once per scenario; never\n        mutated.\n    scenarios: Non-empty exhaustive factor scenario set (market + operational\n        factors keyed by name).\n    horizon: Number of periods, ``>= 1``.\n    seed: Reproducibility seed, echoed on the result.\n    consistency: Optional market/operational consistency metadata, carried through\n        to the result verbatim.\n    confidence_level: Confidence level for the ``cfar_95`` / ``p5`` shortfall\n        measure; defaults to ``0.95``, reproducing the 5th-percentile shortfall\n        documented in the module docstring. Must be in ``[0, 1]``. ``p50`` / ``p95``\n        always report the 50th / 95th percentiles regardless of this parameter.\n\nReturns:\n    A :class:`CFaRResult`.\n\nRaises:\n    ValidationError: If ``horizon < 1``; if ``scenarios`` is empty; if\n        ``confidence_level`` is outside ``[0, 1]``; or if the model returns, for\n        any scenario, a vector whose shape is not ``(horizon,)`` — the message\n        names the returned shape, the horizon, and the scenario index.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -4977,13 +4977,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.implied_vol.classify_moneyness",
           "kind": "function",
           "signature": "classify_moneyness(strike: float, forward: float, tolerance_pct: float=2.0) -> Moneyness",
-          "summary": "Classify option moneyness relative to the forward price (Property 32).",
-          "doc": "Classify option moneyness relative to the forward price (Property 32).\n\nClassification is from the **call perspective**: a strike above the forward has\nno intrinsic value for a call (OTM); a strike below the forward is ITM. The put\nclassification is the mirror image, so callers holding puts should swap\nITM/OTM. Deviations of at most ``tolerance_pct`` percent of the forward — the\nboundary is *inclusive* — classify as ATM:\n\n- ``|strike - forward| / forward * 100 <= tolerance_pct`` -> ATM\n- ``strike > forward * (1 + tolerance_pct/100)`` -> OTM\n- ``strike < forward * (1 - tolerance_pct/100)`` -> ITM\n\nArgs:\n    strike: Option strike (``K``), positive.\n    forward: Forward price of the underlying (``F``), positive.\n    tolerance_pct: ATM band half-width as a percentage of the forward,\n        non-negative (default 2.0 = within 2% of the forward).\n\nReturns:\n    Exactly one of :class:`Moneyness` ``ATM`` / ``OTM`` / ``ITM``.\n\nRaises:\n    ValidationError: If ``strike`` or ``forward`` is not positive, or\n        ``tolerance_pct`` is negative.",
+          "summary": "Classify option moneyness relative to the forward price.",
+          "doc": "Classify option moneyness relative to the forward price.\n\nClassification is from the **call perspective**: a strike above the forward has\nno intrinsic value for a call (OTM); a strike below the forward is ITM. The put\nclassification is the mirror image, so callers holding puts should swap\nITM/OTM. Deviations of at most ``tolerance_pct`` percent of the forward — the\nboundary is *inclusive* — classify as ATM:\n\n- ``|strike - forward| / forward * 100 <= tolerance_pct`` -> ATM\n- ``strike > forward * (1 + tolerance_pct/100)`` -> OTM\n- ``strike < forward * (1 - tolerance_pct/100)`` -> ITM\n\nArgs:\n    strike: Option strike (``K``), positive.\n    forward: Forward price of the underlying (``F``), positive.\n    tolerance_pct: ATM band half-width as a percentage of the forward,\n        non-negative (default 2.0 = within 2% of the forward).\n\nReturns:\n    Exactly one of :class:`Moneyness` ``ATM`` / ``OTM`` / ``ITM``.\n\nRaises:\n    ValidationError: If ``strike`` or ``forward`` is not positive, or\n        ``tolerance_pct`` is negative.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/implied_vol.py",
-          "line": 197
+          "line": 196
         },
         {
           "name": "clean_spread",
@@ -4991,13 +4991,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spreads.clean_spread",
           "kind": "function",
           "signature": "clean_spread(spread: SpreadResult, eua_curve: ForwardCurve, emissions_intensity: float) -> CleanSpreadResult",
-          "summary": "Deduct the carbon cost from an uncleaned spark or dark spread (Req 2.2).",
-          "doc": "Deduct the carbon cost from an uncleaned spark or dark spread (Req 2.2).\n\nDecorator intent as a plain function: wraps one :class:`SpreadResult` and adds\nthe carbon cost, per period: ``cleaned = spread - emissions_intensity *\nEUA_price``. The result keeps the input's ``spread_type``, so cleaning a spark\nspread yields the clean spark spread and cleaning a dark spread the clean dark\nspread — call once per uncleaned spread to obtain both (Property 7).\n\nRaises :class:`~quantvolt.exceptions.ValidationError` unless\n``emissions_intensity >= 0``, and :class:`InsufficientDataError` when\n``eua_curve`` lacks any of the spread's delivery periods (Req 2.5) — no\npartial result is returned.",
+          "summary": "Deduct the carbon cost from an uncleaned spark or dark spread.",
+          "doc": "Deduct the carbon cost from an uncleaned spark or dark spread.\n\nWraps one ``SpreadResult`` and adds the carbon cost, per period:\n``cleaned = spread - emissions_intensity * EUA_price``. The result keeps the\ninput's ``spread_type``, so cleaning a spark spread yields the clean spark\nspread and cleaning a dark spread the clean dark spread; call once per\nuncleaned spread to obtain both.\n\nRaises ``ValidationError`` unless ``emissions_intensity >= 0``, and\n``InsufficientDataError`` when ``eua_curve`` lacks any of the spread's\ndelivery periods; no partial result is returned.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 247
+          "line": 246
         },
         {
           "name": "compare_cashflow_strategies",
@@ -5019,8 +5019,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.units.convert_price",
           "kind": "function",
           "signature": "convert_price(value: float, from_unit: PriceUnit | str, to_unit: PriceUnit | str) -> float",
-          "summary": "Convert a *per-unit price* from ``from_unit`` to ``to_unit`` (Req 5).",
-          "doc": "Convert a *per-unit price* from ``from_unit`` to ``to_unit`` (Req 5).\n\nSame-currency energy-denominator conversion multiplies by the reciprocal of the\nquantity factor: a price per therm converted to per MWh is *divided* by\n``MWH_PER_THERM`` (there are ~34 therms in an MWh, so the per-MWh price is ~34x\nlarger). Two currencies that resolve to the same major currency (see\n``_MINOR_UNITS``, e.g. ``GBp``/``GBP``) additionally scale by the ratio of their\nminor-unit scales. Cross-*major*-currency conversion raises :class:`ValidationError`.\nAny *energy-inconvertible* denominator (``\"tCO2\"``, ``\"bbl\"``, ``\"t\"``) paired with a\ndifferent denominator also raises :class:`ValidationError`: these are definitional\ntrade units with no fixed energy-content constant, so converting them to/from an\nenergy denominator (or to a different inconvertible denominator) would require a\ncalorific/heat-content assumption this function does not make.\n\nUnits may be given as ``PriceUnit`` objects or as their string renderings\n(parsed via :meth:`PriceUnit.parse`, so a malformed string raises the same\n:class:`ValidationError` it would anywhere else).\n\nWorked example (Req 5.7): ``convert_price(85.0, \"GBp/therm\", \"GBp/MWh\")\n== 85.0 / MWH_PER_THERM ~= 2900.32`` GBp/MWh.",
+          "summary": "Convert a *per-unit price* from ``from_unit`` to ``to_unit``.",
+          "doc": "Convert a *per-unit price* from ``from_unit`` to ``to_unit``.\n\nSame-currency energy-denominator conversion multiplies by the reciprocal of the\nquantity factor: a price per therm converted to per MWh is *divided* by\n``MWH_PER_THERM`` (there are ~34 therms in an MWh, so the per-MWh price is ~34x\nlarger). Two currencies that resolve to the same major currency (see\n``_MINOR_UNITS``, e.g. ``GBp``/``GBP``) additionally scale by the ratio of their\nminor-unit scales. Cross-*major*-currency conversion raises :class:`ValidationError`.\nAny *energy-inconvertible* denominator (``\"tCO2\"``, ``\"bbl\"``, ``\"t\"``) paired with a\ndifferent denominator also raises :class:`ValidationError`: these are definitional\ntrade units with no fixed energy-content constant, so converting them to/from an\nenergy denominator (or to a different inconvertible denominator) would require a\ncalorific/heat-content assumption this function does not make.\n\nUnits may be given as ``PriceUnit`` objects or as their string renderings\n(parsed via :meth:`PriceUnit.parse`, so a malformed string raises the same\n:class:`ValidationError` it would anywhere else).\n\nWorked example: ``convert_price(85.0, \"GBp/therm\", \"GBp/MWh\")\n== 85.0 / MWH_PER_THERM ~= 2900.32`` GBp/MWh.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5034,12 +5034,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "crack_spread(product_curves: dict[str, ForwardCurve], crude_curve: ForwardCurve, ratio: tuple[int, ...]=(3, 2, 1)) -> CrackSpreadResult",
           "summary": "Refining margin per delivery period for an ``input:outputs`` crack ratio.",
-          "doc": "Refining margin per delivery period for an ``input:outputs`` crack ratio.\n\nConvention: ``ratio[0]`` is the number of crude (input) units and ``ratio[1:]``\nthe product (output) units, matched to ``product_curves`` in insertion order —\nthe default 3:2:1 means 3 crude → 2 of the first product + 1 of the second.\nPer period, over the shared delivery periods of *all* curves::\n\n    spread = (Σᵢ product_priceᵢ * ratio[1 + i] - crude_price * ratio[0]) / ratio[0]\n\ni.e. the margin normalised per unit of crude. For the standard 3:2:1 and 5:3:2\ncracks the output units sum to the input units, so the product weights sum to 1\n(Property 42).\n\nRaises :class:`~quantvolt.exceptions.ValidationError` unless ``product_curves``\nis non-empty, ``len(ratio) == len(product_curves) + 1`` and every ratio entry\nis > 0; raises :class:`InsufficientDataError` when no delivery period is common\nto the crude curve and every product curve.",
+          "doc": "Refining margin per delivery period for an ``input:outputs`` crack ratio.\n\nConvention: ``ratio[0]`` is the number of crude (input) units and ``ratio[1:]``\nthe product (output) units, matched to ``product_curves`` in insertion order;\nthe default 3:2:1 means 3 crude to 2 of the first product plus 1 of the second.\nPer period, over the shared delivery periods of all curves::\n\n    spread = (sum(product_price_i * ratio[1 + i]) - crude_price * ratio[0]) / ratio[0]\n\ni.e. the margin normalised per unit of crude. For the standard 3:2:1 and 5:3:2\ncracks the output units sum to the input units, so the product weights sum to 1.\n\nRaises ``ValidationError`` unless ``product_curves`` is non-empty,\n``len(ratio) == len(product_curves) + 1`` and every ratio entry is > 0;\nraises ``InsufficientDataError`` when no delivery period is common to the\ncrude curve and every product curve.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 378
+          "line": 375
         },
         {
           "name": "credit_var",
@@ -5047,8 +5047,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.credit_var.credit_var",
           "kind": "function",
           "signature": "credit_var(positions: Sequence[PricedPosition], transition: Mapping[str, npt.ArrayLike], exposures: Mapping[str, float] | None=None, recovery: float | Mapping[str, float]=0.4, seed: int=0, *, path_count: int=100000, asset_correlation: float=0.2, confidences: Sequence[float]=DEFAULT_CONFIDENCES) -> CreditVaRResult",
-          "summary": "Compute Credit VaR and expected credit loss over the priced book (Req 17).",
-          "doc": "Compute Credit VaR and expected credit loss over the priced book (Req 17).\n\nCounterparty-less positions are set aside as credit-risk-free; every credit-bearing\ncounterparty's default event is drawn jointly with a shared systematic market factor\nvia a one-factor Gaussian copula, and the path loss is the sum of ``LGD * EAD`` over\nthat path's defaulted counterparties. See the module docstring for the request surface,\nthe copula construction, the EAD/LGD conventions, the sign convention, and the\nlimitations.\n\nArgs:\n    positions: The priced book; each position's counterparty is read from its\n        instrument (``ForwardContract.counterparty``; missing / ``None`` -> risk-free).\n    transition: Per-counterparty one-period migration row (last state = default;\n        entries in ``[0, 1]``; sums to ``1`` within ``1e-9``).\n    exposures: Optional per-counterparty exposure; where absent, exposure is the\n        net (summed) NPV of that counterparty's positions. EAD is floored at zero.\n    recovery: Recovery rate in ``[0, 1]``, scalar or per-counterparty. ``LGD = 1 - r``.\n    seed: RNG seed (``>= 0``); results are reproducible under it (Req 17.3).\n    path_count: Number of Monte Carlo paths (``>= 1``).\n    asset_correlation: Copula systematic-factor loading ``rho in [0, 1]``.\n    confidences: The two credit-VaR confidence levels (fractions in ``(0, 1)``,\n        matching :mod:`quantvolt.risk.parametric_var`'s convention) reported as\n        ``credit_var_95`` / ``credit_var_99``; defaults to ``(0.95, 0.99)``.\n\nReturns:\n    A :class:`CreditVaRResult`.\n\nRaises:\n    ValidationError: If ``seed < 0``, ``path_count < 1``, ``asset_correlation`` or any\n        recovery is outside ``[0, 1]``, a transition row has an out-of-range probability\n        or does not sum to 1 within ``1e-9`` (message names the counterparty), a\n        supplied exposure is non-finite, a credit-bearing counterparty has no\n        transition row (message names the counterparty) (Req 17.4), or\n        ``confidences`` does not contain exactly 2 strictly ascending levels in\n        ``(0, 1)``.",
+          "summary": "Compute Credit VaR and expected credit loss over the priced book.",
+          "doc": "Compute Credit VaR and expected credit loss over the priced book.\n\nCounterparty-less positions are set aside as credit-risk-free; every credit-bearing\ncounterparty's default event is drawn jointly with a shared systematic market factor\nvia a one-factor Gaussian copula, and the path loss is the sum of ``LGD * EAD`` over\nthat path's defaulted counterparties. See the module docstring for the request surface,\nthe copula construction, the EAD/LGD conventions, the sign convention, and the\nlimitations.\n\nArgs:\n    positions: The priced book; each position's counterparty is read from its\n        instrument (``ForwardContract.counterparty``; missing / ``None`` -> risk-free).\n    transition: Per-counterparty one-period migration row (last state = default;\n        entries in ``[0, 1]``; sums to ``1`` within ``1e-9``).\n    exposures: Optional per-counterparty exposure; where absent, exposure is the\n        net (summed) NPV of that counterparty's positions. EAD is floored at zero.\n    recovery: Recovery rate in ``[0, 1]``, scalar or per-counterparty. ``LGD = 1 - r``.\n    seed: RNG seed (``>= 0``); results are reproducible under it.\n    path_count: Number of Monte Carlo paths (``>= 1``).\n    asset_correlation: Copula systematic-factor loading ``rho in [0, 1]``.\n    confidences: The two credit-VaR confidence levels (fractions in ``(0, 1)``,\n        matching :mod:`quantvolt.risk.parametric_var`'s convention) reported as\n        ``credit_var_95`` / ``credit_var_99``; defaults to ``(0.95, 0.99)``.\n\nReturns:\n    A :class:`CreditVaRResult`.\n\nRaises:\n    ValidationError: If ``seed < 0``, ``path_count < 1``, ``asset_correlation`` or any\n        recovery is outside ``[0, 1]``, a transition row has an out-of-range probability\n        or does not sum to 1 within ``1e-9`` (message names the counterparty), a\n        supplied exposure is non-finite, a credit-bearing counterparty has no\n        transition row (message names the counterparty), or\n        ``confidences`` does not contain exactly 2 strictly ascending levels in\n        ``(0, 1)``.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5062,12 +5062,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "dark_spread(power_curve: ForwardCurve, fuel_curve: ForwardCurve, heat_rate: float, variable_cost: float, emissions_cost: float) -> SpreadResult",
           "summary": "Dark spread (coal-fired generation margin) per shared delivery period.",
-          "doc": "Dark spread (coal-fired generation margin) per shared delivery period.\n\nSame formula and validation as :func:`spark_spread` with a coal ``fuel_curve``;\nthe result is labelled ``\"dark\"``. It is a separate immutable object, so\ncomputing it never modifies any spark values (Req 2.1, Property 6).",
+          "doc": "Dark spread (coal-fired generation margin) per shared delivery period.\n\nSame formula and validation as ``spark_spread`` with a coal ``fuel_curve``;\nthe result is labelled ``\"dark\"``. It is a separate immutable object, so\ncomputing it never modifies any spark values.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 229
+          "line": 228
         },
         {
           "name": "delta_gamma_var",
@@ -5075,13 +5075,13 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.parametric_var.delta_gamma_var",
           "kind": "function",
           "signature": "delta_gamma_var(deltas: NDArray[np.float64], gamma: NDArray[np.float64], cov: NDArray[np.float64], confidences: Sequence[float]=DEFAULT_CONFIDENCES, method: str='cornish_fisher', *, psd_tol: float=_PSD_TOL, symmetry_rtol: float=_SYMMETRY_RTOL) -> ParametricVaRResult",
-          "summary": "Second-order (delta-gamma) parametric VaR via moment matching (Req 14.2, Property 48).",
-          "doc": "Second-order (delta-gamma) parametric VaR via moment matching (Req 14.2, Property 48).\n\nThe quadratic P&L ``ΔP = δᵀΔf + ½·Δfᵀ Γ Δf`` with ``Δf ~ N(0, Σ)`` has, writing\n``Θ = Γ Σ``, the standard delta-gamma-normal cumulants (Britten-Jones & Schaefer,\n\"Non-linear Value-at-Risk\", 1999, eqs. 6-8; Zangari, RiskMetrics Monitor 1996;\nverified here against Monte Carlo):\n\n* ``κ₁ = ½·tr(Θ)`` — mean;\n* ``κ₂ = δᵀΣδ + ½·tr(Θ²)`` — variance;\n* ``κ₃ = 3·δᵀΣΓΣδ + tr(Θ³)`` — third cumulant.\n\nThe loss ``L = -ΔP`` has mean ``-κ₁``, standard deviation ``√κ₂`` and skewness\n``-κ₃/κ₂^1.5``; its ``c``-quantile is ``VaR_c = -κ₁ + √κ₂ · w(z_c, -γ₁)`` where ``w``\nis the third-order Cornish-Fisher map ``w = z + (z²-1)/6·γ₁`` (dispatched by\n``method``). With ``Γ = 0`` all higher cumulants vanish and this collapses **exactly**\nto :func:`parametric_var` (Property 48).\n\nSign sanity: a long-gamma book (``Γ`` positive definite) has ``κ₁ > 0`` (the quadratic\nterm only ever adds to P&L) and positive P&L skewness, so both the mean shift and the\nskewness correction *reduce* VaR relative to the delta-only figure — the expected\ndirection.\n\nArgs:\n    deltas: Portfolio delta by risk factor, a 1-D vector of length ``n``.\n    gamma: The ``n x n`` gamma matrix ``Γ``; must be square, symmetric, and conformable\n        with ``deltas`` — but need **not** be PSD (a book may be long some gammas and\n        short others).\n    cov: The ``n x n`` factor covariance ``Σ`` (validated square/symmetric/PSD).\n    confidences: Confidence levels; defaults to ``(0.95, 0.99)``.\n    method: Delta-gamma quantile method; defaults to ``\"cornish_fisher\"``. Must be a\n        registered method (currently only ``\"cornish_fisher\"``).\n    psd_tol: Absolute tolerance on the smallest eigenvalue of ``Σ`` used by the PSD\n        check; defaults to ``1e-8``.\n    symmetry_rtol: Relative tolerance (against the matrix scale) for the symmetry\n        checks on ``Σ`` and ``Γ``; defaults to ``1e-8``.\n\nReturns:\n    A :class:`ParametricVaRResult` carrying ``method`` and the P&L cumulant moments\n    ``(κ₁, κ₂, κ₃/κ₂^1.5)``.\n\nRaises:\n    ValidationError: on any dimension, symmetry, PSD, confidence, or unknown-``method``\n        violation, naming the offending quantity.",
+          "summary": "Second-order (delta-gamma) parametric VaR via moment matching.",
+          "doc": "Second-order (delta-gamma) parametric VaR via moment matching.\n\nThe quadratic P&L ``ΔP = δᵀΔf + ½·Δfᵀ Γ Δf`` with ``Δf ~ N(0, Σ)`` has, writing\n``Θ = Γ Σ``, the standard delta-gamma-normal cumulants (Britten-Jones & Schaefer,\n\"Non-linear Value-at-Risk\", 1999, eqs. 6-8; Zangari, RiskMetrics Monitor 1996;\nverified here against Monte Carlo):\n\n* ``κ₁ = ½·tr(Θ)`` — mean;\n* ``κ₂ = δᵀΣδ + ½·tr(Θ²)`` — variance;\n* ``κ₃ = 3·δᵀΣΓΣδ + tr(Θ³)`` — third cumulant.\n\nThe loss ``L = -ΔP`` has mean ``-κ₁``, standard deviation ``√κ₂`` and skewness\n``-κ₃/κ₂^1.5``; its ``c``-quantile is ``VaR_c = -κ₁ + √κ₂ · w(z_c, -γ₁)`` where ``w``\nis the third-order Cornish-Fisher map ``w = z + (z²-1)/6·γ₁`` (dispatched by\n``method``). With ``Γ = 0`` all higher cumulants vanish and this collapses exactly\nto ``parametric_var``.\n\nSign sanity: a long-gamma book (``Γ`` positive definite) has ``κ₁ > 0`` (the quadratic\nterm only ever adds to P&L) and positive P&L skewness, so both the mean shift and the\nskewness correction *reduce* VaR relative to the delta-only figure — the expected\ndirection.\n\nArgs:\n    deltas: Portfolio delta by risk factor, a 1-D vector of length ``n``.\n    gamma: The ``n x n`` gamma matrix ``Γ``; must be square, symmetric, and conformable\n        with ``deltas`` — but need **not** be PSD (a book may be long some gammas and\n        short others).\n    cov: The ``n x n`` factor covariance ``Σ`` (validated square/symmetric/PSD).\n    confidences: Confidence levels; defaults to ``(0.95, 0.99)``.\n    method: Delta-gamma quantile method; defaults to ``\"cornish_fisher\"``. Must be a\n        registered method (currently only ``\"cornish_fisher\"``).\n    psd_tol: Absolute tolerance on the smallest eigenvalue of ``Σ`` used by the PSD\n        check; defaults to ``1e-8``.\n    symmetry_rtol: Relative tolerance (against the matrix scale) for the symmetry\n        checks on ``Σ`` and ``Γ``; defaults to ``1e-8``.\n\nReturns:\n    A ``ParametricVaRResult`` carrying ``method`` and the P&L cumulant moments\n    ``(κ₁, κ₂, κ₃/κ₂^1.5)``.\n\nRaises:\n    ValidationError: on any dimension, symmetry, PSD, confidence, or unknown-``method``\n        violation, naming the offending quantity.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/risk/parametric_var.py",
-          "line": 292
+          "line": 289
         },
         {
           "name": "dispatch_deterministic",
@@ -5090,12 +5090,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "dispatch_deterministic(plant: PlantModel, power_prices: Sequence[float], fuel_prices: Sequence[float], temperatures: Sequence[float], *, initial_online: bool=False, initial_output: float=0.0, initial_uptime: int | None=None, initial_downtime: int | None=None, output_step: float | None=None, discount_factors: Sequence[float] | None=None) -> DispatchSchedule",
           "summary": "Solve the perfect-foresight optimal dispatch of ``plant`` (eq. B.1).",
-          "doc": "Solve the perfect-foresight optimal dispatch of ``plant`` (eq. B.1).\n\nExact backward-induction DP over a discretised commitment/output state (see\nthe module docstring for the objective, the state space, the discretisation\nand its exactness, and the unit-commitment conventions). All inputs are\nvalidated before any computation and never mutated.\n\nArgs:\n    plant: The operating model (heat-rate curve, capacities, start costs,\n        ramp rate, durations).\n    power_prices: Power price ``P_t`` per period (may be negative).\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period (drives ``HR`` and\n        ``c_max``).\n    initial_online: Whether the unit is producing entering the horizon.\n    initial_output: Output entering the horizon (MW); must be on the grid\n        when ``initial_online`` (ignored otherwise).\n    initial_uptime: Producing periods already accrued (min-run); defaults to\n        \"min-run already satisfied\". Only used when ``initial_online``.\n    initial_downtime: Periods already offline (keys the first start's bucket\n        and min-down); must be ``>= 1`` (a unit \"not online\" has been offline for\n        at least one period); defaults to a long, cold, restart-ready downtime.\n        Only used when not ``initial_online``.\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    discount_factors: Per-period discount factors (default all 1.0).\n\nReturns:\n    The optimal :class:`DispatchSchedule`; ``total_value`` is the\n    perfect-foresight upper bound of Property 62.\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a\n        discount factor or ``output_step`` is non-positive; if\n        ``c_max(temp) < c_min`` or ``heat_rate(q, temp) ≤ 0`` at a supplied\n        temperature; if ``initial_output`` is off-grid while online; if\n        ``initial_downtime < 1`` while offline; or if the supplied initial\n        condition admits no feasible schedule.",
+          "doc": "Solve the perfect-foresight optimal dispatch of ``plant`` (eq. B.1).\n\nExact backward-induction DP over a discretised commitment/output state (see\nthe module docstring for the objective, the state space, the discretisation\nand its exactness, and the unit-commitment conventions). All inputs are\nvalidated before any computation and never mutated.\n\nArgs:\n    plant: The operating model (heat-rate curve, capacities, start costs,\n        ramp rate, durations).\n    power_prices: Power price ``P_t`` per period (may be negative).\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period (drives ``HR`` and\n        ``c_max``).\n    initial_online: Whether the unit is producing entering the horizon.\n    initial_output: Output entering the horizon (MW); must be on the grid\n        when ``initial_online`` (ignored otherwise).\n    initial_uptime: Producing periods already accrued (min-run); defaults to\n        \"min-run already satisfied\". Only used when ``initial_online``.\n    initial_downtime: Periods already offline (keys the first start's bucket\n        and min-down); must be ``>= 1`` (a unit \"not online\" has been offline for\n        at least one period); defaults to a long, cold, restart-ready downtime.\n        Only used when not ``initial_online``.\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    discount_factors: Per-period discount factors (default all 1.0).\n\nReturns:\n    The optimal ``DispatchSchedule``; ``total_value`` is the\n    perfect-foresight upper bound.\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a\n        discount factor or ``output_step`` is non-positive; if\n        ``c_max(temp) < c_min`` or ``heat_rate(q, temp) ≤ 0`` at a supplied\n        temperature; if ``initial_output`` is off-grid while online; if\n        ``initial_downtime < 1`` while offline; or if the supplied initial\n        condition admits no feasible schedule.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/assets/dispatch_deterministic.py",
-          "line": 298
+          "line": 296
         },
         {
           "name": "dispatch_value",
@@ -5103,8 +5103,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.dispatch_sdp.dispatch_value",
           "kind": "function",
           "signature": "dispatch_value(plant: PlantModel, factor_model: DispatchFactorModel, *, method: str='lsm', seed: int, path_count: int=4096, output_step: float | None=None, availability: Sequence[float] | None=None, discount_factors: Sequence[float] | None=None, initial_online: bool=False, initial_output: float=0.0, initial_uptime: int | None=None, initial_downtime: int | None=None, evaluation: MonteCarloEvaluation | None=None, antithetic: bool=True, regression_basis_degree: int=2) -> DispatchResult",
-          "summary": "Value ``plant`` under uncertainty by stochastic DP (eqs. B.2-B.3; Req 21.1-21.2).",
-          "doc": "Value ``plant`` under uncertainty by stochastic DP (eqs. B.2-B.3; Req 21.1-21.2).\n\nSolves the Bellman recursion over the deterministic module's commitment state\nmachine, under the risk-adjusted expectation carried by ``factor_model``\n(Req 21.5). See the module docstring for the state machine, the on-peak /\noff-peak Markov split (Req 21.6), the risk-adjusted-drift requirement, the\nforced-outage seam, and the critical-surface representation. All inputs are\nvalidated before any computation and never mutated.\n\nArgs:\n    plant: The operating model (heat-rate curve, capacities, start costs,\n        ramp rate, durations).\n    factor_model: Risk-adjusted factor dynamics and the per-period peak /\n        temperature context (also fixes the horizon ``H``).\n    method: ``\"lsm\"`` (least-squares Monte Carlo) or ``\"tree\"`` (recombining\n        lattice); selected via a dispatch table.\n    seed: Monte Carlo / lattice seed (Req 11.2 determinism); ``>= 0``.\n    path_count: Simulated paths for ``\"lsm\"`` (ignored by ``\"tree\"``); ``>= 1``.\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    availability: Optional per-period forced-outage multiplier ``M`` in\n        ``(0, 1]`` (length ``H``) derating ``c_max``; ``None`` = full\n        availability. A caller may source it from\n        :meth:`OutageDataset.forced_outage_multiplier`.\n    discount_factors: Per-period to-today discount factors (default all 1.0).\n    initial_online: Whether the unit is producing entering the horizon.\n    initial_output: Output entering the horizon (MW); on-grid when online.\n    initial_uptime: Producing periods already accrued (min-run).\n    initial_downtime: Periods already offline (start bucket / min-down); must be\n        ``>= 1`` when not ``initial_online`` (delegated to the reused\n        :func:`~quantvolt.assets.dispatch_deterministic._initial_state`).\n    evaluation: Independent LSM policy-evaluation sample. By default, the fitted\n        policy is evaluated on ``path_count`` fresh paths using ``seed + 1``.\n    antithetic: Whether ``\"lsm\"``'s simulated paths use antithetic variates\n        (default ``True``, matching prior behaviour); ignored by ``\"tree\"``\n        (the lattice has no simulation). Also selects the pair-mean-aware\n        standard-error estimator used for ``evaluation_standard_error``\n        (:class:`DispatchDiagnostics`).\n    regression_basis_degree: Degree of the polynomial regression basis used by\n        ``\"lsm\"``'s continuation-value fit (default ``2``: intercept, linears,\n        squares, pairwise cross terms -- the historical basis); ignored by\n        ``\"tree\"``. Must be ``>= 1``.\n\nReturns:\n    The :class:`DispatchResult` (value + eq. B.5 critical surfaces).\n\nRaises:\n    ValidationError: If ``method`` is unknown; if ``factor_model.drift`` is not\n        risk-adjusted (Req 21.5); if ``path_count`` / ``seed`` /\n        ``discount_factors`` / ``availability`` / ``regression_basis_degree`` are\n        out of range or mis-sized; if a plant curve is infeasible at a supplied\n        temperature; if ``initial_downtime < 1`` while offline; or if the initial\n        condition admits no feasible schedule.",
+          "summary": "Value ``plant`` under uncertainty by stochastic DP (eqs. B.2-B.3).",
+          "doc": "Value ``plant`` under uncertainty by stochastic DP (eqs. B.2-B.3).\n\nSolves the Bellman recursion over the deterministic module's commitment state\nmachine, under the risk-adjusted expectation carried by ``factor_model``.\nSee the module docstring for the state machine, the on-peak /\noff-peak Markov split, the risk-adjusted-drift requirement, the\nforced-outage seam, and the critical-surface representation. All inputs are\nvalidated before any computation and never mutated.\n\nArgs:\n    plant: The operating model (heat-rate curve, capacities, start costs,\n        ramp rate, durations).\n    factor_model: Risk-adjusted factor dynamics and the per-period peak /\n        temperature context (also fixes the horizon ``H``).\n    method: ``\"lsm\"`` (least-squares Monte Carlo) or ``\"tree\"`` (recombining\n        lattice); selected via a dispatch table.\n    seed: Monte Carlo / lattice seed (determinism); ``>= 0``.\n    path_count: Simulated paths for ``\"lsm\"`` (ignored by ``\"tree\"``); ``>= 1``.\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    availability: Optional per-period forced-outage multiplier ``M`` in\n        ``(0, 1]`` (length ``H``) derating ``c_max``; ``None`` = full\n        availability. A caller may source it from\n        :meth:`OutageDataset.forced_outage_multiplier`.\n    discount_factors: Per-period to-today discount factors (default all 1.0).\n    initial_online: Whether the unit is producing entering the horizon.\n    initial_output: Output entering the horizon (MW); on-grid when online.\n    initial_uptime: Producing periods already accrued (min-run).\n    initial_downtime: Periods already offline (start bucket / min-down); must be\n        ``>= 1`` when not ``initial_online`` (delegated to the reused\n        ``quantvolt.assets.dispatch_deterministic._initial_state``).\n    evaluation: Independent LSM policy-evaluation sample. By default, the fitted\n        policy is evaluated on ``path_count`` fresh paths using ``seed + 1``.\n    antithetic: Whether ``\"lsm\"``'s simulated paths use antithetic variates\n        (default ``True``, matching prior behaviour); ignored by ``\"tree\"``\n        (the lattice has no simulation). Also selects the pair-mean-aware\n        standard-error estimator used for ``evaluation_standard_error``\n        (:class:`DispatchDiagnostics`).\n    regression_basis_degree: Degree of the polynomial regression basis used by\n        ``\"lsm\"``'s continuation-value fit (default ``2``: intercept, linears,\n        squares, pairwise cross terms -- the historical basis); ignored by\n        ``\"tree\"``. Must be ``>= 1``.\n\nReturns:\n    The ``DispatchResult`` (value + eq. B.5 critical surfaces).\n\nRaises:\n    ValidationError: If ``method`` is unknown; if ``factor_model.drift`` is not\n        risk-adjusted; if ``path_count`` / ``seed`` /\n        ``discount_factors`` / ``availability`` / ``regression_basis_degree`` are\n        out of range or mis-sized; if a plant curve is infeasible at a supplied\n        temperature; if ``initial_downtime < 1`` while offline; or if the initial\n        condition admits no feasible schedule.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5132,12 +5132,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "forward_spread(power_curve: ForwardCurve, fuel_curve: ForwardCurve, heat_rate: float, variable_cost: float, emissions_cost: float) -> SpreadResult",
           "summary": "Forward spark spread over the curve intersection, for forward price risk.",
-          "doc": "Forward spark spread over the curve intersection, for forward price risk.\n\nThe formula is identical to :func:`spark_spread` — forward power minus\nheat-rate-weighted forward fuel minus costs — differing only in time-horizon\ninterpretation, so this delegates to it and returns the same ``\"spark\"``\n-labelled :class:`SpreadResult` (design §2.4, Property 43).",
+          "doc": "Forward spark spread over the curve intersection, for forward price risk.\n\nThe formula is identical to ``spark_spread``: forward power minus\nheat-rate-weighted forward fuel minus costs, differing only in time-horizon\ninterpretation, so this delegates to it and returns the same\n``\"spark\"``-labelled ``SpreadResult``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 439
+          "line": 435
         },
         {
           "name": "futures_delta",
@@ -5146,7 +5146,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "futures_delta(contract: FuturesContract | ForwardContract, forward_curve: ForwardCurve, valuation_date: date, discount_curve: DiscountCurve, bump: float=1.0, *, settlement_lag_days: int=0) -> float",
           "summary": "Delta of the contract NPV to the forward price: ``discount_factor * notional``.",
-          "doc": "Delta of the contract NPV to the forward price: ``discount_factor * notional``.\n\nThe NPV is linear in the forward price, so this closed form is exact — it is\nwhat a central finite difference at ``forward_price ± bump`` would compute for\nany ``bump > 0`` (up to floating-point round-off), without repricing twice or\nlooking up the forward price at all.\n\nArgs:\n    contract: The futures or forward contract to price.\n    forward_curve: Must have a node for ``contract.delivery_period``.\n    valuation_date: The date NPV is computed as of.\n    discount_curve: Must cover the settlement date.\n    bump: Retained for signature compatibility with the historical\n        finite-difference form and still validated as strictly positive;\n        unused in the closed-form computation itself.\n    settlement_lag_days: Calendar days added to the delivery period's last\n        day to get the settlement date, matching :func:`price_futures` so\n        price and delta agree (default 0, non-negative).\n\nRaises:\n    ValidationError: If ``bump`` is not strictly positive, or\n        ``settlement_lag_days`` is negative.\n    ExpiredContractError: If the delivery period ended strictly before\n        ``valuation_date`` (Req 3.3).\n    MissingTenorError: If ``forward_curve`` has no node for the delivery period\n        or ``discount_curve`` does not cover the settlement date (Req 3.4).",
+          "doc": "Delta of the contract NPV to the forward price: ``discount_factor * notional``.\n\nThe NPV is linear in the forward price, so this closed form is exact — it is\nwhat a central finite difference at ``forward_price ± bump`` would compute for\nany ``bump > 0`` (up to floating-point round-off), without repricing twice or\nlooking up the forward price at all.\n\nArgs:\n    contract: The futures or forward contract to price.\n    forward_curve: Must have a node for ``contract.delivery_period``.\n    valuation_date: The date NPV is computed as of.\n    discount_curve: Must cover the settlement date.\n    bump: Retained for signature compatibility with the historical\n        finite-difference form and still validated as strictly positive;\n        unused in the closed-form computation itself.\n    settlement_lag_days: Calendar days added to the delivery period's last\n        day to get the settlement date, matching :func:`price_futures` so\n        price and delta agree (default 0, non-negative).\n\nRaises:\n    ValidationError: If ``bump`` is not strictly positive, or\n        ``settlement_lag_days`` is negative.\n    ExpiredContractError: If the delivery period ended strictly before\n        ``valuation_date``.\n    MissingTenorError: If ``forward_curve`` has no node for the delivery period\n        or ``discount_curve`` does not cover the settlement date.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5173,8 +5173,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.dispatch_approx.horizon_divide",
           "kind": "function",
           "signature": "horizon_divide(plant: PlantModel, power_prices: Sequence[float], fuel_prices: Sequence[float], temperatures: Sequence[float], sub_horizon: int, *, initial_online: bool=False, initial_output: float=0.0, initial_uptime: int | None=None, initial_downtime: int | None=None, output_step: float | None=None, discount_factors: Sequence[float] | None=None) -> DispatchSchedule",
-          "summary": "Horizon-division heuristic: solve independent sub-horizons and sum (Req 21.3).",
-          "doc": "Horizon-division heuristic: solve independent sub-horizons and sum (Req 21.3).\n\nThe horizon is cut into consecutive sub-horizons of length ``sub_horizon`` (the\nlast may be shorter) that are solved *independently* by the deterministic DP and\nconcatenated; ``total_value`` is the sum of the sub-values. This is the weekly /\nmonthly sub-period heuristic that keeps each solve small.\n\nBoundary-state approximation. Only the **first** sub-horizon sees the caller's\ninitial condition; every later sub-horizon restarts from a cold, restart-ready\n*offline* state. Dropping the true carried-over commitment state is exactly what\ndecouples the subproblems — and is the approximation. It is **exact** when the\nperiods decouple (zero start costs and non-binding min-run / min-down / ramp),\nbecause the dispatch is then myopic and the start-up state is immaterial. It\n**typically understates** value otherwise (each boundary can pay a spurious\nrestart cost), but it *can* overstate value when a binding min-run / min-down\nconstraint that would span a boundary in the full solve is artificially relaxed\nby the cut.\n\nArgs:\n    plant: The operating model (unchanged; passed to each sub-solve).\n    power_prices: Power price ``P_t`` per period.\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period.\n    sub_horizon: Periods per sub-horizon; must be an integer ``>= 1``.\n    initial_online: Whether the unit is producing entering the *first*\n        sub-horizon.\n    initial_output: Output entering the first sub-horizon (MW); on the grid when\n        online.\n    initial_uptime: Producing periods already accrued entering the first\n        sub-horizon (min-run).\n    initial_downtime: Offline periods already accrued entering the first\n        sub-horizon (start bucket / min-down).\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    discount_factors: Per-period to-today discount factors (default all 1.0);\n        sliced per sub-horizon.\n\nReturns:\n    The concatenated full-horizon :class:`DispatchSchedule`; ``total_value`` is\n    the sum of the sub-horizon values.\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a discount\n        factor or ``output_step`` is non-positive; if ``sub_horizon`` is not an\n        integer ``>= 1``; or if any sub-problem is infeasible (delegated to the\n        deterministic solver).",
+          "summary": "Horizon-division heuristic: solve independent sub-horizons and sum.",
+          "doc": "Horizon-division heuristic: solve independent sub-horizons and sum.\n\nThe horizon is cut into consecutive sub-horizons of length ``sub_horizon`` (the\nlast may be shorter) that are solved independently by the deterministic DP and\nconcatenated; ``total_value`` is the sum of the sub-values. This is the weekly /\nmonthly sub-period heuristic that keeps each solve small.\n\nBoundary-state approximation. Only the first sub-horizon sees the caller's\ninitial condition; every later sub-horizon restarts from a cold, restart-ready\noffline state. Dropping the true carried-over commitment state is exactly what\ndecouples the subproblems, and is the approximation. It is exact when the\nperiods decouple (zero start costs and non-binding min-run / min-down / ramp),\nbecause the dispatch is then myopic and the start-up state is immaterial. It\ntypically understates value otherwise (each boundary can pay a spurious\nrestart cost), but it can overstate value when a binding min-run / min-down\nconstraint that would span a boundary in the full solve is artificially relaxed\nby the cut.\n\nArgs:\n    plant: The operating model (unchanged; passed to each sub-solve).\n    power_prices: Power price ``P_t`` per period.\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period.\n    sub_horizon: Periods per sub-horizon; must be an integer ``>= 1``.\n    initial_online: Whether the unit is producing entering the *first*\n        sub-horizon.\n    initial_output: Output entering the first sub-horizon (MW); on the grid when\n        online.\n    initial_uptime: Producing periods already accrued entering the first\n        sub-horizon (min-run).\n    initial_downtime: Offline periods already accrued entering the first\n        sub-horizon (start bucket / min-down).\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    discount_factors: Per-period to-today discount factors (default all 1.0);\n        sliced per sub-horizon.\n\nReturns:\n    The concatenated full-horizon :class:`DispatchSchedule`; ``total_value`` is\n    the sum of the sub-horizon values.\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a discount\n        factor or ``output_step`` is non-positive; if ``sub_horizon`` is not an\n        integer ``>= 1``; or if any sub-problem is infeasible (delegated to the\n        deterministic solver).",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5187,13 +5187,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spreads.implied_heat_rate",
           "kind": "function",
           "signature": "implied_heat_rate(power_curve: ForwardCurve, gas_curve: ForwardCurve, anomaly_range: tuple[float, float] | None=None) -> ImpliedHeatRateResult",
-          "summary": "Implied heat rate ``power_price / gas_price`` per shared period (Req 2.3).",
-          "doc": "Implied heat rate ``power_price / gas_price`` per shared period (Req 2.3).\n\nValidation is eager and complete before any computation: every shared period's\ngas price must be strictly positive; the first violation raises\n:class:`~quantvolt.exceptions.ValidationError` identifying that delivery period\nand no heat rate is computed (Property 8). When ``anomaly_range=(lo, hi)`` is\nsupplied (requiring ``lo < hi``), periods whose implied heat rate falls\n*strictly outside* the inclusive ``[lo, hi]`` band are flagged in\n``anomalous``; without a range no period is flagged.",
+          "summary": "Implied heat rate ``power_price / gas_price`` per shared period.",
+          "doc": "Implied heat rate ``power_price / gas_price`` per shared period.\n\nValidation is eager and complete before any computation: every shared period's\ngas price must be strictly positive; the first violation raises\n``ValidationError`` identifying that delivery period and no heat rate is\ncomputed. When ``anomaly_range=(lo, hi)`` is supplied (requiring ``lo < hi``),\nperiods whose implied heat rate falls strictly outside the inclusive\n``[lo, hi]`` band are flagged in ``anomalous``; without a range no period is\nflagged.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 281
+          "line": 279
         },
         {
           "name": "implied_vol",
@@ -5201,13 +5201,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.implied_vol.implied_vol",
           "kind": "function",
           "signature": "implied_vol(option_type: Literal['call', 'put'], market_premium: float, forward: float, strike: float, time_to_expiry: float, discount_factor: float, tol: float=0.0001, max_iter: int=100, *, sigma_lower: float=_SIGMA_LOWER, sigma_upper: float=_SIGMA_UPPER, tolerance_pct: float=2.0) -> ImpliedVolResult",
-          "summary": "Recover the Black-76 volatility implied by a market premium (Property 31).",
-          "doc": "Recover the Black-76 volatility implied by a market premium (Property 31).\n\nRound-trip contract (Property 31): ``implied_vol`` applied to\n``black76_price(sigma0, ...)`` recovers ``sigma0`` within ``tol``. Inversion uses\nBrent over ``[sigma_lower, sigma_upper]`` (default ``[1e-9, 10.0]``) — a bracketing\nsolver, so it cannot diverge near zero vega the way Newton-Raphson would (design\n§2.7). The inversion is performed locally with :func:`brent_root` and a\ncall-counting objective (instead of delegating to\n:func:`~quantvolt.numerics.black76.black76_implied_vol`) so that\n:attr:`ImpliedVolResult.iteration_count` can be reported — the kernel does not\nexpose its iteration count. Both use the same bracket, objective, and tolerance.\n\nNo-arbitrage precondition (Req 5.3), checked before inversion:\n\n- call: ``DF*max(F-K, 0) < market_premium < DF*F``\n- put:  ``DF*max(K-F, 0) < market_premium < DF*K``\n\nArgs:\n    option_type: ``\"call\"`` or ``\"put\"``.\n    market_premium: Observed (discounted) option premium to invert, positive.\n    forward: Forward price of the underlying (``F``), positive.\n    strike: Option strike (``K``), positive.\n    time_to_expiry: Time to expiry in years (``T``), positive.\n    discount_factor: Discount factor to settlement (``DF``), in ``(0, 1]``.\n    tol: Absolute tolerance on the recovered volatility, positive.\n    max_iter: Maximum Brent iterations, at least 1.\n    sigma_lower: Lower end of the Brent search bracket, positive and strictly\n        below ``sigma_upper`` (default ``1e-9``, matching the kernel's bracket).\n    sigma_upper: Upper end of the Brent search bracket, strictly above\n        ``sigma_lower`` (default ``10.0``).\n    tolerance_pct: ATM band half-width (percent of the forward) passed through to\n        :func:`classify_moneyness` for the reported moneyness (default 2.0).\n\nReturns:\n    An :class:`ImpliedVolResult` with the recovered vol, the moneyness of the\n    quote (at ``tolerance_pct``, default 2% ATM tolerance), the\n    objective-evaluation count, and ``converged=True``.\n\nRaises:\n    ValidationError: If any input violates its domain, or if ``market_premium``\n        lies outside the no-arbitrage bounds (no volatility can reproduce it).",
+          "summary": "Recover the Black-76 volatility implied by a market premium.",
+          "doc": "Recover the Black-76 volatility implied by a market premium.\n\nRound-trip contract: ``implied_vol`` applied to\n``black76_price(sigma0, ...)`` recovers ``sigma0`` within ``tol``. Inversion uses\nBrent over ``[sigma_lower, sigma_upper]`` (default ``[1e-9, 10.0]``) — a bracketing\nsolver, so it cannot diverge near zero vega the way Newton-Raphson would (design\n§2.7). The inversion is performed locally with :func:`brent_root` and a\ncall-counting objective (instead of delegating to\n:func:`~quantvolt.numerics.black76.black76_implied_vol`) so that\n:attr:`ImpliedVolResult.iteration_count` can be reported — the kernel does not\nexpose its iteration count. Both use the same bracket, objective, and tolerance.\n\nNo-arbitrage precondition, checked before inversion:\n\n- call: ``DF*max(F-K, 0) < market_premium < DF*F``\n- put:  ``DF*max(K-F, 0) < market_premium < DF*K``\n\nArgs:\n    option_type: ``\"call\"`` or ``\"put\"``.\n    market_premium: Observed (discounted) option premium to invert, positive.\n    forward: Forward price of the underlying (``F``), positive.\n    strike: Option strike (``K``), positive.\n    time_to_expiry: Time to expiry in years (``T``), positive.\n    discount_factor: Discount factor to settlement (``DF``), in ``(0, 1]``.\n    tol: Absolute tolerance on the recovered volatility, positive.\n    max_iter: Maximum Brent iterations, at least 1.\n    sigma_lower: Lower end of the Brent search bracket, positive and strictly\n        below ``sigma_upper`` (default ``1e-9``, matching the kernel's bracket).\n    sigma_upper: Upper end of the Brent search bracket, strictly above\n        ``sigma_lower`` (default ``10.0``).\n    tolerance_pct: ATM band half-width (percent of the forward) passed through to\n        :func:`classify_moneyness` for the reported moneyness (default 2.0).\n\nReturns:\n    An :class:`ImpliedVolResult` with the recovered vol, the moneyness of the\n    quote (at ``tolerance_pct``, default 2% ATM tolerance), the\n    objective-evaluation count, and ``converged=True``.\n\nRaises:\n    ValidationError: If any input violates its domain, or if ``market_premium``\n        lies outside the no-arbitrage bounds (no volatility can reproduce it).",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/implied_vol.py",
-          "line": 83
+          "line": 82
         },
         {
           "name": "linear_cross_hedge",
@@ -5215,8 +5215,8 @@ window.API_DATA = {
           "qualified": "quantvolt.hedging.variance_min.linear_cross_hedge",
           "kind": "function",
           "signature": "linear_cross_hedge(rho: float, sigma_target: float, sigma_hedge: float) -> float",
-          "summary": "Linear two-asset cross-commodity hedge ratio ``rho·sigma_t/sigma_h`` (eq 10.22, Req 18.2).",
-          "doc": "Linear two-asset cross-commodity hedge ratio ``rho·sigma_t/sigma_h`` (eq 10.22, Req 18.2).\n\nThe optimal local variance-minimizing hedge of one forward (the target, with\nvolatility ``sigma_t``) with another (the hedge instrument, volatility ``sigma_h``)\nwhen the two follow jointly arithmetic Brownian motions with correlation\n``rho`` (eq 10.21). For a linear product the hedge is constant in ``rho``, ``sigma_t``\nand ``sigma_h``. This is the one-instrument special case of\n:func:`variance_min_hedge`: with ``Σ_hh = [[sigma_h²]]`` and\n``Σ_ht = [rho·sigma_t·sigma_h]``, ``Σ_hh⁻¹ Σ_ht = rho·sigma_t/sigma_h``.\n\nArgs:\n    rho: Correlation between the target and hedge returns, in ``(-1, 1)``.\n    sigma_target: Volatility ``sigma_t`` of the target, strictly positive.\n    sigma_hedge: Volatility ``sigma_h`` of the hedge instrument, strictly positive.\n\nReturns:\n    The hedge ratio ``rho·sigma_t/sigma_h``.\n\nRaises:\n    ValidationError: If ``rho`` is not in ``(-1, 1)`` or either volatility is\n        not strictly positive.",
+          "summary": "Linear two-asset cross-commodity hedge ratio ``rho·sigma_t/sigma_h`` (eq 10.22).",
+          "doc": "Linear two-asset cross-commodity hedge ratio ``rho·sigma_t/sigma_h`` (eq 10.22).\n\nThe optimal local variance-minimizing hedge of one forward (the target, with\nvolatility ``sigma_t``) with another (the hedge instrument, volatility ``sigma_h``)\nwhen the two follow jointly arithmetic Brownian motions with correlation\n``rho`` (eq 10.21). For a linear product the hedge is constant in ``rho``, ``sigma_t``\nand ``sigma_h``. This is the one-instrument special case of\n:func:`variance_min_hedge`: with ``Σ_hh = [[sigma_h²]]`` and\n``Σ_ht = [rho·sigma_t·sigma_h]``, ``Σ_hh⁻¹ Σ_ht = rho·sigma_t/sigma_h``.\n\nArgs:\n    rho: Correlation between the target and hedge returns, in ``(-1, 1)``.\n    sigma_target: Volatility ``sigma_t`` of the target, strictly positive.\n    sigma_hedge: Volatility ``sigma_h`` of the hedge instrument, strictly positive.\n\nReturns:\n    The hedge ratio ``rho·sigma_t/sigma_h``.\n\nRaises:\n    ValidationError: If ``rho`` is not in ``(-1, 1)`` or either volatility is\n        not strictly positive.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5229,8 +5229,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.ppa_valuation.make_ppa_pricer",
           "kind": "function",
           "signature": "make_ppa_pricer(profiles: Mapping[str, PpaVolumeProfile]) -> Callable[[Any, Any], Any]",
-          "summary": "Build a ``pricers=`` entry that opts ``PpaContract`` positions into ``value_portfolio`` (Req 16).",
-          "doc": "Build a ``pricers=`` entry that opts ``PpaContract`` positions into ``value_portfolio``\n(Req 16).\n\nReturned as a plain closure (typed loosely as ``Callable[[Any, Any], Any]`` here to\nkeep this module's dependencies to ``models/*`` and ``_validation``, per this spec's\nacyclic dependency design — it is never imported by ``portfolio/model.py`` or\n``portfolio/valuation.py``); at the call site it has exactly the shape\n``portfolio.valuation.Pricer`` expects: ``(Position, MarketData) -> PricedPosition``.\nRegister it explicitly:\n\n    ``value_portfolio(book, market, pricers={PpaContract: make_ppa_pricer(profiles)})``\n\n``PpaContract`` is deliberately **NOT** added to ``DEFAULT_PRICERS`` (Req 16.2): a\nraise-on-missing-profile default pricer would silently break every existing mixed\nbook that holds an unmodelled PPA (base-spec Req 13.3's \"lands in unpriced\"\nsemantics). Only callers who explicitly opt in via this factory get a missing-profile\nerror instead of a silent ``unpriced`` landing (Req 16.3).\n\nArgs:\n    profiles: Maps a PPA's ``contract_id`` to the :class:`PpaVolumeProfile` to value\n        it against.\n\nReturns:\n    A pricer closure ``(position, market_data) -> PricedPosition``: looks up the\n    curve at ``instrument.bidding_zone``, delegates to :func:`price_ppa`, and\n    packages the result (``reference_prices`` populated from each period's forward).\n\nRaises (at call time, when the returned closure is invoked):\n    ValidationError: If the position's instrument is not a ``PpaContract``, or its\n        ``contract_id`` has no entry in ``profiles`` (naming the missing key and\n        listing the available ones).",
+          "summary": "Build a ``pricers=`` entry that opts ``PpaContract`` positions into ``value_portfolio``.",
+          "doc": "Build a ``pricers=`` entry that opts ``PpaContract`` positions into ``value_portfolio``.\n\nReturned as a plain closure (typed loosely as ``Callable[[Any, Any], Any]`` here to\nkeep this module's dependencies to ``models/*`` and ``_validation`` — it is never\nimported by ``portfolio/model.py`` or ``portfolio/valuation.py``); at the call site it\nhas exactly the shape ``portfolio.valuation.Pricer`` expects: ``(Position, MarketData)\n-> PricedPosition``. Register it explicitly:\n\n    ``value_portfolio(book, market, pricers={PpaContract: make_ppa_pricer(profiles)})``\n\n``PpaContract`` is deliberately **NOT** added to ``DEFAULT_PRICERS``: a\nraise-on-missing-profile default pricer would silently break every existing mixed\nbook that holds an unmodelled PPA that otherwise lands in the portfolio's\nunpriced set. Only callers who explicitly opt in via this factory get a\nmissing-profile error instead of a silent ``unpriced`` landing.\n\nArgs:\n    profiles: Maps a PPA's ``contract_id`` to the :class:`PpaVolumeProfile` to value\n        it against.\n\nReturns:\n    A pricer closure ``(position, market_data) -> PricedPosition``: looks up the\n    curve at ``instrument.bidding_zone``, delegates to :func:`price_ppa`, and\n    packages the result (``reference_prices`` populated from each period's forward).\n\nRaises (at call time, when the returned closure is invoked):\n    ValidationError: If the position's instrument is not a ``PpaContract``, or its\n        ``contract_id`` has no entry in ``profiles`` (naming the missing key and\n        listing the available ones).",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5243,8 +5243,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.mark_to_market.mark_to_market",
           "kind": "function",
           "signature": "mark_to_market(positions: list[MtMPosition], market_date: date, settlement_prices: dict[tuple[str, DeliveryPeriod], float], forward_curve: ForwardCurve | None=None) -> MtMResult",
-          "summary": "Mark each position to market and compute daily and cumulative P&L (Req 10).",
-          "doc": "Mark each position to market and compute daily and cumulative P&L (Req 10).\n\n``market_date`` documents the as-of date of the marks: ``settlement_prices``\n(and ``forward_curve``, if given) are the caller's pricing data for that date.\nAll marks come solely from these inputs — the function reads no clock and keeps\nno state — so identical inputs always produce an identical result (Req 10.5).\n\nEach position's ``current_mark`` is resolved by ordered fallback: the\nsettlement price for ``(commodity_id, delivery_period)``; else the node of a\nsame-commodity ``forward_curve``, flagged ``\"estimated\"``; else\n:class:`NoPricingDataError`. P&L is then computed identically for settled and\nestimated marks (Req 10.1):\n\n- ``daily_pnl = (current_mark - prior_mark_price) * notional``\n- ``cumulative_pnl = (current_mark - trade_price) * notional``\n\nResults are returned in input order; ``estimated_count`` is the number of\npositions whose status is ``\"estimated\"``. An empty book yields an empty\nresult. Inputs are never mutated.\n\nRaises:\n    NoPricingDataError: If neither a settlement price nor a same-commodity\n        forward-curve node is available for a position's ``(commodity_id,\n        delivery_period)`` (Req 10.3).",
+          "summary": "Mark each position to market and compute daily and cumulative P&L.",
+          "doc": "Mark each position to market and compute daily and cumulative P&L.\n\n``market_date`` documents the as-of date of the marks: ``settlement_prices``\n(and ``forward_curve``, if given) are the caller's pricing data for that date.\nAll marks come solely from these inputs — the function reads no clock and keeps\nno state — so identical inputs always produce an identical result.\n\nEach position's ``current_mark`` is resolved by ordered fallback: the\nsettlement price for ``(commodity_id, delivery_period)``; else the node of a\nsame-commodity ``forward_curve``, flagged ``\"estimated\"``; else\n:class:`NoPricingDataError`. P&L is then computed identically for settled and\nestimated marks:\n\n- ``daily_pnl = (current_mark - prior_mark_price) * notional``\n- ``cumulative_pnl = (current_mark - trade_price) * notional``\n\nResults are returned in input order; ``estimated_count`` is the number of\npositions whose status is ``\"estimated\"``. An empty book yields an empty\nresult. Inputs are never mutated.\n\nRaises:\n    NoPricingDataError: If neither a settlement price nor a same-commodity\n        forward-curve node is available for a position's ``(commodity_id,\n        delivery_period)``.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5257,8 +5257,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.mc_var.monte_carlo_var",
           "kind": "function",
           "signature": "monte_carlo_var(positions: Sequence[Position], factor_model: FactorModel, physical_drift: TaggedDrift, holding_period: float, path_count: int, seed: int, *, confidences: Sequence[float]=DEFAULT_CONFIDENCES, cvar_confidence: float=DEFAULT_CVAR_CONFIDENCE, antithetic: bool=_ANTITHETIC, bootstrap_replicates: int=_BOOTSTRAP_REPLICATES, min_path_count: int=_MIN_PATH_COUNT) -> McVaRResult",
-          "summary": "Full-revaluation Monte Carlo VaR/CVaR over a holding period (Req 15).",
-          "doc": "Full-revaluation Monte Carlo VaR/CVaR over a holding period (Req 15).\n\nSee the module docstring for the request surface, the factor flattening convention,\nthe simulation/revaluation mechanics, the sign convention, and the standard-error\nestimator. In short: simulate correlated GBM forward scenarios to the horizon under\nthe physical drift, fully revalue the book on each path, and take loss quantiles.\n\nArgs:\n    positions: raw held instruments (repriced from their definition each path).\n    factor_model: base market state + GBM dynamics over the factor grid.\n    physical_drift: required, measure-tagged per-factor log-drift rates.\n    holding_period: risk horizon (> 0), in ``sigma``'s time unit.\n    path_count: simulated paths (``>= min_path_count``).\n    seed: reproducibility seed.\n    confidences: The two VaR confidence levels (fractions in ``(0, 1)``, matching\n        :mod:`quantvolt.risk.parametric_var`'s convention) reported as ``var_95`` /\n        ``var_99``; defaults to ``(0.95, 0.99)``.\n    cvar_confidence: The CVaR confidence level (a fraction in ``(0, 1)``) reported\n        as ``cvar_975``; defaults to ``0.975``.\n    antithetic: Whether the simulation uses antithetic-variate path pairing;\n        defaults to ``False`` (iid paths). The bootstrap SE estimator resamples\n        individual paths when ``False`` and whole ``(+eps, -eps)`` pairs when\n        ``True``, so both modes yield consistent SE estimates — see the module\n        docstring.\n    bootstrap_replicates: Number of bootstrap resamples for the quantile standard\n        errors; defaults to ``500``. Must be an integer ``>= 2`` (a sample standard\n        deviation across replicates needs at least 2 of them).\n    min_path_count: Minimum accepted ``path_count`` (Req 15.5); defaults to\n        ``1000``.\n\nReturns:\n    A :class:`McVaRResult` with VaR/CVaR at the requested confidence levels\n    (reported as ``var_95``/``var_99``/``cvar_975`` regardless of the levels used)\n    and bootstrap SEs.\n\nRaises:\n    ValidationError: if ``path_count < min_path_count`` (raised *before* simulating,\n        Req 15.5); if ``holding_period <= 0``; if ``physical_drift`` is not tagged\n        physical (Req 15.2); if ``physical_drift.values`` does not match the factor\n        count; if any current forward is not strictly positive (GBM requires\n        ``F_0 > 0``); if ``confidences`` does not contain exactly 2 strictly\n        ascending levels in ``(0, 1)``; if ``cvar_confidence`` is not in ``(0, 1)``;\n        if ``bootstrap_replicates`` is not an integer ``>= 2`` (a standard deviation\n        needs at least 2 replicates); or if ``min_path_count`` is not ``>= 1``.",
+          "summary": "Full-revaluation Monte Carlo VaR/CVaR over a holding period.",
+          "doc": "Full-revaluation Monte Carlo VaR/CVaR over a holding period.\n\nSee the module docstring for the request surface, the factor flattening convention,\nthe simulation/revaluation mechanics, the sign convention, and the standard-error\nestimator. In short: simulate correlated GBM forward scenarios to the horizon under\nthe physical drift, fully revalue the book on each path, and take loss quantiles.\n\nArgs:\n    positions: raw held instruments (repriced from their definition each path).\n    factor_model: base market state + GBM dynamics over the factor grid.\n    physical_drift: required, measure-tagged per-factor log-drift rates.\n    holding_period: risk horizon (> 0), in ``sigma``'s time unit.\n    path_count: simulated paths (``>= min_path_count``).\n    seed: reproducibility seed.\n    confidences: The two VaR confidence levels (fractions in ``(0, 1)``, matching\n        ``quantvolt.risk.parametric_var``'s convention) reported as ``var_95`` /\n        ``var_99``; defaults to ``(0.95, 0.99)``.\n    cvar_confidence: The CVaR confidence level (a fraction in ``(0, 1)``) reported\n        as ``cvar_975``; defaults to ``0.975``.\n    antithetic: Whether the simulation uses antithetic-variate path pairing;\n        defaults to ``False`` (iid paths). The bootstrap SE estimator resamples\n        individual paths when ``False`` and whole ``(+eps, -eps)`` pairs when\n        ``True``, so both modes yield consistent SE estimates; see the module\n        docstring.\n    bootstrap_replicates: Number of bootstrap resamples for the quantile standard\n        errors; defaults to ``500``. Must be an integer ``>= 2`` (a sample standard\n        deviation across replicates needs at least 2 of them).\n    min_path_count: Minimum accepted ``path_count``; defaults to ``1000``.\n\nReturns:\n    A ``McVaRResult`` with VaR/CVaR at the requested confidence levels\n    (reported as ``var_95``/``var_99``/``cvar_975`` regardless of the levels used)\n    and bootstrap SEs.\n\nRaises:\n    ValidationError: if ``path_count < min_path_count`` (raised before simulating);\n        if ``holding_period <= 0``; if ``physical_drift`` is not tagged\n        physical; if ``physical_drift.values`` does not match the factor\n        count; if any current forward is not strictly positive (GBM requires\n        ``F_0 > 0``); if ``confidences`` does not contain exactly 2 strictly\n        ascending levels in ``(0, 1)``; if ``cvar_confidence`` is not in ``(0, 1)``;\n        if ``bootstrap_replicates`` is not an integer ``>= 2`` (a standard deviation\n        needs at least 2 replicates); or if ``min_path_count`` is not ``>= 1``.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5271,13 +5271,13 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.parametric_var.parametric_var",
           "kind": "function",
           "signature": "parametric_var(deltas: NDArray[np.float64], cov: NDArray[np.float64], confidences: Sequence[float]=DEFAULT_CONFIDENCES, *, psd_tol: float=_PSD_TOL, symmetry_rtol: float=_SYMMETRY_RTOL) -> ParametricVaRResult",
-          "summary": "First-order (delta) parametric VaR ``VaR_c = z_c·√(δᵀΣδ)`` (Req 14.1, Property 47).",
-          "doc": "First-order (delta) parametric VaR ``VaR_c = z_c·√(δᵀΣδ)`` (Req 14.1, Property 47).\n\nValidates all inputs before any arithmetic (Req 14.4): ``deltas`` is a finite 1-D\nvector; ``cov`` is square, symmetric (within ``symmetry_rtol``), conformable with\n``deltas`` (a mismatch names both dimensions), and positive semidefinite within\n``psd_tol`` (a violation names the offending smallest eigenvalue). See the module\ndocstring for the sign convention, the z-score policy, and the fast PSD test.\n\nArgs:\n    deltas: Portfolio delta by risk factor, a 1-D vector of length ``n``.\n    cov: The ``n x n`` factor covariance forecast ``Σ`` over the loss horizon\n        (e.g. from :mod:`quantvolt.risk.covariance`).\n    confidences: Confidence levels; defaults to ``(0.95, 0.99)``. Each must be in\n        ``(0, 1)``; ``0.95`` / ``0.99`` use the mandated constants ``1.645`` / ``2.326``.\n    psd_tol: Absolute tolerance on the smallest eigenvalue of ``Σ`` used by the PSD\n        check; defaults to ``1e-8`` (the design's documented tolerance, Req 14.4).\n    symmetry_rtol: Relative tolerance (against the matrix scale) for the symmetry\n        check on ``Σ``; defaults to ``1e-8``.\n\nReturns:\n    A :class:`ParametricVaRResult` with ``method=\"delta\"`` and a zero-mean,\n    zero-skew P&L description (``pnl_variance = δᵀΣδ``).\n\nRaises:\n    ValidationError: on any dimension, symmetry, PSD, or confidence violation, naming\n        the offending quantity.",
+          "summary": "First-order (delta) parametric VaR ``VaR_c = z_c·√(δᵀΣδ)``.",
+          "doc": "First-order (delta) parametric VaR ``VaR_c = z_c·√(δᵀΣδ)``.\n\nValidates all inputs before any arithmetic: ``deltas`` is a finite 1-D vector;\n``cov`` is square, symmetric (within ``symmetry_rtol``), conformable with\n``deltas`` (a mismatch names both dimensions), and positive semidefinite within\n``psd_tol`` (a violation names the offending smallest eigenvalue). See the module\ndocstring for the sign convention, the z-score policy, and the fast PSD test.\n\nArgs:\n    deltas: Portfolio delta by risk factor, a 1-D vector of length ``n``.\n    cov: The ``n x n`` factor covariance forecast ``Σ`` over the loss horizon\n        (e.g. from ``quantvolt.risk.covariance``).\n    confidences: Confidence levels; defaults to ``(0.95, 0.99)``. Each must be in\n        ``(0, 1)``; ``0.95`` / ``0.99`` use the fixed constants ``1.645`` / ``2.326``.\n    psd_tol: Absolute tolerance on the smallest eigenvalue of ``Σ`` used by the PSD\n        check; defaults to ``1e-8``.\n    symmetry_rtol: Relative tolerance (against the matrix scale) for the symmetry\n        check on ``Σ``; defaults to ``1e-8``.\n\nReturns:\n    A ``ParametricVaRResult`` with ``method=\"delta\"`` and a zero-mean,\n    zero-skew P&L description (``pnl_variance = δᵀΣδ``).\n\nRaises:\n    ValidationError: on any dimension, symmetry, PSD, or confidence violation, naming\n        the offending quantity.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/risk/parametric_var.py",
-          "line": 235
+          "line": 232
         },
         {
           "name": "power_cap_payoff",
@@ -5313,13 +5313,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.exotic.price_asian",
           "kind": "function",
           "signature": "price_asian(request: AsianOptionRequest, *, forward_bump_fraction: float=_FORWARD_BUMP_FRACTION, vol_bump: float=_VOL_BUMP, time_bump: float=_TIME_BUMP, averaging_points: int=_MC_AVERAGING_POINTS) -> ExoticOptionResult",
-          "summary": "Price an average-price Asian option on a forward (Req 6.1).",
-          "doc": "Price an average-price Asian option on a forward (Req 6.1).\n\nMethod dispatch (Simple Factory): ``request.method`` if given, otherwise the\naveraging-type default — Turnbull-Wakeman for ``\"arithmetic\"``, Kemna-Vorst for\n``\"geometric\"``. Each closed form prices exactly one averaging type, so an explicit\nmethod that contradicts ``request.averaging`` is rejected rather than silently\nrepriced (fail loudly, coding-style.md §7). ``\"monte_carlo\"`` must be requested\nexplicitly and additionally requires ``seed`` and ``path_count >= 1000``.\n\nClosed forms return central finite-difference Greeks of the selected kernel; the\nMonte Carlo path returns ``Greeks.zero()`` (MC Greeks arrive with the Rust engine,\nTask 59) plus the kernel's ``standard_error``.\n\nArgs:\n    request: Fully specified Asian option; validated eagerly before any\n        computation (Req 6.4).\n    forward_bump_fraction: Relative forward bump used for the closed-form\n        delta/gamma finite differences, positive (default ``1e-4``). Unused\n        for ``method=\"monte_carlo\"``.\n    vol_bump: Absolute vol bump for the closed-form vega finite difference,\n        positive (default ``1e-4``). Unused for ``method=\"monte_carlo\"``.\n    time_bump: Absolute time bump for the closed-form theta finite\n        difference, positive (default ``1e-6``). Unused for\n        ``method=\"monte_carlo\"``.\n    averaging_points: Number of discrete fixings in the Monte Carlo averaging\n        schedule, at least 1 (default 252, one trading year of daily\n        fixings). Unused for the closed forms (continuous averaging).\n\nReturns:\n    Premium, Greeks, and — for Monte Carlo only — the standard error.\n\nRaises:\n    ValidationError: If ``forward``, ``strike``, ``sigma`` or ``time_to_expiry``\n        is not > 0, ``discount_factor`` is outside ``(0, 1]``, ``method``\n        contradicts ``averaging``, ``forward_bump_fraction``/``vol_bump``/\n        ``time_bump`` is not > 0, ``averaging_points`` < 1, or — for\n        ``method=\"monte_carlo\"`` — ``seed`` is missing or ``path_count`` < 1000.\n    NativeExtensionError: If ``method=\"monte_carlo\"`` is requested without a\n        built native Rust extension.",
+          "summary": "Price an average-price Asian option on a forward.",
+          "doc": "Price an average-price Asian option on a forward.\n\nMethod dispatch: ``request.method`` if given, otherwise the averaging-type\ndefault: Turnbull-Wakeman for ``\"arithmetic\"``, Kemna-Vorst for ``\"geometric\"``.\nEach closed form prices exactly one averaging type, so an explicit method that\ncontradicts ``request.averaging`` is rejected rather than silently repriced.\n``\"monte_carlo\"`` must be requested explicitly and additionally requires ``seed``\nand ``path_count >= 1000``.\n\nClosed forms return central finite-difference Greeks of the selected kernel; the\nMonte Carlo path returns ``Greeks.zero()`` (this pricer does not compute pathwise\nMonte Carlo Greeks) plus the kernel's ``standard_error``.\n\nArgs:\n    request: Fully specified Asian option; validated eagerly before any\n        computation.\n    forward_bump_fraction: Relative forward bump used for the closed-form\n        delta/gamma finite differences, positive (default ``1e-4``). Unused\n        for ``method=\"monte_carlo\"``.\n    vol_bump: Absolute vol bump for the closed-form vega finite difference,\n        positive (default ``1e-4``). Unused for ``method=\"monte_carlo\"``.\n    time_bump: Absolute time bump for the closed-form theta finite\n        difference, positive (default ``1e-6``). Unused for\n        ``method=\"monte_carlo\"``.\n    averaging_points: Number of discrete fixings in the Monte Carlo averaging\n        schedule, at least 1 (default 252, one trading year of daily\n        fixings). Unused for the closed forms (continuous averaging).\n\nReturns:\n    Premium, Greeks, and — for Monte Carlo only — the standard error.\n\nRaises:\n    ValidationError: If ``forward``, ``strike``, ``sigma`` or ``time_to_expiry``\n        is not > 0, ``discount_factor`` is outside ``(0, 1]``, ``method``\n        contradicts ``averaging``, ``forward_bump_fraction``/``vol_bump``/\n        ``time_bump`` is not > 0, ``averaging_points`` < 1, or — for\n        ``method=\"monte_carlo\"`` — ``seed`` is missing or ``path_count`` < 1000.\n    NativeExtensionError: If ``method=\"monte_carlo\"`` is requested without a\n        built native Rust extension.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 301
+          "line": 299
         },
         {
           "name": "price_bachelier_option",
@@ -5333,7 +5333,7 @@ window.API_DATA = {
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/bachelier.py",
-          "line": 57
+          "line": 60
         },
         {
           "name": "price_barrier",
@@ -5341,13 +5341,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.exotic.price_barrier",
           "kind": "function",
           "signature": "price_barrier(request: BarrierOptionRequest, *, forward_bump_fraction: float=_FORWARD_BUMP_FRACTION, vol_bump: float=_VOL_BUMP, time_bump: float=_TIME_BUMP) -> ExoticOptionResult",
-          "summary": "Price a single-barrier option via the Reiner-Rubinstein closed form (Req 6.2).",
-          "doc": "Price a single-barrier option via the Reiner-Rubinstein closed form (Req 6.2).\n\nBarrier-vs-forward consistency (Property 17): an *up* barrier must sit strictly\nabove the forward and a *down* barrier strictly below — a barrier on the wrong\nside (or exactly at the forward) is already breached at inception and is rejected\nbefore any computation. Greeks are central finite differences of the barrier\nkernel.\n\nArgs:\n    request: Fully specified barrier option; validated eagerly before any\n        computation (Req 6.4).\n    forward_bump_fraction: Relative forward bump for delta/gamma, positive\n        (default ``1e-4``).\n    vol_bump: Absolute vol bump for vega, positive (default ``1e-4``).\n    time_bump: Absolute time bump for theta, positive (default ``1e-6``).\n\nReturns:\n    Premium and Greeks (``standard_error`` is ``None`` for closed forms).\n\nRaises:\n    ValidationError: If ``forward``, ``strike``, ``barrier``, ``sigma`` or\n        ``time_to_expiry`` is not > 0, ``discount_factor`` is outside ``(0, 1]``,\n        ``forward_bump_fraction``/``vol_bump``/``time_bump`` is not > 0, or\n        ``barrier`` is on the wrong side of ``forward`` for ``barrier_type``.",
+          "summary": "Price a single-barrier option via the Reiner-Rubinstein closed form.",
+          "doc": "Price a single-barrier option via the Reiner-Rubinstein closed form.\n\nBarrier-vs-forward consistency: an up barrier must sit strictly above the\nforward and a down barrier strictly below; a barrier on the wrong side (or\nexactly at the forward) is already breached at inception and is rejected\nbefore any computation. Greeks are central finite differences of the barrier\nkernel.\n\nArgs:\n    request: Fully specified barrier option; validated eagerly before any\n        computation.\n    forward_bump_fraction: Relative forward bump for delta/gamma, positive\n        (default ``1e-4``).\n    vol_bump: Absolute vol bump for vega, positive (default ``1e-4``).\n    time_bump: Absolute time bump for theta, positive (default ``1e-6``).\n\nReturns:\n    Premium and Greeks (``standard_error`` is ``None`` for closed forms).\n\nRaises:\n    ValidationError: If ``forward``, ``strike``, ``barrier``, ``sigma`` or\n        ``time_to_expiry`` is not > 0, ``discount_factor`` is outside ``(0, 1]``,\n        ``forward_bump_fraction``/``vol_bump``/``time_bump`` is not > 0, or\n        ``barrier`` is on the wrong side of ``forward`` for ``barrier_type``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 372
+          "line": 370
         },
         {
           "name": "price_cap_floor",
@@ -5356,12 +5356,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "price_cap_floor(request: CapFloorRequest, *, max_strip_periods: int=_MAX_STRIP_PERIODS) -> CapFloorResult",
           "summary": "Price a cap/floor as a strip of independently priced caplets/floorlets.",
-          "doc": "Price a cap/floor as a strip of independently priced caplets/floorlets.\n\nComposite intent (Req 5.6, Property 16): each period is priced through\n:func:`price_vanilla_option` with its own forward, volatility,\ntime-to-expiry, discount factor and notional; the result carries both the\nper-period results and their plain sums (aggregate premium via ``sum``,\naggregate Greeks via ``Greeks.__add__`` from ``Greeks.zero()``), so the\naggregate equals the sum of the per-period values exactly.\n\nConsistency rule: each caplet's own ``option_type`` must price on the same\ncall/put side as the strip — ``\"call\"``/``\"cap\"`` labels inside a ``\"cap\"``\nstrip, ``\"put\"``/``\"floor\"`` inside a ``\"floor\"`` strip. A mismatched\ncaplet is rejected with a :class:`ValidationError` rather than silently\nrepriced as the strip side (fail loudly, coding-style.md §7).\n\nStrike/notional consistency (Req 5.6): a cap/floor strip has ONE strike\n(the cap/floor rate) and ONE notional; per Req 5.6 only ``forward``,\n``discount_factor`` and ``time_to_expiry`` vary caplet-by-caplet. Every\ncaplet's own ``strike`` and ``notional`` fields (each caplet is a full\n:class:`VanillaOptionRequest`, so it structurally carries them) must\ntherefore equal ``request.strike`` / ``request.notional`` exactly; a\ndivergent caplet is rejected with a :class:`ValidationError` naming the\ncaplet index rather than silently pricing on its own (ignored) values.\n\nArgs:\n    request: The strip; validated eagerly — including the strip-length\n        cap — before any pricing.\n    max_strip_periods: Maximum number of caplets/floorlets in the strip,\n        at least 1 (default 120, Req 5.6).\n\nReturns:\n    Aggregate premium/Greeks plus the per-period results, ordered as the\n    input caplets.\n\nRaises:\n    ValidationError: If ``strike`` or ``notional`` is not > 0,\n        ``max_strip_periods`` < 1, ``caplets`` is empty or exceeds\n        ``max_strip_periods``, a caplet's ``option_type`` is on the wrong\n        side for the strip, a caplet's ``strike``/``notional`` diverges\n        from the strip's (naming the caplet index), or any caplet fails\n        the :func:`price_vanilla_option` domain checks.",
+          "doc": "Price a cap/floor as a strip of independently priced caplets/floorlets.\n\nEach period is priced independently through\n``price_vanilla_option`` with its own forward, volatility,\ntime-to-expiry, discount factor and notional; the result carries both the\nper-period results and their plain sums (aggregate premium via ``sum``,\naggregate Greeks via ``Greeks.__add__`` from ``Greeks.zero()``), so the\naggregate equals the sum of the per-period values exactly.\n\nConsistency rule: each caplet's own ``option_type`` must price on the same\ncall/put side as the strip: ``\"call\"``/``\"cap\"`` labels inside a ``\"cap\"``\nstrip, ``\"put\"``/``\"floor\"`` inside a ``\"floor\"`` strip. A mismatched\ncaplet is rejected with a ``ValidationError`` rather than silently\nrepriced as the strip side.\n\nStrike/notional consistency: a cap/floor strip has ONE strike\n(the cap/floor rate) and ONE notional; only ``forward``,\n``discount_factor`` and ``time_to_expiry`` vary caplet-by-caplet. Every\ncaplet's own ``strike`` and ``notional`` fields (each caplet is a full\n``VanillaOptionRequest``, so it structurally carries them) must\ntherefore equal ``request.strike`` / ``request.notional`` exactly; a\ndivergent caplet is rejected with a ``ValidationError`` naming the\ncaplet index rather than silently pricing on its own (ignored) values.\n\nArgs:\n    request: The strip; validated eagerly, including the strip-length\n        cap, before any pricing.\n    max_strip_periods: Maximum number of caplets/floorlets in the strip,\n        at least 1 (default 120).\n\nReturns:\n    Aggregate premium/Greeks plus the per-period results, ordered as the\n    input caplets.\n\nRaises:\n    ValidationError: If ``strike`` or ``notional`` is not > 0,\n        ``max_strip_periods`` < 1, ``caplets`` is empty or exceeds\n        ``max_strip_periods``, a caplet's ``option_type`` is on the wrong\n        side for the strip, a caplet's ``strike``/``notional`` diverges\n        from the strip's (naming the caplet index), or any caplet fails\n        the ``price_vanilla_option`` domain checks.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/vanilla.py",
-          "line": 117
+          "line": 128
         },
         {
           "name": "price_futures",
@@ -5369,8 +5369,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.futures.price_futures",
           "kind": "function",
           "signature": "price_futures(contract: FuturesContract | ForwardContract, forward_curve: ForwardCurve, valuation_date: date, discount_curve: DiscountCurve, *, settlement_lag_days: int=0) -> FuturesPricingResult",
-          "summary": "Price a futures or forward contract against a forward curve (Req 3.1, 3.2).",
-          "doc": "Price a futures or forward contract against a forward curve (Req 3.1, 3.2).\n\n``NPV = discount_factor(settlement_date) * (forward_price - contract_price) * notional``\nwith a positive notional meaning long; ``delta`` is :func:`futures_delta` at the\ndefault bump. ``settlement_date`` is the delivery period's last day plus\n``settlement_lag_days`` calendar days.\n\nArgs:\n    contract: The futures or forward contract to price.\n    forward_curve: Must have a node for ``contract.delivery_period``.\n    valuation_date: The date NPV is computed as of.\n    discount_curve: Must cover the settlement date.\n    settlement_lag_days: Calendar days added to the delivery period's last\n        day to get the settlement date used for the discount factor\n        (default 0, non-negative).\n\nRaises:\n    ValidationError: If ``settlement_lag_days`` is negative.\n    ExpiredContractError: If the delivery period ended strictly before\n        ``valuation_date`` (Req 3.3).\n    MissingTenorError: If ``forward_curve`` has no node for the delivery period\n        or ``discount_curve`` does not cover the settlement date (Req 3.4).",
+          "summary": "Price a futures or forward contract against a forward curve.",
+          "doc": "Price a futures or forward contract against a forward curve.\n\n``NPV = discount_factor(settlement_date) * (forward_price - contract_price) * notional``\nwith a positive notional meaning long; ``delta`` is :func:`futures_delta` at the\ndefault bump. ``settlement_date`` is the delivery period's last day plus\n``settlement_lag_days`` calendar days.\n\nArgs:\n    contract: The futures or forward contract to price.\n    forward_curve: Must have a node for ``contract.delivery_period``.\n    valuation_date: The date NPV is computed as of.\n    discount_curve: Must cover the settlement date.\n    settlement_lag_days: Calendar days added to the delivery period's last\n        day to get the settlement date used for the discount factor\n        (default 0, non-negative).\n\nRaises:\n    ValidationError: If ``settlement_lag_days`` is negative.\n    ExpiredContractError: If the delivery period ended strictly before\n        ``valuation_date``.\n    MissingTenorError: If ``forward_curve`` has no node for the delivery period\n        or ``discount_curve`` does not cover the settlement date.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5383,13 +5383,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.exotic.price_lookback",
           "kind": "function",
           "signature": "price_lookback(request: LookbackOptionRequest, *, forward_bump_fraction: float=_FORWARD_BUMP_FRACTION, vol_bump: float=_VOL_BUMP, time_bump: float=_TIME_BUMP) -> ExoticOptionResult",
-          "summary": "Price a lookback option on a forward (Req 6.3).",
-          "doc": "Price a lookback option on a forward (Req 6.3).\n\nStrike-type dispatch: ``\"floating\"`` prices via Goldman-Sosin-Gatto and must carry\n``strike=None`` (the strike *is* the running extreme); ``\"fixed\"`` prices via\nConze-Viswanathan and requires a positive ``strike``. Greeks are central finite\ndifferences of the selected kernel.\n\nArgs:\n    request: Fully specified lookback option; validated eagerly before any\n        computation (Req 6.4).\n    forward_bump_fraction: Relative forward bump for delta/gamma, positive\n        (default ``1e-4``).\n    vol_bump: Absolute vol bump for vega, positive (default ``1e-4``).\n    time_bump: Absolute time bump for theta, positive (default ``1e-6``).\n\nReturns:\n    Premium and Greeks (``standard_error`` is ``None`` for closed forms).\n\nRaises:\n    ValidationError: If ``forward``, ``sigma`` or ``time_to_expiry`` is not > 0,\n        ``discount_factor`` is outside ``(0, 1]``,\n        ``forward_bump_fraction``/``vol_bump``/``time_bump`` is not > 0, a\n        floating-strike request carries a ``strike``, or a fixed-strike request\n        is missing a positive ``strike``.",
+          "summary": "Price a lookback option on a forward.",
+          "doc": "Price a lookback option on a forward.\n\nStrike-type dispatch: ``\"floating\"`` prices via Goldman-Sosin-Gatto and must carry\n``strike=None`` (the strike is the running extreme); ``\"fixed\"`` prices via\nConze-Viswanathan and requires a positive ``strike``. Greeks are central finite\ndifferences of the selected kernel.\n\nArgs:\n    request: Fully specified lookback option; validated eagerly before any\n        computation.\n    forward_bump_fraction: Relative forward bump for delta/gamma, positive\n        (default ``1e-4``).\n    vol_bump: Absolute vol bump for vega, positive (default ``1e-4``).\n    time_bump: Absolute time bump for theta, positive (default ``1e-6``).\n\nReturns:\n    Premium and Greeks (``standard_error`` is ``None`` for closed forms).\n\nRaises:\n    ValidationError: If ``forward``, ``sigma`` or ``time_to_expiry`` is not > 0,\n        ``discount_factor`` is outside ``(0, 1]``,\n        ``forward_bump_fraction``/``vol_bump``/``time_bump`` is not > 0, a\n        floating-strike request carries a ``strike``, or a fixed-strike request\n        is missing a positive ``strike``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 500
+          "line": 498
         },
         {
           "name": "price_ppa",
@@ -5397,8 +5397,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.ppa_valuation.price_ppa",
           "kind": "function",
           "signature": "price_ppa(contract: PpaContract, profile: PpaVolumeProfile, forward_curve: ForwardCurve, discount_curve: DiscountCurve, valuation_date: date, price_terms: PpaPriceTerms | None=None) -> PpaValuationResult",
-          "summary": "Producer-side intrinsic mark-to-market of an unexpired PPA (Req 15.2).",
-          "doc": "Producer-side intrinsic mark-to-market of an unexpired PPA (Req 15.2).\n\n``npv = sum_t DF(t) * V_t * (K_t - capture_t * F_t)``, where ``DF(t)`` is\n``discount_curve.discount_factor(period.last_day)``, ``F_t`` is\n``forward_curve.price_at(period)``, ``V_t`` is ``expected_mwh``, ``capture_t`` is\n``capture_factor``, and ``K_t`` is the (possibly indexed/clamped) PPA fixed price —\nsee the module docstring's \"K_t resolution\" section. The producer sign\n(``fixed - capture * forward``) follows ``ppa-power-hedging``\n(:mod:`quantvolt.pricing.ppa`).\n\nEach period's producer delta is ``delta_t = -DF(t) * V_t * capture_t`` — the NPV\nsensitivity to a unit bump of that period's forward — keyed\n``(contract.bidding_zone, period)`` (the forward-curve key is the PPA's\n``bidding_zone``, following the transport-right precedent of keying by the curve\nidentifier).\n\nThe PPA's negative-price clause (spot optionality) is **excluded** from this\nintrinsic MtM and never consulted (Req 15.5) — see the module docstring.\n\nArgs:\n    contract: The PPA whose fixed price (and, if attached, ``terms.price``\n        indexation/clamp) supplies ``K_t``.\n    profile: The expected-volume profile to value; every period must be covered by\n        both ``forward_curve`` and ``discount_curve``.\n    forward_curve: Supplies ``F_t``; must have a node for every period in ``profile``.\n    discount_curve: Supplies ``DF(t)``; must cover every period's settlement date\n        (``period.last_day``).\n    valuation_date: The date NPV is computed as of. A period whose delivery ended\n        strictly before this date is an expired cash flow, not a forward-looking\n        one, and raises (the same convention as\n        :func:`quantvolt.pricing.futures.price_futures`).\n    price_terms: An optional explicit :class:`~quantvolt.models.ppa_terms.PpaPriceTerms`\n        override; when ``None`` (the default), ``contract.terms.price`` is consumed\n        if present, else ``K_t`` is the flat ``contract.fixed_price_per_mwh``.\n\nReturns:\n    The aggregate NPV, per-period detail, and the per-period producer delta dict.\n\nRaises:\n    ValidationError: If ``contract`` is not a :class:`~quantvolt.models.ppa.PpaContract`.\n    ExpiredContractError: If any period in ``profile`` ended strictly before\n        ``valuation_date``.\n    MissingTenorError: If ``forward_curve`` has no node for a period, or\n        ``discount_curve`` does not cover a period's settlement date.",
+          "summary": "Producer-side intrinsic mark-to-market of an unexpired PPA.",
+          "doc": "Producer-side intrinsic mark-to-market of an unexpired PPA.\n\n``npv = sum_t DF(t) * V_t * (K_t - capture_t * F_t)``, where ``DF(t)`` is\n``discount_curve.discount_factor(period.last_day)``, ``F_t`` is\n``forward_curve.price_at(period)``, ``V_t`` is ``expected_mwh``, ``capture_t`` is\n``capture_factor``, and ``K_t`` is the (possibly indexed/clamped) PPA fixed price —\nsee the module docstring's \"K_t resolution\" section. The producer sign\n(``fixed - capture * forward``) follows ``ppa-power-hedging``\n(:mod:`quantvolt.pricing.ppa`).\n\nEach period's producer delta is ``delta_t = -DF(t) * V_t * capture_t`` — the NPV\nsensitivity to a unit bump of that period's forward — keyed\n``(contract.bidding_zone, period)`` (the forward-curve key is the PPA's\n``bidding_zone``, following the transport-right precedent of keying by the curve\nidentifier).\n\nThe PPA's negative-price clause (spot optionality) is **excluded** from this\nintrinsic MtM and never consulted — see the module docstring.\n\nArgs:\n    contract: The PPA whose fixed price (and, if attached, ``terms.price``\n        indexation/clamp) supplies ``K_t``.\n    profile: The expected-volume profile to value; every period must be covered by\n        both ``forward_curve`` and ``discount_curve``.\n    forward_curve: Supplies ``F_t``; must have a node for every period in ``profile``.\n    discount_curve: Supplies ``DF(t)``; must cover every period's settlement date\n        (``period.last_day``).\n    valuation_date: The date NPV is computed as of. A period whose delivery ended\n        strictly before this date is an expired cash flow, not a forward-looking\n        one, and raises (the same convention as\n        :func:`quantvolt.pricing.futures.price_futures`).\n    price_terms: An optional explicit :class:`~quantvolt.models.ppa_terms.PpaPriceTerms`\n        override; when ``None`` (the default), ``contract.terms.price`` is consumed\n        if present, else ``K_t`` is the flat ``contract.fixed_price_per_mwh``.\n\nReturns:\n    The aggregate NPV, per-period detail, and the per-period producer delta dict.\n\nRaises:\n    ValidationError: If ``contract`` is not a :class:`~quantvolt.models.ppa.PpaContract`.\n    ExpiredContractError: If any period in ``profile`` ended strictly before\n        ``valuation_date``.\n    MissingTenorError: If ``forward_curve`` has no node for a period, or\n        ``discount_curve`` does not cover a period's settlement date.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5411,8 +5411,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spread_option.price_spark_spread_option",
           "kind": "function",
           "signature": "price_spark_spread_option(request: SpreadOptionRequest, heat_rate: float, *, forward_bump_fraction: float=_FORWARD_BUMP_FRACTION, vol_bump: float=_VOL_BUMP, correlation_bump: float=_CORRELATION_BUMP) -> SpreadOptionResult",
-          "summary": "Price a spark spread: a call on ``F_power - heat_rate * F_gas - strike`` (Req 7.3).",
-          "doc": "Price a spark spread: a call on ``F_power - heat_rate * F_gas - strike`` (Req 7.3).\n\n``request.forward1`` is the power forward and ``request.forward2`` the RAW gas\nforward. The gas-leg notional is ``notional_power x heat_rate``, realised by\ntransforming the request to ``forward2 * heat_rate`` (``sigma2`` unchanged: a\nconstant multiple of a lognormal forward keeps the same lognormal volatility)\nand delegating to :func:`price_spread_option`. ``forward_bump_fraction``/\n``vol_bump``/``correlation_bump`` are passed through unchanged.\n\n``delta2`` convention (Req 7.2): the transformed request's ``delta2`` is the\nsensitivity to the SCALED gas forward (``heat_rate x F_gas``); this function\nchain-rules it back onto the raw ``F_gas`` the caller passed\n(``delta2_raw = delta2_transformed x heat_rate``), so ``delta2`` always means\n\"sensitivity to the underlying commodity forward the caller supplied\" — the\nsame convention :mod:`quantvolt.pricing.tolling` uses for its fuel/EUA deltas.\n\nRaises:\n    ValidationError: If ``heat_rate`` is not > 0, or the (transformed)\n        request violates any :func:`price_spread_option` constraint.",
+          "summary": "Price a spark spread: a call on ``F_power - heat_rate * F_gas - strike``.",
+          "doc": "Price a spark spread: a call on ``F_power - heat_rate * F_gas - strike``.\n\n``request.forward1`` is the power forward and ``request.forward2`` the RAW gas\nforward. The gas-leg notional is ``notional_power x heat_rate``, realised by\ntransforming the request to ``forward2 * heat_rate`` (``sigma2`` unchanged: a\nconstant multiple of a lognormal forward keeps the same lognormal volatility)\nand delegating to :func:`price_spread_option`. ``forward_bump_fraction``/\n``vol_bump``/``correlation_bump`` are passed through unchanged.\n\n``delta2`` convention: the transformed request's ``delta2`` is the\nsensitivity to the SCALED gas forward (``heat_rate x F_gas``); this function\nchain-rules it back onto the raw ``F_gas`` the caller passed\n(``delta2_raw = delta2_transformed x heat_rate``), so ``delta2`` always means\n\"sensitivity to the underlying commodity forward the caller supplied\" — the\nsame convention :mod:`quantvolt.pricing.tolling` uses for its fuel/EUA deltas.\n\nRaises:\n    ValidationError: If ``heat_rate`` is not > 0, or the (transformed)\n        request violates any :func:`price_spread_option` constraint.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5425,8 +5425,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spread_option.price_spread_option",
           "kind": "function",
           "signature": "price_spread_option(request: SpreadOptionRequest, *, forward_bump_fraction: float=_FORWARD_BUMP_FRACTION, vol_bump: float=_VOL_BUMP, correlation_bump: float=_CORRELATION_BUMP) -> SpreadOptionResult",
-          "summary": "Price a spread call and its sensitivities (Req 7.1, 7.2).",
-          "doc": "Price a spread call and its sensitivities (Req 7.1, 7.2).\n\n``strike == 0.0`` prices via Margrabe's exact formula, any other strike via\nKirk's approximation (Property 18). The premium is the kernel premium\nscaled by ``request.notional``; the five sensitivities are central finite\ndifferences of the same kernel, likewise notional-scaled (module docstring\nlists the bump sizes).\n\nArgs:\n    request: Fully specified spread-option request; validated eagerly\n        before any computation.\n    forward_bump_fraction: Relative forward bump for delta1/delta2,\n        positive (default ``1e-4``).\n    vol_bump: Absolute vol bump for vega1/vega2, positive (default\n        ``1e-4``).\n    correlation_bump: Absolute correlation bump for\n        ``correlation_sensitivity``, positive (default ``1e-4``); clamped\n        so ``correlation +/- bump`` stays strictly inside ``(-1, 1)``.\n\nRaises:\n    ValidationError: If ``correlation`` is outside ``(-1, 1)`` (Req 7.4),\n        any of ``forward1``, ``forward2``, ``sigma1``, ``sigma2``,\n        ``time_to_expiry``, ``notional`` is not > 0, ``strike`` < 0,\n        ``discount_factor`` is outside ``(0, 1]``, or\n        ``forward_bump_fraction``/``vol_bump``/``correlation_bump`` is not\n        > 0.",
+          "summary": "Price a spread call and its sensitivities.",
+          "doc": "Price a spread call and its sensitivities.\n\n``strike == 0.0`` prices via Margrabe's exact formula, any other strike via\nKirk's approximation. The premium is the kernel premium\nscaled by ``request.notional``; the five sensitivities are central finite\ndifferences of the same kernel, likewise notional-scaled (module docstring\nlists the bump sizes).\n\nArgs:\n    request: Fully specified spread-option request; validated eagerly\n        before any computation.\n    forward_bump_fraction: Relative forward bump for delta1/delta2,\n        positive (default ``1e-4``).\n    vol_bump: Absolute vol bump for vega1/vega2, positive (default\n        ``1e-4``).\n    correlation_bump: Absolute correlation bump for\n        ``correlation_sensitivity``, positive (default ``1e-4``); clamped\n        so ``correlation +/- bump`` stays strictly inside ``(-1, 1)``.\n\nRaises:\n    ValidationError: If ``correlation`` is outside ``(-1, 1)``,\n        any of ``forward1``, ``forward2``, ``sigma1``, ``sigma2``,\n        ``time_to_expiry``, ``notional`` is not > 0, ``strike`` < 0,\n        ``discount_factor`` is outside ``(0, 1]``, or\n        ``forward_bump_fraction``/``vol_bump``/``correlation_bump`` is not\n        > 0.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5439,8 +5439,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.swap.price_swap",
           "kind": "function",
           "signature": "price_swap(swap: SwapContract, forward_curve: ForwardCurve, discount_curve: DiscountCurve, *, day_count: Callable[[date, date], float]=actual_365, settlement_lag_days: int=0, rate_bump: float=_BASIS_POINT) -> SwapPricingResult",
-          "summary": "Price a fixed-for-floating swap: NPV, per-period delta, and rho (Req 4.1-4.3).",
-          "doc": "Price a fixed-for-floating swap: NPV, per-period delta, and rho (Req 4.1-4.3).\n\nSee the module docstring for the cash-flow (payer-of-fixed / receiver-of-floating)\nand rho (per-bp parallel shift of the continuously compounded zero rate) conventions.\n\nArgs:\n    swap: The swap contract to price.\n    forward_curve: Must cover every delivery period in ``swap.schedule``.\n    discount_curve: Must cover every period's settlement date.\n    day_count: Year-fraction convention used for the rho computation, taking\n        ``(start, end)`` and returning the fraction of a year (default\n        :func:`~quantvolt.numerics.daycount.actual_365`).\n    settlement_lag_days: Calendar days added to each period's last day to get\n        the settlement date used for both the discount-factor lookup and the\n        rho year fraction (default 0, non-negative).\n    rate_bump: The per-basis-point size used to scale rho — the NPV change\n        per this parallel shift of the continuously compounded zero rate\n        (default ``1e-4``, i.e. one basis point).\n\nValidation is eager and ordered, before any computation:\n\n1. ``swap.schedule.periods`` is non-empty;\n2. sort-and-scan overlap/duplicate detection, raising :class:`ValidationError`\n   identifying each offending pair (defensive — see\n   :func:`_require_no_overlapping_periods`);\n3. coverage: every delivery period on the forward curve, then every settlement\n   date within the discount curve's tenor range, raising\n   :class:`MissingTenorError` identifying the missing period(s).\n\nInputs are never mutated; identical inputs produce identical results.\n\nRaises:\n    ValidationError: If ``settlement_lag_days`` is negative or ``rate_bump``\n        is not > 0, in addition to the schedule/coverage errors above.",
+          "summary": "Price a fixed-for-floating swap: NPV, per-period delta, and rho.",
+          "doc": "Price a fixed-for-floating swap: NPV, per-period delta, and rho.\n\nSee the module docstring for the cash-flow (payer-of-fixed / receiver-of-floating)\nand rho (per-bp parallel shift of the continuously compounded zero rate) conventions.\n\nArgs:\n    swap: The swap contract to price.\n    forward_curve: Must cover every delivery period in ``swap.schedule``.\n    discount_curve: Must cover every period's settlement date.\n    day_count: Year-fraction convention used for the rho computation, taking\n        ``(start, end)`` and returning the fraction of a year (default\n        :func:`~quantvolt.numerics.daycount.actual_365`).\n    settlement_lag_days: Calendar days added to each period's last day to get\n        the settlement date used for both the discount-factor lookup and the\n        rho year fraction (default 0, non-negative).\n    rate_bump: The per-basis-point size used to scale rho — the NPV change\n        per this parallel shift of the continuously compounded zero rate\n        (default ``1e-4``, i.e. one basis point).\n\nValidation is eager and ordered, before any computation:\n\n1. ``swap.schedule.periods`` is non-empty;\n2. sort-and-scan overlap/duplicate detection, raising :class:`ValidationError`\n   identifying each offending pair (defensive — see\n   :func:`_require_no_overlapping_periods`);\n3. coverage: every delivery period on the forward curve, then every settlement\n   date within the discount curve's tenor range, raising\n   :class:`MissingTenorError` identifying the missing period(s).\n\nInputs are never mutated; identical inputs produce identical results.\n\nRaises:\n    ValidationError: If ``settlement_lag_days`` is negative or ``rate_bump``\n        is not > 0, in addition to the schedule/coverage errors above.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5453,13 +5453,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.tolling.price_tolling_agreement",
           "kind": "function",
           "signature": "price_tolling_agreement(plant: PlantConfig, power_curve: ForwardCurve, fuel_curve: ForwardCurve, eua_curve: ForwardCurve, vol_surface: VolatilitySurface, correlation_matrix: np.ndarray, schedule: DeliverySchedule, discount_curve: DiscountCurve, *, capacity: float=_UNIT_NOTIONAL, fuel_sigma: VolatilitySurface | None=None, matrix_tolerance: float=_MATRIX_TOLERANCE, day_count: Callable[[date, date], float]=actual_365, settlement_lag_days: int=0) -> TollingResult",
-          "summary": "Value a tolling agreement as a strip of clean spread options (Req 8.1-8.5).",
-          "doc": "Value a tolling agreement as a strip of clean spread options (Req 8.1-8.5).\n\nOne clean spark (gas) / clean dark (coal) spread option per delivery\nperiod — see the module docstring for the leg composition, unit chain,\nsingle-surface volatility, correlation-indexing and discounting\nconventions. Validation is eager and complete before any pricing:\nschedule length, correlation matrix, full forward-curve / vol-surface /\ndiscount-curve coverage of the schedule.\n\nArgs:\n    plant: Heat rate, variable O&M cost, emissions intensity, fuel type.\n    power_curve: Power forwards; must cover every schedule period.\n    fuel_curve: Gas or coal forwards; must cover every schedule period.\n    eua_curve: EUA forwards; must cover every schedule period.\n    vol_surface: Surface used for the power leg of every period (and the\n        fuel+carbon leg too, when ``fuel_sigma`` is ``None``).\n    correlation_matrix: At least 3x3, ordered ``[power, fuel, eua]``.\n    schedule: 1-1200 delivery periods.\n    discount_curve: Must cover every period's settlement date.\n    capacity: Per-period notional in MWh, positive (default 1.0 —\n        unit-capacity; the historical behaviour). Scales every per-period\n        spread-option notional and the intrinsic-value payoff.\n    fuel_sigma: Optional separate volatility surface for the fuel+carbon\n        leg; must cover every schedule period. ``None`` (default) reuses\n        ``vol_surface`` for both legs, exactly as before.\n    matrix_tolerance: Absolute tolerance for the correlation matrix's\n        symmetry / unit-diagonal checks (default ``1e-9``); must be > 0\n        (a non-positive or NaN tolerance would silently disable or\n        misreport those checks).\n    day_count: Year-fraction convention for each period's time-to-expiry,\n        taking ``(start, end)`` (default\n        :func:`~quantvolt.numerics.daycount.actual_365`).\n    settlement_lag_days: Calendar days added to each period's last day to\n        get the settlement date used for the discount-factor lookup\n        (default 0, non-negative). Does NOT affect the option's\n        ``time_to_expiry``, which is always ``day_count`` from\n        ``discount_curve.reference_date`` to ``period.last_day`` — the\n        decision horizon, not the payment date.\n\nReturns:\n    NPV, intrinsic/time value decomposition, per-period values, and\n    per-period plus aggregate deltas for ``\"power\"``/``\"fuel\"``/``\"eua\"``\n    (aggregate == sum of per-period exactly, Property 20).\n\nRaises:\n    ValidationError: If the schedule has more than 1200 periods; if the\n        correlation matrix is not a square ndarray of size >= 3x3,\n        symmetric with unit diagonal (within ``matrix_tolerance``) and\n        off-diagonals strictly inside (-1, 1) (Property 19); if\n        ``capacity`` is not > 0, ``settlement_lag_days`` is negative, or\n        ``matrix_tolerance`` is not > 0 (including ``NaN``); or\n        if any per-period spread-option input violates\n        :func:`price_spread_option`'s domain (e.g. a non-positive power or\n        fuel+carbon leg forward).\n    InsufficientDataError: If any forward curve misses any schedule period\n        (naming the commodity and the missing periods, Req 8.4), or the\n        vol surface (or ``fuel_sigma``) misses any tenor (naming them,\n        Req 8.5).\n    MissingTenorError: If the discount curve does not cover every\n        period's settlement date.",
+          "summary": "Value a tolling agreement as a strip of clean spread options.",
+          "doc": "Value a tolling agreement as a strip of clean spread options.\n\nOne clean spark (gas) / clean dark (coal) spread option per delivery\nperiod; see the module docstring for the leg composition, unit chain,\nsingle-surface volatility, correlation-indexing and discounting\nconventions. Validation is eager and complete before any pricing:\nschedule length, correlation matrix, full forward-curve / vol-surface /\ndiscount-curve coverage of the schedule.\n\nArgs:\n    plant: Heat rate, variable O&M cost, emissions intensity, fuel type.\n    power_curve: Power forwards; must cover every schedule period.\n    fuel_curve: Gas or coal forwards; must cover every schedule period.\n    eua_curve: EUA forwards; must cover every schedule period.\n    vol_surface: Surface used for the power leg of every period (and the\n        fuel+carbon leg too, when ``fuel_sigma`` is ``None``).\n    correlation_matrix: At least 3x3, ordered ``[power, fuel, eua]``.\n    schedule: 1-1200 delivery periods.\n    discount_curve: Must cover every period's settlement date.\n    capacity: Per-period notional in MWh, positive (default 1.0 —\n        unit-capacity; the historical behaviour). Scales every per-period\n        spread-option notional and the intrinsic-value payoff.\n    fuel_sigma: Optional separate volatility surface for the fuel+carbon\n        leg; must cover every schedule period. ``None`` (default) reuses\n        ``vol_surface`` for both legs, exactly as before.\n    matrix_tolerance: Absolute tolerance for the correlation matrix's\n        symmetry / unit-diagonal checks (default ``1e-9``); must be > 0\n        (a non-positive or NaN tolerance would silently disable or\n        misreport those checks).\n    day_count: Year-fraction convention for each period's time-to-expiry,\n        taking ``(start, end)`` (default ``quantvolt.numerics.daycount.actual_365``).\n    settlement_lag_days: Calendar days added to each period's last day to\n        get the settlement date used for the discount-factor lookup\n        (default 0, non-negative). Does NOT affect the option's\n        ``time_to_expiry``, which is always ``day_count`` from\n        ``discount_curve.reference_date`` to ``period.last_day`` — the\n        decision horizon, not the payment date.\n\nReturns:\n    NPV, intrinsic/time value decomposition, per-period values, and\n    per-period plus aggregate deltas for ``\"power\"``/``\"fuel\"``/``\"eua\"``\n    (aggregate equals the sum of per-period values exactly).\n\nRaises:\n    ValidationError: If the schedule has more than 1200 periods; if the\n        correlation matrix is not a square ndarray of size >= 3x3,\n        symmetric with unit diagonal (within ``matrix_tolerance``) and\n        off-diagonals strictly inside (-1, 1); if\n        ``capacity`` is not > 0, ``settlement_lag_days`` is negative, or\n        ``matrix_tolerance`` is not > 0 (including ``NaN``); or\n        if any per-period spread-option input violates\n        ``price_spread_option``'s domain (e.g. a non-positive power or\n        fuel+carbon leg forward).\n    InsufficientDataError: If any forward curve misses any schedule period\n        (naming the commodity and the missing periods), or the vol\n        surface (or ``fuel_sigma``) misses any tenor (naming them).\n    MissingTenorError: If the discount curve does not cover every\n        period's settlement date.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/tolling.py",
-          "line": 231
+          "line": 230
         },
         {
           "name": "price_vanilla_option",
@@ -5468,12 +5468,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "price_vanilla_option(request: VanillaOptionRequest) -> VanillaOptionResult",
           "summary": "Price a single vanilla European option on a forward under Black-76.",
-          "doc": "Price a single vanilla European option on a forward under Black-76.\n\n``\"cap\"`` and ``\"floor\"`` requests denote a single caplet/floorlet and are\npriced as the equivalent call/put on the floating (forward) price. Premium\nand Greeks are per-unit kernel outputs scaled by ``notional``.\n\nArgs:\n    request: Fully specified option; all domains are validated eagerly\n        before any computation (Req 5.4).\n\nReturns:\n    The notional-scaled premium and Greeks.\n\nRaises:\n    ValidationError: If ``forward``, ``strike``, ``sigma``,\n        ``time_to_expiry`` or ``notional`` is not > 0, or\n        ``discount_factor`` is outside ``(0, 1]``.",
+          "doc": "Price a single vanilla European option on a forward under Black-76.\n\n``\"cap\"`` and ``\"floor\"`` requests denote a single caplet/floorlet and are\npriced as the equivalent call/put on the floating (forward) price. Premium\nand Greeks are per-unit kernel outputs scaled by ``notional``.\n\nArgs:\n    request: Fully specified option; all domains are validated eagerly\n        before any computation.\n\nReturns:\n    The notional-scaled premium and Greeks.\n\nRaises:\n    ValidationError: If ``forward``, ``strike``, ``sigma``,\n        ``time_to_expiry`` or ``notional`` is not > 0, or\n        ``discount_factor`` is outside ``(0, 1]``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/vanilla.py",
-          "line": 71
+          "line": 82
         },
         {
           "name": "reconcile_ppa_ledger",
@@ -5482,12 +5482,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "reconcile_ppa_ledger(contract: PpaContract, ledger: pl.DataFrame, *, columns: PpaReconciliationColumns | None=None) -> pl.DataFrame",
           "summary": "Compute per-reconciliation-period true-up cash flows over a settled ledger.",
-          "doc": "Compute per-reconciliation-period true-up cash flows over a settled ledger.\n\nA **pure post-processing pass**: it never modifies, re-derives, or\ncontradicts a single row of the interval-level ledger produced by\n:func:`settle_ppa_frame` / :func:`settle_ppa_interval` (Requirement 9.2).\nRequires ``contract.terms.reconciliation`` (a\n:class:`~quantvolt.models.ppa_terms.PpaReconciliationTerms`); returns one\nrow per reconciliation period (Requirement 9.1), sorted chronologically,\nwith these columns:\n\n- ``period_start_utc`` / ``period_end_utc`` — the bounds of the ledger\n  rows assigned to this period (the *data's* bounds, not calendar\n  bounds — a declared design decision that needs no calendar library).\n- ``interval_count`` — number of ledger rows in the period.\n- ``total_contracted_mwh`` / ``total_metered_generation_mwh`` — summed\n  over the period's rows.\n- ``volume_band_true_up`` — ``0.0`` unless ``reconciliation.volume_band``\n  is attached, else ``-volume_band.penalty_per_mwh *\n  volume_band.out_of_band_mwh(total_metered, total_contracted)``\n  (Requirement 9; the *aggregate* analogue of the interval-level\n  ``PpaVolumeTerms.tolerance``, economically distinct from it).\n- ``availability_true_up`` — ``0.0`` unless ``reconciliation.availability``\n  is attached, else ``-true_up_price_per_mwh *\n  availability.shortfall_fraction(measured) * total_contracted``, where\n  ``measured = total_metered / total_contracted`` (``1.0`` when\n  ``total_contracted == 0``, a declared decision avoiding division by\n  zero) (Requirement 10).\n- ``consecutive_hour_true_up`` — ``0.0`` unless\n  ``contract.terms.negative_price.min_consecutive_intervals`` is set, else\n  the period's sum of :func:`_consecutive_hour_corrections` (Requirement\n  11); a run spanning a period boundary is attributed row-by-row to\n  whichever period contains each corrected row (a declared design\n  decision — it is not specially split or reallocated). \"Consecutive\"\n  means **clock-time contiguous**, not merely row-adjacent (AMENDED\n  2026-07-19): row ``i + 1`` only continues row ``i``'s run when\n  ``interval_start_utc[i + 1] == interval_end_utc[i]``; a gapped ledger\n  (for example from ``settle_ppa_frame(require_contiguous=False)``, or one\n  the caller assembled by joining rows from more than one source) has its\n  clock-time-disjoint sub-threshold stretches evaluated as separate runs,\n  never concatenated across the gap.\n- ``net_true_up`` — the sum of the three true-up components above.\n\nEach period's ``net_true_up`` is, by construction, exactly the sum of its\nown three stated formulas evaluated over that period's rows only\n(Requirement 9.3's self-reconciliation).",
+          "doc": "Compute per-reconciliation-period true-up cash flows over a settled ledger.\n\nA **pure post-processing pass**: it never modifies, re-derives, or\ncontradicts a single row of the interval-level ledger produced by\n:func:`settle_ppa_frame` / :func:`settle_ppa_interval`.\nRequires ``contract.terms.reconciliation`` (a\n:class:`~quantvolt.models.ppa_terms.PpaReconciliationTerms`); returns one\nrow per reconciliation period, sorted chronologically,\nwith these columns:\n\n- ``period_start_utc`` / ``period_end_utc`` — the bounds of the ledger\n  rows assigned to this period (the *data's* bounds, not calendar\n  bounds — a declared design decision that needs no calendar library).\n- ``interval_count`` — number of ledger rows in the period.\n- ``total_contracted_mwh`` / ``total_metered_generation_mwh`` — summed\n  over the period's rows.\n- ``volume_band_true_up`` — ``0.0`` unless ``reconciliation.volume_band``\n  is attached, else ``-volume_band.penalty_per_mwh *\n  volume_band.out_of_band_mwh(total_metered, total_contracted)``\n  (the *aggregate* analogue of the interval-level\n  ``PpaVolumeTerms.tolerance``, economically distinct from it).\n- ``availability_true_up`` — ``0.0`` unless ``reconciliation.availability``\n  is attached, else ``-true_up_price_per_mwh *\n  availability.shortfall_fraction(measured) * total_contracted``, where\n  ``measured = total_metered / total_contracted`` (``1.0`` when\n  ``total_contracted == 0``, a declared decision avoiding division by\n  zero).\n- ``consecutive_hour_true_up`` — ``0.0`` unless\n  ``contract.terms.negative_price.min_consecutive_intervals`` is set, else\n  the period's sum of :func:`_consecutive_hour_corrections`; a run spanning\n  a period boundary is attributed row-by-row to\n  whichever period contains each corrected row (a declared design\n  decision — it is not specially split or reallocated). \"Consecutive\"\n  means **clock-time contiguous**, not merely row-adjacent (AMENDED\n  2026-07-19): row ``i + 1`` only continues row ``i``'s run when\n  ``interval_start_utc[i + 1] == interval_end_utc[i]``; a gapped ledger\n  (for example from ``settle_ppa_frame(require_contiguous=False)``, or one\n  the caller assembled by joining rows from more than one source) has its\n  clock-time-disjoint sub-threshold stretches evaluated as separate runs,\n  never concatenated across the gap.\n- ``net_true_up`` — the sum of the three true-up components above.\n\nEach period's ``net_true_up`` is, by construction, exactly the sum of its\nown three stated formulas evaluated over that period's rows only\n(each period self-reconciles).",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/ppa.py",
-          "line": 679
+          "line": 676
         },
         {
           "name": "settle_energy_portfolio",
@@ -5552,12 +5552,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "settle_ppa_interval(contract: PpaContract, interval: PowerDeliveryInterval, *, contracted_mwh: float, metered_generation_mwh: float, spot_price_per_mwh: float, shortfall_price_per_mwh: float | None=None, excess_price_per_mwh: float | None=None, hedge_cashflow: float=0.0, option_payoff: float=0.0, option_premium: float=0.0, variable_cost: float=0.0, transaction_cost: float=0.0, curtailed_mwh: float=0.0) -> PpaIntervalSettlement",
           "summary": "Settle one PPA interval from a producer's perspective.",
-          "doc": "Settle one PPA interval from a producer's perspective.\n\nFor a physical PPA, contracted energy earns the fixed price; own generation\nserves that obligation first, a shortfall is bought at ``shortfall_price``,\nand excess generation is sold at ``excess_price``. Missing imbalance prices\nexplicitly fall back to spot.\n\nFor a financial CfD, all metered generation is sold spot and the contracted\nvolume receives ``fixed - spot``. There is no physical delivery shortfall.\n\nWhen ``contract.terms`` (a :class:`~quantvolt.models.ppa_terms.PpaTerms`) is\nattached, the contracted fixed leg uses the resolved effective price\n``K_eff`` instead of ``contract.fixed_price_per_mwh`` — see\n:func:`_resolve_effective_price` for the fixed indexation -> clamp ->\nnegative-price resolution order.\n\n``curtailed_mwh`` (default ``0.0``) is compensated per\n``contract.terms.volume.curtailment`` under an **indifference** principle\n(AMENDED 2026-07-19, code review FIX 1): a producer curtailed under\n``DEEMED_GENERATION`` is never worse off, and never *better* off, than had it\ndelivered in full — curtailed MWh count *as delivery toward the contracted\nvolume*, they are not an extra, separately-paid quantity on top of it.\n\n- ``PHYSICAL``: curtailed MWh offset the shortfall instead of adding to\n  ``ppa_cashflow``. ``deemed_generation_mwh = min(curtailed_mwh,\n  max(contracted_mwh - metered_generation_mwh, 0.0))`` — the curtailed MWh\n  *actually credited* against the metered/contracted gap (any curtailed MWh\n  beyond that gap cannot offset a shortfall that does not exist, and earns\n  nothing further). ``shortfall = max(contracted_mwh -\n  metered_generation_mwh - deemed_generation_mwh, 0.0)``; ``ppa_cashflow =\n  contracted_mwh * K_eff`` (no curtailment add-on). A fully-curtailed\n  shortfall (``deemed_generation_mwh == shortfall_gap``) reconciles to\n  exactly the full-delivery net cash flow.\n- ``FINANCIAL_CFD``: there is no physical shortfall to offset, so\n  ``deemed_generation_mwh = curtailed_mwh`` in full, and the make-whole pays\n  the curtailed MWh's *lost spot revenue* at the signed spot price:\n  ``ppa_cashflow = contracted_mwh * (K_eff - spot_price_per_mwh) +\n  deemed_generation_mwh * spot_price_per_mwh``. ``spot_cashflow`` keeps its\n  plain ``metered_generation_mwh * spot_price_per_mwh`` meaning; the deemed\n  make-whole is carried entirely on the contractual (``ppa_cashflow``) leg.\n- ``PRODUCER_BEARS`` (or no volume terms at all): ``deemed_generation_mwh =\n  0.0`` and curtailed MWh earn nothing, on either settlement type.\n- **Declared decision — negative spot:** exact indifference means that at a\n  negative spot price, ``DEEMED_GENERATION`` yields *less* net cash flow than\n  ``PRODUCER_BEARS`` (bearing the curtailment, rather than being made whole\n  for it, is genuinely the better outcome when spot is negative — being\n  credited for energy priced negatively is a cost, not a benefit). This\n  inversion only occurs for ``spot_price_per_mwh < 0``; for ``spot >= 0``,\n  ``DEEMED_GENERATION`` net cash flow is always ``>=`` ``PRODUCER_BEARS``'s\n  (see Property 89, scoped to ``spot >= 0`` accordingly).\n\nA volume tolerance band, if attached, charges ``penalty_per_mwh`` on\nout-of-band MWh only, recorded as the separate, always-non-positive\n``tolerance_penalty`` ledger component.\n\nWhen ``contract.terms`` is ``None`` or ``PpaTerms()`` (every field ``None``)\nand ``curtailed_mwh == 0.0``, every shared field is byte-identical to the\nas-built (no-terms) output; the four new fields take their inert values\n(Property 85).\n\nEmbedded floor/cap price bounds (``PpaPriceTerms``), a ``hedges=`` overlay\n(:class:`~quantvolt.models.power_hedge.PowerHedgeContract`, settled into\n``hedge_cashflow``), and caller-supplied ``option_payoff`` are economically\ndistinct cash flows — a bound on the contract's own price is not a separate\nfinancial instrument — and are never conflated or double-counted here.",
+          "doc": "Settle one PPA interval from a producer's perspective.\n\nFor a physical PPA, contracted energy earns the fixed price; own generation\nserves that obligation first, a shortfall is bought at ``shortfall_price``,\nand excess generation is sold at ``excess_price``. Missing imbalance prices\nexplicitly fall back to spot.\n\nFor a financial CfD, all metered generation is sold spot and the contracted\nvolume receives ``fixed - spot``. There is no physical delivery shortfall.\n\nWhen ``contract.terms`` (a :class:`~quantvolt.models.ppa_terms.PpaTerms`) is\nattached, the contracted fixed leg uses the resolved effective price\n``K_eff`` instead of ``contract.fixed_price_per_mwh`` — see\n:func:`_resolve_effective_price` for the fixed indexation -> clamp ->\nnegative-price resolution order.\n\n``curtailed_mwh`` (default ``0.0``) is compensated per\n``contract.terms.volume.curtailment`` under an **indifference** principle\n(AMENDED 2026-07-19, code review FIX 1): a producer curtailed under\n``DEEMED_GENERATION`` is never worse off, and never *better* off, than had it\ndelivered in full — curtailed MWh count *as delivery toward the contracted\nvolume*, they are not an extra, separately-paid quantity on top of it.\n\n- ``PHYSICAL``: curtailed MWh offset the shortfall instead of adding to\n  ``ppa_cashflow``. ``deemed_generation_mwh = min(curtailed_mwh,\n  max(contracted_mwh - metered_generation_mwh, 0.0))`` — the curtailed MWh\n  *actually credited* against the metered/contracted gap (any curtailed MWh\n  beyond that gap cannot offset a shortfall that does not exist, and earns\n  nothing further). ``shortfall = max(contracted_mwh -\n  metered_generation_mwh - deemed_generation_mwh, 0.0)``; ``ppa_cashflow =\n  contracted_mwh * K_eff`` (no curtailment add-on). A fully-curtailed\n  shortfall (``deemed_generation_mwh == shortfall_gap``) reconciles to\n  exactly the full-delivery net cash flow.\n- ``FINANCIAL_CFD``: there is no physical shortfall to offset, so\n  ``deemed_generation_mwh = curtailed_mwh`` in full, and the make-whole pays\n  the curtailed MWh's *lost spot revenue* at the signed spot price:\n  ``ppa_cashflow = contracted_mwh * (K_eff - spot_price_per_mwh) +\n  deemed_generation_mwh * spot_price_per_mwh``. ``spot_cashflow`` keeps its\n  plain ``metered_generation_mwh * spot_price_per_mwh`` meaning; the deemed\n  make-whole is carried entirely on the contractual (``ppa_cashflow``) leg.\n- ``PRODUCER_BEARS`` (or no volume terms at all): ``deemed_generation_mwh =\n  0.0`` and curtailed MWh earn nothing, on either settlement type.\n- **Declared decision — negative spot:** exact indifference means that at a\n  negative spot price, ``DEEMED_GENERATION`` yields *less* net cash flow than\n  ``PRODUCER_BEARS`` (bearing the curtailment, rather than being made whole\n  for it, is genuinely the better outcome when spot is negative — being\n  credited for energy priced negatively is a cost, not a benefit). This\n  inversion only occurs for ``spot_price_per_mwh < 0``; for ``spot >= 0``,\n  ``DEEMED_GENERATION`` net cash flow is always ``>=`` ``PRODUCER_BEARS``'s.\n\nA volume tolerance band, if attached, charges ``penalty_per_mwh`` on\nout-of-band MWh only, recorded as the separate, always-non-positive\n``tolerance_penalty`` ledger component.\n\nWhen ``contract.terms`` is ``None`` or ``PpaTerms()`` (every field ``None``)\nand ``curtailed_mwh == 0.0``, every shared field is byte-identical to the\nas-built (no-terms) output; the four new fields take their inert values.\n\nEmbedded floor/cap price bounds (``PpaPriceTerms``), a ``hedges=`` overlay\n(:class:`~quantvolt.models.power_hedge.PowerHedgeContract`, settled into\n``hedge_cashflow``), and caller-supplied ``option_payoff`` are economically\ndistinct cash flows — a bound on the contract's own price is not a separate\nfinancial instrument — and are never conflated or double-counted here.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/ppa.py",
-          "line": 360
+          "line": 359
         },
         {
           "name": "spark_spread",
@@ -5566,12 +5566,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "spark_spread(power_curve: ForwardCurve, fuel_curve: ForwardCurve, heat_rate: float, variable_cost: float, emissions_cost: float) -> SpreadResult",
           "summary": "Spark spread (gas-fired generation margin) per shared delivery period.",
-          "doc": "Spark spread (gas-fired generation margin) per shared delivery period.\n\nFor each period in the intersection of ``power_curve`` and ``fuel_curve``:\n``power_price - heat_rate * fuel_price - variable_cost - emissions_cost``\n(Req 2.1, Property 6). Computing a spark spread never reads or writes any dark\nvalues: each call returns a new immutable :class:`SpreadResult` labelled\n``\"spark\"``, so any existing dark result remains untouched.\n\nRaises :class:`~quantvolt.exceptions.ValidationError` unless ``heat_rate > 0``,\n``variable_cost >= 0`` and ``emissions_cost >= 0``, and\n:class:`InsufficientDataError` when the curves share no delivery periods.",
+          "doc": "Spark spread (gas-fired generation margin) per shared delivery period.\n\nFor each period in the intersection of ``power_curve`` and ``fuel_curve``:\n``power_price - heat_rate * fuel_price - variable_cost - emissions_cost``.\nComputing a spark spread never reads or writes any dark values: each call\nreturns a new immutable ``SpreadResult`` labelled ``\"spark\"``, so any existing\ndark result remains untouched.\n\nRaises ``ValidationError`` unless ``heat_rate > 0``, ``variable_cost >= 0``\nand ``emissions_cost >= 0``, and ``InsufficientDataError`` when the curves\nshare no delivery periods.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 205
+          "line": 204
         },
         {
           "name": "storage_intrinsic",
@@ -5579,8 +5579,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.storage.storage_intrinsic",
           "kind": "function",
           "signature": "storage_intrinsic(model: StorageModel, forward_curve: ForwardCurve, *, inventory_step: float | None=None, grid_steps: int=_DEFAULT_GRID_STEPS) -> IntrinsicResult",
-          "summary": "Optimal forward-locked injection/withdrawal schedule and its value (Req 22.1).",
-          "doc": "Optimal forward-locked injection/withdrawal schedule and its value (Req 22.1).\n\nExact backward-induction dynamic program over the discretised inventory grid: with the\nforward curve's per-period prices known, it finds the injection/withdrawal schedule that\nmaximises total cash flow subject to the inventory bounds, the injection/withdrawal\nratchets and the terminal-inventory condition — all enforced at *every* step by the\nfeasible-transition set (Req 22.3). See the module docstring for the discretisation,\nthe cash-flow conventions and the exactness statement.\n\nArgs:\n    model: The storage parameters.\n    forward_curve: The forward curve whose node prices drive the schedule; nodes are taken\n        in chronological order, one delivery period per horizon step.\n    inventory_step: Inventory-grid spacing (volume); defaults to\n        ``working_capacity / grid_steps``. Must divide the distances from\n        ``min_inventory`` to ``initial_inventory`` and ``terminal_inventory``.\n    grid_steps: Number of inventory-grid intervals used to derive the default\n        ``inventory_step`` when it is not supplied (default ``50``). Ignored when\n        ``inventory_step`` is given explicitly. Must be ``>= 1``.\n\nReturns:\n    The optimal :class:`IntrinsicResult`.\n\nRaises:\n    ValidationError: If ``inventory_step`` is non-positive; if ``grid_steps < 1``; if the\n        initial/terminal inventory is off-grid; if a ratchet returns a negative rate at a\n        grid level; or if a hard terminal target is unreachable from the initial inventory\n        over the horizon.",
+          "summary": "Optimal forward-locked injection/withdrawal schedule and its value.",
+          "doc": "Optimal forward-locked injection/withdrawal schedule and its value.\n\nExact backward-induction dynamic program over the discretised inventory grid: with the\nforward curve's per-period prices known, it finds the injection/withdrawal schedule that\nmaximises total cash flow subject to the inventory bounds, the injection/withdrawal\nratchets and the terminal-inventory condition — all enforced at *every* step by the\nfeasible-transition set. See the module docstring for the discretisation,\nthe cash-flow conventions and the exactness statement.\n\nArgs:\n    model: The storage parameters.\n    forward_curve: The forward curve whose node prices drive the schedule; nodes are taken\n        in chronological order, one delivery period per horizon step.\n    inventory_step: Inventory-grid spacing (volume); defaults to\n        ``working_capacity / grid_steps``. Must divide the distances from\n        ``min_inventory`` to ``initial_inventory`` and ``terminal_inventory``.\n    grid_steps: Number of inventory-grid intervals used to derive the default\n        ``inventory_step`` when it is not supplied (default ``50``). Ignored when\n        ``inventory_step`` is given explicitly. Must be ``>= 1``.\n\nReturns:\n    The optimal :class:`IntrinsicResult`.\n\nRaises:\n    ValidationError: If ``inventory_step`` is non-positive; if ``grid_steps < 1``; if the\n        initial/terminal inventory is off-grid; if a ratchet returns a negative rate at a\n        grid level; or if a hard terminal target is unreachable from the initial inventory\n        over the horizon.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5593,8 +5593,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.storage.storage_value",
           "kind": "function",
           "signature": "storage_value(model: StorageModel, forward_curve: ForwardCurve, factor_model: StorageFactorModel, seed: int, *, inventory_step: float | None=None, grid_steps: int=_DEFAULT_GRID_STEPS, lsm_basis_degree: int=_LSM_BASIS_DEGREE, antithetic: bool=True) -> StorageValueResult",
-          "summary": "Total (intrinsic + extrinsic) storage value via Least-Squares Monte Carlo (Req 22.2).",
-          "doc": "Total (intrinsic + extrinsic) storage value via Least-Squares Monte Carlo (Req 22.2).\n\nSimulates forward-consistent spot paths with ``factor_model`` (see\n:class:`StorageFactorModel`) and runs a backward induction over ``(time, inventory)`` that\nfinds the optimal *adaptive* injection/withdrawal policy. At each period and inventory\nlevel the decision maximises ``immediate cash flow + continuation value``, where the\ncontinuation value of each reachable next level is estimated by regressing the pathwise\nnext-period value on the polynomial basis ``[1, S, S**2]`` of the current spot ``S``\n(Longstaff-Schwartz). The regression is used only to choose the action; the value is then\naccumulated from the *realised* pathwise continuation to limit foldback bias. All the\ninventory-bound, ratchet and terminal constraints are enforced by the same\nfeasible-transition set as the intrinsic DP (Req 22.3).\n\nExtrinsic value via a control variate (Property 64)\n---------------------------------------------------\nThe extrinsic component is estimated as the mean pathwise difference between the adaptive\npolicy value and the *fixed intrinsic schedule* evaluated on the **same** simulated paths\n(common random numbers): ``extrinsic = mean_p[V_adaptive(p) - V_fixed(p)]``. Because the\nfixed forward-locked schedule is one feasible policy available to the optimal adaptive\npolicy, the difference is non-negative in expectation, and sharing the price paths cancels\nthe bulk of the sampling variance — so ``extrinsic >= 0`` holds robustly rather than being\nswamped by the (large) variance of ``total`` alone. ``total`` is anchored on the exact\nintrinsic value as ``intrinsic + extrinsic``, and ``extrinsic`` is reported honestly with\nits standard error rather than clamped (a small negative value within a few standard errors\nis Monte Carlo noise, per the Property-64 tolerance floor).\n\nArgs:\n    model: The storage parameters.\n    forward_curve: The forward curve (its node prices are the per-period forward means).\n    factor_model: The single-factor spot model and MC controls.\n    seed: RNG seed; identical inputs and seed give identical results (Req 11.2).\n    inventory_step: Inventory-grid spacing, shared with :func:`storage_intrinsic`.\n    grid_steps: Number of inventory-grid intervals used to derive the default\n        ``inventory_step`` when it is not supplied, shared with :func:`storage_intrinsic`\n        (default ``50``). Must be ``>= 1``.\n    lsm_basis_degree: Degree of the polynomial regression basis\n        ``[1, S, ..., S**lsm_basis_degree]`` used for the LSM continuation value (default\n        ``2``, i.e. ``[1, S, S**2]``). Must be ``>= 1``.\n    antithetic: Whether the simulated spot paths use antithetic variates (default\n        ``True``, matching prior behaviour). Also selects the pair-mean-aware\n        standard-error estimator used for ``standard_error`` (see\n        :func:`_standard_error`).\n\nReturns:\n    The :class:`StorageValueResult` with ``total``, ``intrinsic``, ``extrinsic`` and the\n    Monte Carlo ``standard_error`` of ``total``.\n\nRaises:\n    ValidationError: For the same grid/ratchet/terminal violations as\n        :func:`storage_intrinsic`, if ``seed`` is negative, or if ``lsm_basis_degree < 1``.",
+          "summary": "Total (intrinsic + extrinsic) storage value via Least-Squares Monte Carlo.",
+          "doc": "Total (intrinsic + extrinsic) storage value via Least-Squares Monte Carlo.\n\nSimulates forward-consistent spot paths with ``factor_model`` (see\n:class:`StorageFactorModel`) and runs a backward induction over ``(time, inventory)`` that\nfinds the optimal *adaptive* injection/withdrawal policy. At each period and inventory\nlevel the decision maximises ``immediate cash flow + continuation value``, where the\ncontinuation value of each reachable next level is estimated by regressing the pathwise\nnext-period value on the polynomial basis ``[1, S, S**2]`` of the current spot ``S``\n(Longstaff-Schwartz). The regression is used only to choose the action; the value is then\naccumulated from the *realised* pathwise continuation to limit foldback bias. All the\ninventory-bound, ratchet and terminal constraints are enforced by the same\nfeasible-transition set as the intrinsic DP.\n\nExtrinsic value via a control variate\n---------------------------------------------------\nThe extrinsic component is estimated as the mean pathwise difference between the adaptive\npolicy value and the *fixed intrinsic schedule* evaluated on the **same** simulated paths\n(common random numbers): ``extrinsic = mean_p[V_adaptive(p) - V_fixed(p)]``. Because the\nfixed forward-locked schedule is one feasible policy available to the optimal adaptive\npolicy, the difference is non-negative in expectation, and sharing the price paths cancels\nthe bulk of the sampling variance — so ``extrinsic >= 0`` holds robustly rather than being\nswamped by the (large) variance of ``total`` alone. ``total`` is anchored on the exact\nintrinsic value as ``intrinsic + extrinsic``, and ``extrinsic`` is reported honestly with\nits standard error rather than clamped (a small negative value within a few standard errors\nis Monte Carlo noise, per the Property-64 tolerance floor).\n\nArgs:\n    model: The storage parameters.\n    forward_curve: The forward curve (its node prices are the per-period forward means).\n    factor_model: The single-factor spot model and MC controls.\n    seed: RNG seed; identical inputs and seed give identical results.\n    inventory_step: Inventory-grid spacing, shared with :func:`storage_intrinsic`.\n    grid_steps: Number of inventory-grid intervals used to derive the default\n        ``inventory_step`` when it is not supplied, shared with :func:`storage_intrinsic`\n        (default ``50``). Must be ``>= 1``.\n    lsm_basis_degree: Degree of the polynomial regression basis\n        ``[1, S, ..., S**lsm_basis_degree]`` used for the LSM continuation value (default\n        ``2``, i.e. ``[1, S, S**2]``). Must be ``>= 1``.\n    antithetic: Whether the simulated spot paths use antithetic variates (default\n        ``True``, matching prior behaviour). Also selects the pair-mean-aware\n        standard-error estimator used for ``standard_error`` (see\n        :func:`_standard_error`).\n\nReturns:\n    The :class:`StorageValueResult` with ``total``, ``intrinsic``, ``extrinsic`` and the\n    Monte Carlo ``standard_error`` of ``total``.\n\nRaises:\n    ValidationError: For the same grid/ratchet/terminal violations as\n        :func:`storage_intrinsic`, if ``seed`` is negative, or if ``lsm_basis_degree < 1``.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5607,8 +5607,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.dispatch_approx.time_aggregate",
           "kind": "function",
           "signature": "time_aggregate(plant: PlantModel, power_prices: Sequence[float], fuel_prices: Sequence[float], temperatures: Sequence[float], block_hours: int, *, initial_online: bool=False, initial_output: float=0.0, initial_uptime: int | None=None, initial_downtime: int | None=None, output_step: float | None=None, discount_factors: Sequence[float] | None=None) -> DispatchSchedule",
-          "summary": "Time-aggregation heuristic: solve on ``block_hours``-hour blocks, rescale (Req 21.3).",
-          "doc": "Time-aggregation heuristic: solve on ``block_hours``-hour blocks, rescale (Req 21.3).\n\nEach consecutive run of ``block_hours`` periods is averaged into one coarse\nperiod (power, fuel, temperature, and — if supplied — discount factor), the\ndeterministic dispatch is solved on the coarse series, and the coarse per-period\nresult is expanded back to the original resolution with each block's cash flow\nrecurring ``block_hours`` times (the rescaling). The returned\n:class:`DispatchSchedule` therefore has the original horizon's length and a\n``total_value`` equal to ``block_hours`` times the coarse value.\n\nExactness and bias. On **block-constant** prices (each series constant within\nevery block) the block average is lossless and, for a unit that incurs no start\nwithin the horizon, the rescaled value equals the full-resolution optimum\nexactly. When a start *is* incurred inside a block, the once-per-block start\ncost is replicated across the block's sub-periods, understating the value — a\ndocumented downward bias that shrinks with fewer/cheaper starts. Sub-block ramp\nand commitment freedom (and any intra-block discount-factor variation) are the\nother, generally small, sources of error. Duration/timer arguments are counted\nin *coarse* periods (blocks) inside the coarse solve; pass them accordingly.\n\nArgs:\n    plant: The operating model (unchanged; passed to the coarse solve).\n    power_prices: Power price ``P_t`` per (fine) period.\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period.\n    block_hours: Periods per aggregation block; must be an integer ``>= 1`` that\n        divides the horizon evenly.\n    initial_online: Whether the unit is producing entering the horizon.\n    initial_output: Output entering the horizon (MW); on the coarse grid when\n        online.\n    initial_uptime: Producing (coarse) periods already accrued (min-run).\n    initial_downtime: Offline (coarse) periods already accrued (start bucket /\n        min-down).\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    discount_factors: Per-period to-today discount factors (default all 1.0);\n        block-averaged before the coarse solve.\n\nReturns:\n    A full-resolution :class:`DispatchSchedule`; ``total_value`` is the rescaled\n    coarse value.\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a discount\n        factor or ``output_step`` is non-positive; if ``block_hours`` is not an\n        integer ``>= 1`` or does not divide the horizon; or if the coarse problem\n        is itself infeasible (delegated to the deterministic solver).",
+          "summary": "Time-aggregation heuristic: solve on ``block_hours``-hour blocks, rescale.",
+          "doc": "Time-aggregation heuristic: solve on ``block_hours``-hour blocks, rescale.\n\nEach consecutive run of ``block_hours`` periods is averaged into one coarse\nperiod (power, fuel, temperature, and — if supplied — discount factor), the\ndeterministic dispatch is solved on the coarse series, and the coarse per-period\nresult is expanded back to the original resolution with each block's cash flow\nrecurring ``block_hours`` times (the rescaling). The returned\n:class:`DispatchSchedule` therefore has the original horizon's length and a\n``total_value`` equal to ``block_hours`` times the coarse value.\n\nExactness and bias. On **block-constant** prices (each series constant within\nevery block) the block average is lossless and, for a unit that incurs no start\nwithin the horizon, the rescaled value equals the full-resolution optimum\nexactly. When a start *is* incurred inside a block, the once-per-block start\ncost is replicated across the block's sub-periods, understating the value — a\ndocumented downward bias that shrinks with fewer/cheaper starts. Sub-block ramp\nand commitment freedom (and any intra-block discount-factor variation) are the\nother, generally small, sources of error. Duration/timer arguments are counted\nin *coarse* periods (blocks) inside the coarse solve; pass them accordingly.\n\nArgs:\n    plant: The operating model (unchanged; passed to the coarse solve).\n    power_prices: Power price ``P_t`` per (fine) period.\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period.\n    block_hours: Periods per aggregation block; must be an integer ``>= 1`` that\n        divides the horizon evenly.\n    initial_online: Whether the unit is producing entering the horizon.\n    initial_output: Output entering the horizon (MW); on the coarse grid when\n        online.\n    initial_uptime: Producing (coarse) periods already accrued (min-run).\n    initial_downtime: Offline (coarse) periods already accrued (start bucket /\n        min-down).\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    discount_factors: Per-period to-today discount factors (default all 1.0);\n        block-averaged before the coarse solve.\n\nReturns:\n    A full-resolution :class:`DispatchSchedule`; ``total_value`` is the rescaled\n    coarse value.\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a discount\n        factor or ``output_step`` is non-positive; if ``block_hours`` is not an\n        integer ``>= 1`` or does not divide the horizon; or if the coarse problem\n        is itself infeasible (delegated to the deterministic solver).",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5622,12 +5622,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "valuation_benchmark(period: DeliveryPeriod, forward_curve: ForwardCurve, spot_model: SpotModel, corporate_premium: CorporatePremium) -> BenchmarkResult",
           "summary": "Value ``period`` off the forward curve where liquid, else off projected spot.",
-          "doc": "Value ``period`` off the forward curve where liquid, else off projected spot.\n\nWhere the liquid ``forward_curve`` covers ``period``, the forward price is the\nvaluation benchmark and no projected-spot value is substituted (Req 23.1). A\nperiod present on the curve counts as forward-based whether its node is\n``observed`` or ``interpolated`` — both lie within the liquid forward span. Where\nthe curve does not cover ``period``, the value is projected as\n``spot_model(period) + corporate_premium.premium`` and tagged\n:attr:`ValuationSource.PROJECTED` (Req 23.2).\n\n``corporate_premium`` is validated eagerly (before the liquidity branch) so a\nmarket-tagged or untagged premium is rejected regardless of this period's\nliquidity — the corporate risk premium is never applied silently (Req 19.3).\n\nArgs:\n    period: The delivery period to value.\n    forward_curve: The liquid forward curve; membership of ``period`` decides the\n        regime.\n    spot_model: Pure callable ``DeliveryPeriod -> float`` giving the model spot\n        expectation used when no liquid forward exists. Never mutated.\n    corporate_premium: The additive corporate risk premium, explicitly tagged\n        :attr:`~quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE`.\n\nReturns:\n    A :class:`BenchmarkResult` whose ``source`` tags the regime prominently.\n\nRaises:\n    ValidationError: If ``corporate_premium`` is not an explicitly corporate-tagged\n        :class:`CorporatePremium`.",
+          "doc": "Value ``period`` off the forward curve where liquid, else off projected spot.\n\nWhere the liquid ``forward_curve`` covers ``period``, the forward price is the\nvaluation benchmark and no projected-spot value is substituted. A period\npresent on the curve counts as forward-based whether its node is ``observed``\nor ``interpolated``; both lie within the liquid forward span. Where the curve\ndoes not cover ``period``, the value is projected as\n``spot_model(period) + corporate_premium.premium`` and tagged\n``ValuationSource.PROJECTED``.\n\n``corporate_premium`` is validated eagerly (before the liquidity branch) so a\nmarket-tagged or untagged premium is rejected regardless of this period's\nliquidity; the corporate risk premium is never applied silently.\n\nArgs:\n    period: The delivery period to value.\n    forward_curve: The liquid forward curve; membership of ``period`` decides the\n        regime.\n    spot_model: Pure callable ``DeliveryPeriod -> float`` giving the model spot\n        expectation used when no liquid forward exists. Never mutated.\n    corporate_premium: The additive corporate risk premium, explicitly tagged\n        ``quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE``.\n\nReturns:\n    A ``BenchmarkResult`` whose ``source`` tags the regime prominently.\n\nRaises:\n    ValidationError: If ``corporate_premium`` is not an explicitly corporate-tagged\n        ``CorporatePremium``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/assets/long_dated.py",
-          "line": 168
+          "line": 164
         },
         {
           "name": "value_portfolio",
@@ -5635,13 +5635,13 @@ window.API_DATA = {
           "qualified": "quantvolt.portfolio.valuation.value_portfolio",
           "kind": "function",
           "signature": "value_portfolio(portfolio: Portfolio, market_data: MarketData, pricers: Mapping[type[Any], Pricer] | None=None) -> PortfolioValuation",
-          "summary": "Value every position via its registered pricer and aggregate the NPV (Req 13.2-13.6).",
-          "doc": "Value every position via its registered pricer and aggregate the NPV (Req 13.2-13.6).\n\nThe dispatch registry is :data:`DEFAULT_PRICERS` merged with the caller-supplied\n``pricers`` (caller entries win) — the open/closed extension seam: new instrument\ntypes are registered, never edited in (Req 13.4). Positions are processed in\nportfolio order; a position whose instrument type has no registered pricer is\nreturned in ``unpriced`` rather than raising, so the rest of the book is still\nvalued, and ``total_npv`` sums the priced positions only (Req 13.3).\n\nPricing errors — :class:`~quantvolt.exceptions.ExpiredContractError`,\n:class:`~quantvolt.exceptions.MissingTenorError`, a missing forward curve from\n:meth:`MarketData.curve_for` — **propagate**: they are data errors on a position\nthe registry *does* know how to price, not registry misses, and silently skipping\nthem would hide a mispriced book.\n\nInputs are never mutated, and identical inputs produce identical results (Req 13.6).\n\n**No LSMC or dispatch engine ever runs inside this function** (Req 19.2). A\n:class:`~quantvolt.models.instruments.CachedAssetValuation` position is priced by\nre-emitting its already-computed ``npv``/``delta`` (after a staleness check against\n``market_data.valuation_date``) — ``value_portfolio`` itself never simulates or\nre-optimises anything; every native pricer here is a thin *validate -> gather inputs ->\ndelegate to an existing closed-form kernel -> package a result* orchestration.",
+          "summary": "Value every position via its registered pricer and aggregate the NPV.",
+          "doc": "Value every position via its registered pricer and aggregate the NPV.\n\nThe dispatch registry is ``DEFAULT_PRICERS`` merged with the caller-supplied\n``pricers`` (caller entries win); new instrument types are registered, never edited\nin. Positions are processed in portfolio order; a position whose instrument type has\nno registered pricer is returned in ``unpriced`` rather than raising, so the rest of\nthe book is still valued, and ``total_npv`` sums the priced positions only.\n\nPricing errors -- ``ExpiredContractError``, ``MissingTenorError``, a missing forward\ncurve from ``MarketData.curve_for`` -- propagate: they are data errors on a position\nthe registry does know how to price, not registry misses, and silently skipping them\nwould hide a mispriced book.\n\nInputs are never mutated, and identical inputs produce identical results.\n\nNo LSMC or dispatch engine ever runs inside this function. A\n``CachedAssetValuation`` position is priced by re-emitting its already-computed\n``npv``/``delta`` (after a staleness check against ``market_data.valuation_date``);\n``value_portfolio`` itself never simulates or re-optimises anything -- every native\npricer here validates, gathers inputs, delegates to an existing closed-form kernel,\nand packages a result.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/portfolio/valuation.py",
-          "line": 599
+          "line": 586
         },
         {
           "name": "value_transport_right",
@@ -5649,13 +5649,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.transmission_right.value_transport_right",
           "kind": "function",
           "signature": "value_transport_right(right: TransportRight, curve_a: ForwardCurve, curve_b: ForwardCurve, discount_curve: DiscountCurve, *, vols: tuple[float, float] | None=None, correlation: float | None=None, day_count: Callable[[date, date], float]=actual_365, settlement_lag_days: int=0) -> TransportRightResult",
-          "summary": "Value a transmission or pipeline right (Req 24.1-24.5, Properties 67-68).",
-          "doc": "Value a transmission or pipeline right (Req 24.1-24.5, Properties 67-68).\n\n``curve_a`` is the origin (hub A) forward curve and ``curve_b`` the destination\n(hub B) curve; their commodity ids must match ``right.origin`` / ``right.destination``\nso curves cannot be silently swapped. Valuation covers the shared periods of both\ncurves within the right's schedule (Req 24.5). Each period's settlement is its\n``last_day`` plus ``settlement_lag_days`` (the swap/tolling convention): the\ndiscount factor is taken there. For the option path, ``time_to_expiry`` is\n``day_count`` (default actual/365) from ``discount_curve.reference_date`` to the\nperiod's ``last_day`` (the flow decision horizon) — ``settlement_lag_days`` never\nshifts the volatility horizon, only the discount-factor lookup date.\n\nIntrinsic value is ``Σ D · Q_delivered · max(P_B - P_A - T_AB, 0)``. Supplying\n``vols=(sigma_origin, sigma_destination)`` and ``correlation`` (both or neither,\nReq 24.2) adds the spread-option extrinsic value per period. A ``BIDIRECTIONAL``\nright commits each period to the best of A→B (tariff ``tariff``), B→A (tariff\n``reverse_tariff``, defaulting to ``tariff``) or no-flow, and is subadditive versus\ntwo one-way rights (Property 68).\n\nArgs:\n    right: The transmission or pipeline right to value.\n    curve_a: Origin (hub A) forward curve.\n    curve_b: Destination (hub B) forward curve.\n    discount_curve: Discount curve for settlement dates.\n    vols: Optional ``(sigma_origin, sigma_destination)`` pair (both or\n        neither with ``correlation``).\n    correlation: Optional origin/destination correlation (both or neither\n        with ``vols``).\n    day_count: Year-fraction convention for the option ``time_to_expiry``,\n        taking ``(start, end)`` (default\n        :func:`~quantvolt.numerics.daycount.actual_365`).\n    settlement_lag_days: Calendar days added to each period's last day to\n        get the settlement date used for the discount factor (default 0,\n        non-negative). Does NOT affect the option's ``time_to_expiry``,\n        which is always ``day_count`` to ``period.last_day``.\n\nRaises:\n    ValidationError: If ``vols``/``correlation`` are not supplied both-or-neither\n        (Req 24.2), if the curve commodity ids do not match ``right.origin`` /\n        ``right.destination``, if ``settlement_lag_days`` is negative, or if a\n        location forward is non-positive on the option path (from the\n        spread-option engine).\n    InsufficientDataError: If the two curves share no schedule period (Req 24.5).\n    MissingTenorError: If the discount curve does not cover a period's settlement.",
+          "summary": "Value a transmission or pipeline right.",
+          "doc": "Value a transmission or pipeline right.\n\n``curve_a`` is the origin (hub A) forward curve and ``curve_b`` the destination\n(hub B) curve; their commodity ids must match ``right.origin`` / ``right.destination``\nso curves cannot be silently swapped. Valuation covers the shared periods of both\ncurves within the right's schedule. Each period's settlement is its\n``last_day`` plus ``settlement_lag_days`` (the swap/tolling convention): the\ndiscount factor is taken there. For the option path, ``time_to_expiry`` is\n``day_count`` (default actual/365) from ``discount_curve.reference_date`` to the\nperiod's ``last_day`` (the flow decision horizon) — ``settlement_lag_days`` never\nshifts the volatility horizon, only the discount-factor lookup date.\n\nIntrinsic value is ``Σ D · Q_delivered · max(P_B - P_A - T_AB, 0)``. Supplying\n``vols=(sigma_origin, sigma_destination)`` and ``correlation`` (both or neither,\nReq 24.2) adds the spread-option extrinsic value per period. A ``BIDIRECTIONAL``\nright commits each period to the best of A→B (tariff ``tariff``), B→A (tariff\n``reverse_tariff``, defaulting to ``tariff``) or no-flow, and is subadditive versus\ntwo one-way rights.\n\nArgs:\n    right: The transmission or pipeline right to value.\n    curve_a: Origin (hub A) forward curve.\n    curve_b: Destination (hub B) forward curve.\n    discount_curve: Discount curve for settlement dates.\n    vols: Optional ``(sigma_origin, sigma_destination)`` pair (both or\n        neither with ``correlation``).\n    correlation: Optional origin/destination correlation (both or neither\n        with ``vols``).\n    day_count: Year-fraction convention for the option ``time_to_expiry``,\n        taking ``(start, end)`` (default\n        :func:`~quantvolt.numerics.daycount.actual_365`).\n    settlement_lag_days: Calendar days added to each period's last day to\n        get the settlement date used for the discount factor (default 0,\n        non-negative). Does NOT affect the option's ``time_to_expiry``,\n        which is always ``day_count`` to ``period.last_day``.\n\nRaises:\n    ValidationError: If ``vols``/``correlation`` are not supplied both-or-neither\n       , if the curve commodity ids do not match ``right.origin`` /\n        ``right.destination``, if ``settlement_lag_days`` is negative, or if a\n        location forward is non-positive on the option path (from the\n        spread-option engine).\n    InsufficientDataError: If the two curves share no schedule period.\n    MissingTenorError: If the discount curve does not cover a period's settlement.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/transmission_right.py",
-          "line": 241
+          "line": 240
         },
         {
           "name": "var_applicability_guard",
@@ -5664,12 +5664,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "var_applicability_guard(position: PricedPosition, *, strict: bool=False) -> VarApplicabilityVerdict",
           "summary": "Flag short-horizon VaR as inapplicable for a projected-spot-valued position.",
-          "doc": "Flag short-horizon VaR as inapplicable for a projected-spot-valued position.\n\nReads the position's provenance from ``position.position.tags``: a position\ncarrying the :attr:`ValuationSource.PROJECTED` tag was valued off projected spot,\nfor which short-horizon VaR is not meaningful — VaR is meaningful only in liquid\nmarkets (Chapter-10 caveat, Req 23.3). Absence of that tag is treated as\nforward-based / liquid and therefore VaR-applicable.\n\nDesigned to be *consulted* by MC-VaR / parametric-VaR callers: they inspect the\nreturned verdict and exclude the position (or switch to CFaR / scenario analysis)\nwithout this module modifying ``risk/``. With ``strict=True`` the guard instead\nraises for an inapplicable position, for callers that prefer to hard-fail.\n\nArgs:\n    position: The priced position to judge, as consumed by the risk engines.\n    strict: When ``True``, raise :class:`ValidationError` for a projected-spot\n        position instead of returning an ``applicable=False`` verdict.\n\nReturns:\n    A :class:`VarApplicabilityVerdict` with ``applicable`` and a ``reason``.\n\nRaises:\n    ValidationError: If ``strict`` is ``True`` and the position is projected-valued.",
+          "doc": "Flag short-horizon VaR as inapplicable for a projected-spot-valued position.\n\nReads the position's provenance from ``position.position.tags``: a position\ncarrying the ``ValuationSource.PROJECTED`` tag was valued off projected spot,\nfor which short-horizon VaR is not meaningful, since VaR is meaningful only in\nliquid markets. Absence of that tag is treated as forward-based / liquid and\ntherefore VaR-applicable.\n\nDesigned to be consulted by MC-VaR / parametric-VaR callers: they inspect the\nreturned verdict and exclude the position (or switch to CFaR / scenario analysis)\nwithout this module modifying ``risk/``. With ``strict=True`` the guard instead\nraises for an inapplicable position, for callers that prefer to hard-fail.\n\nArgs:\n    position: The priced position to judge, as consumed by the risk engines.\n    strict: When ``True``, raise ``ValidationError`` for a projected-spot\n        position instead of returning an ``applicable=False`` verdict.\n\nReturns:\n    A ``VarApplicabilityVerdict`` with ``applicable`` and a ``reason``.\n\nRaises:\n    ValidationError: If ``strict`` is ``True`` and the position is projected-valued.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/assets/long_dated.py",
-          "line": 212
+          "line": 208
         },
         {
           "name": "variance_min_hedge",
@@ -5677,8 +5677,8 @@ window.API_DATA = {
           "qualified": "quantvolt.hedging.variance_min.variance_min_hedge",
           "kind": "function",
           "signature": "variance_min_hedge(sigma_hh: NDArray[np.float64], sigma_ht: NDArray[np.float64], *, condition_limit: float=_CONDITION_LIMIT) -> NDArray[np.float64]",
-          "summary": "Variance-minimizing hedge ratios ``h* = Σ_hh⁻¹ Σ_ht`` (Req 18.1, Property 54).",
-          "doc": "Variance-minimizing hedge ratios ``h* = Σ_hh⁻¹ Σ_ht`` (Req 18.1, Property 54).\n\nGiven a target exposure and ``n`` hedge instruments described by their return\ncovariance with the target (``Σ_ht``) and with each other (``Σ_hh``), returns\nthe ratios ``h*`` that minimise the local variance of the hedged position.\n``h*`` solves the normal-equation system ``Σ_hh·h* = Σ_ht``.\n\nThe system is solved with :func:`numpy.linalg.solve` after an explicit\nconditioning check: a singular or ill-conditioned ``Σ_hh`` raises rather than\nsilently returning a pseudo-inverse solution (a pseudo-inverse would hide the\nfact that the hedge instruments are collinear and the ratios are not\nidentified).\n\nArgs:\n    sigma_hh: The ``(n, n)`` covariance matrix of the hedge instruments with\n        each other. Must be square, symmetric, finite and non-singular.\n    sigma_ht: The length-``n`` covariance vector of the hedge instruments with\n        the target exposure. Must be conformable with ``sigma_hh``.\n    condition_limit: Upper bound on the 2-norm condition number of ``sigma_hh``\n        before it is treated as numerically singular; defaults to ``1/eps``, the\n        point past which the linear solve loses all significant digits.\n\nReturns:\n    The ``(n,)`` ``float64`` array of variance-minimizing hedge ratios. For a\n    single instrument (``n == 1``) this collapses to\n    :func:`linear_cross_hedge`'s ``rho·sigma_t/sigma_h`` (Property 54).\n\nRaises:\n    ValidationError: If ``sigma_hh`` is not a non-empty square 2-D matrix, is\n        not symmetric, contains non-finite values, is singular or\n        ill-conditioned; if ``condition_limit`` is not strictly positive; or if\n        ``sigma_ht`` is not a finite 1-D vector conformable with ``sigma_hh``.",
+          "summary": "Variance-minimizing hedge ratios ``h* = Σ_hh⁻¹ Σ_ht``.",
+          "doc": "Variance-minimizing hedge ratios ``h* = Σ_hh⁻¹ Σ_ht``.\n\nGiven a target exposure and ``n`` hedge instruments described by their return\ncovariance with the target (``Σ_ht``) and with each other (``Σ_hh``), returns\nthe ratios ``h*`` that minimise the local variance of the hedged position.\n``h*`` solves the normal-equation system ``Σ_hh·h* = Σ_ht``.\n\nThe system is solved with :func:`numpy.linalg.solve` after an explicit\nconditioning check: a singular or ill-conditioned ``Σ_hh`` raises rather than\nsilently returning a pseudo-inverse solution (a pseudo-inverse would hide the\nfact that the hedge instruments are collinear and the ratios are not\nidentified).\n\nArgs:\n    sigma_hh: The ``(n, n)`` covariance matrix of the hedge instruments with\n        each other. Must be square, symmetric, finite and non-singular.\n    sigma_ht: The length-``n`` covariance vector of the hedge instruments with\n        the target exposure. Must be conformable with ``sigma_hh``.\n    condition_limit: Upper bound on the 2-norm condition number of ``sigma_hh``\n        before it is treated as numerically singular; defaults to ``1/eps``, the\n        point past which the linear solve loses all significant digits.\n\nReturns:\n    The ``(n,)`` ``float64`` array of variance-minimizing hedge ratios. For a\n    single instrument (``n == 1``) this collapses to\n    :func:`linear_cross_hedge`'s ``rho·sigma_t/sigma_h``.\n\nRaises:\n    ValidationError: If ``sigma_hh`` is not a non-empty square 2-D matrix, is\n        not symmetric, contains non-finite values, is singular or\n        ill-conditioned; if ``condition_limit`` is not strictly positive; or if\n        ``sigma_ht`` is not a finite 1-D vector conformable with ``sigma_hh``.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -5705,7 +5705,7 @@ window.API_DATA = {
           "qualified": "quantvolt.models.commodity.BUILT_IN_COMMODITIES",
           "kind": "constant",
           "signature": "BUILT_IN_COMMODITIES",
-          "summary": "Read-only-by-convention registry of the package's built-in European power, gas and carbon commodity definitions, keyed by stable commodity ID..",
+          "summary": "Read-only-by-convention registry of the package's built-in European power, gas and carbon commodity definitions, keyed by stable commodity ID.",
           "doc": "Read-only-by-convention registry of the package's built-in European power, gas and carbon commodity definitions, keyed by stable commodity ID.",
           "methods": [],
           "fields": [],
@@ -5719,7 +5719,7 @@ window.API_DATA = {
           "qualified": "quantvolt.portfolio.model.Instrument",
           "kind": "constant",
           "signature": "Instrument",
-          "summary": "Public type alias for the instrument variants that a Portfolio Position can hold..",
+          "summary": "Public type alias for the instrument variants that a Portfolio Position can hold.",
           "doc": "Public type alias for the instrument variants that a Portfolio Position can hold.",
           "methods": [],
           "fields": [],
@@ -5740,8 +5740,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.CachedAssetValuation",
           "kind": "class",
           "signature": "CachedAssetValuation(asset_id: str, npv: float, delta: Mapping[tuple[str, DeliveryPeriod], float], valuation_date: date, source: ValuationSource, standard_error: float | None = None)",
-          "summary": "A precomputed, staleness-checked LSMC/dispatch valuation cache (DEFERRED roadmap, portfolio-native-pricers spec Req 19).",
-          "doc": "A precomputed, staleness-checked LSMC/dispatch valuation cache (DEFERRED roadmap,\nportfolio-native-pricers spec Req 19).\n\nFolds an expensive Monte-Carlo/dispatch-priced asset (a long-dated power plant,\nstorage position, ...) into a ``Portfolio`` as an already-computed number.\n``portfolio.valuation._price_cached_asset_valuation`` -- the pricer registered for this\ntype -- never runs an LSMC or dispatch engine itself (Req 19.2); it only re-emits this\nwrapper's ``npv``/``delta`` as a ``PricedPosition``, after checking that ``valuation_date``\nstill matches ``MarketData.valuation_date``. A mismatch means the cache is stale relative\nto the book being valued and the pricer raises a :class:`ValidationError` naming both\ndates rather than silently repricing or reusing it (Req 19.2).\n\nThe pricer also propagates :attr:`source` onto the re-emitted position's ``tags`` (the\n:class:`ValuationSource` Property-66 pattern of ``assets/long_dated.py``: downstream risk\ncode, e.g. ``var_applicability_guard``, reads the tag from ``position.position.tags``), so\na cached/simulated valuation is as visibly tagged as a projected-spot one.\n\nFields:\n    asset_id: Identifier for the underlying asset the cache was computed for -- an audit\n        trail back to the LSMC/dispatch run that produced ``npv``/``delta``.\n    npv: The precomputed net present value as of ``valuation_date``. Must be finite.\n    delta: Precomputed per-``(commodity_id, delivery period)`` exposure, in the same\n        convention as every other native pricer's ``PricedPosition.delta``. Defensively\n        copied at construction.\n    valuation_date: The date the cache was computed as of. Must equal\n        ``MarketData.valuation_date`` when priced (Req 19.2) or the pricer raises.\n    source: The :class:`ValuationSource` provenance tag for this cache -- ordinarily\n        :attr:`ValuationSource.SIMULATED` (an LSMC/dispatch cache is neither a liquid\n        forward quote nor a simple projected-spot figure); accepted as a field rather than\n        hard-coded so a caller with a different provenance can still state it explicitly.\n    standard_error: Optional Monte-Carlo standard error of ``npv``, carried through for\n        audit. ``None`` for a deterministic dispatch valuation. Must be finite and >= 0\n        when given.",
+          "summary": "A precomputed, staleness-checked LSMC/dispatch valuation cache.",
+          "doc": "A precomputed, staleness-checked LSMC/dispatch valuation cache.\n\nFolds an expensive Monte-Carlo/dispatch-priced asset (a long-dated power plant,\nstorage position, ...) into a ``Portfolio`` as an already-computed number. This\nlibrary does not itself run an LSMC or dispatch engine: it is the caller's\nresponsibility to produce ``npv``/``delta`` (e.g. via ``assets.long_dated`` or a\ncaller's own simulation) and wrap the result in this type.\n``portfolio.valuation._price_cached_asset_valuation``, the pricer registered for this\ntype, only re-emits this wrapper's ``npv``/``delta`` as a ``PricedPosition``, after\nchecking that ``valuation_date`` still matches ``MarketData.valuation_date``. A\nmismatch means the cache is stale relative to the book being valued and the pricer\nraises a ``ValidationError`` naming both dates rather than silently repricing or\nreusing it.\n\nThe pricer also propagates ``source`` onto the re-emitted position's ``tags``\n(downstream risk code, e.g. ``var_applicability_guard``, reads the tag from\n``position.position.tags``), so a cached/simulated valuation is as visibly tagged as\na projected-spot one.\n\nFields:\n    asset_id: Identifier for the underlying asset the cache was computed for -- an audit\n        trail back to the LSMC/dispatch run that produced ``npv``/``delta``.\n    npv: The precomputed net present value as of ``valuation_date``. Must be finite.\n    delta: Precomputed per-``(commodity_id, delivery period)`` exposure, in the same\n        convention as every other native pricer's ``PricedPosition.delta``. Defensively\n        copied at construction.\n    valuation_date: The date the cache was computed as of. Must equal\n        ``MarketData.valuation_date`` when priced, or the pricer raises.\n    source: The ``ValuationSource`` provenance tag for this cache -- ordinarily\n        ``ValuationSource.SIMULATED`` (an LSMC/dispatch cache is neither a liquid\n        forward quote nor a simple projected-spot figure); accepted as a field rather than\n        hard-coded so a caller with a different provenance can still state it explicitly.\n    standard_error: Optional Monte-Carlo standard error of ``npv``, carried through for\n        audit. ``None`` for a deterministic dispatch valuation. Must be finite and >= 0\n        when given.",
           "methods": [],
           "fields": [
             {
@@ -5777,7 +5777,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 405
+          "line": 398
         },
         {
           "name": "CapFloorStripContract",
@@ -5785,8 +5785,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.CapFloorStripContract",
           "kind": "class",
           "signature": "CapFloorStripContract(commodity: CommodityConfig, schedule: DeliverySchedule, cap_floor_type: CapFloorType, strike: float, notional: float, side: OptionSide = OptionSide.LONG)",
-          "summary": "A cap or floor strip on one commodity's forward curve (DEFERRED roadmap, portfolio-native-pricers spec Req 20).",
-          "doc": "A cap or floor strip on one commodity's forward curve (DEFERRED roadmap,\nportfolio-native-pricers spec Req 20).\n\nPriced natively by ``portfolio.valuation._price_cap_floor_strip``, which builds one\n``VanillaOptionRequest`` caplet per :attr:`schedule` period -- forward/vol/discount-factor\nsourced exactly like :class:`VanillaOptionContract`'s adapter (``actual_365(valuation_date,\nperiod.last_day)`` time-to-expiry, discount factor at that same date, premium already\ndiscounted -- never twice) -- and delegates the assembled strip to\n:func:`quantvolt.pricing.vanilla.price_cap_floor`.\n\n**Declared design decision** (Task-24 grounding, Requirement 20 is roadmap-thin): ONE\n``strike`` and ONE ``notional`` apply to every caplet/floorlet in the strip. This mirrors\nthe kernel's own ``CapFloorRequest`` invariant exactly (Req 5.6: \"a cap/floor strip has ONE\nstrike ... and ONE notional\"; only forward, discount factor and time-to-expiry vary\ncaplet-by-caplet) -- a per-period notional would let this value object represent a request\nthe kernel itself rejects, so it is not offered. There is also no separate ``expiry``\noverride field (unlike :class:`VanillaOptionContract`): each caplet's decision horizon is\nalways its own period's ``last_day``, the convention every per-period strip in this library\nalready uses (:class:`TollingAgreement`, ``pricing/tolling.py``).\n\nFields:\n    commodity: The single underlying commodity every caplet/floorlet strikes against.\n    schedule: The delivery periods the strip covers (kernel-enforced 1-120 caplets by\n        default -- ``price_cap_floor``'s ``max_strip_periods``).\n    cap_floor_type: :attr:`CapFloorType.CAP` (call side) or :attr:`CapFloorType.FLOOR`\n        (put side); feeds the kernel's ``option_type`` literal via ``.value``.\n    strike: The strip's single cap/floor rate, strictly positive.\n    notional: The strip's single per-period notional, strictly positive.\n    side: Direction, exactly as :class:`VanillaOptionContract` / :class:`SpreadOptionContract`\n        -- never a signed notional.",
+          "summary": "A cap or floor strip on one commodity's forward curve.",
+          "doc": "A cap or floor strip on one commodity's forward curve.\n\nPriced natively by ``portfolio.valuation._price_cap_floor_strip``, which builds one\n``VanillaOptionRequest`` caplet per ``schedule`` period, forward/vol/discount-factor\nsourced exactly like ``VanillaOptionContract``'s adapter (``actual_365(valuation_date,\nperiod.last_day)`` time-to-expiry, discount factor at that same date, premium already\ndiscounted -- never twice), and delegates the assembled strip to\n``quantvolt.pricing.vanilla.price_cap_floor``.\n\nONE ``strike`` and ONE ``notional`` apply to every caplet/floorlet in the strip. This\nmirrors the kernel's own ``CapFloorRequest`` invariant exactly (\"a cap/floor strip has\nONE strike ... and ONE notional\"; only forward, discount factor and time-to-expiry vary\ncaplet-by-caplet); a per-period notional would let this value object represent a request\nthe kernel itself rejects, so it is not offered. There is also no separate ``expiry``\noverride field (unlike ``VanillaOptionContract``): each caplet's decision horizon is\nalways its own period's ``last_day``, the convention every per-period strip in this\nlibrary already uses (``TollingAgreement``, ``pricing/tolling.py``).\n\nFields:\n    commodity: The single underlying commodity every caplet/floorlet strikes against.\n    schedule: The delivery periods the strip covers (kernel-enforced 1-120 caplets by\n        default -- ``price_cap_floor``'s ``max_strip_periods``).\n    cap_floor_type: ``CapFloorType.CAP`` (call side) or ``CapFloorType.FLOOR``\n        (put side); feeds the kernel's ``option_type`` literal via ``.value``.\n    strike: The strip's single cap/floor rate, strictly positive.\n    notional: The strip's single per-period notional, strictly positive.\n    side: Direction, exactly as ``VanillaOptionContract`` / ``SpreadOptionContract``,\n        never a signed notional.",
           "methods": [],
           "fields": [
             {
@@ -5822,7 +5822,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 472
+          "line": 467
         },
         {
           "name": "CapFloorType",
@@ -5830,8 +5830,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.CapFloorType",
           "kind": "class",
           "signature": "CapFloorType()",
-          "summary": "Whether a cap/floor strip prices call-side (``CAP``) or put-side (``FLOOR``) caplets/floorlets (DEFERRED roadmap, portfolio-native-pricers spec Req 20).",
-          "doc": "Whether a cap/floor strip prices call-side (``CAP``) or put-side (``FLOOR``)\ncaplets/floorlets (DEFERRED roadmap, portfolio-native-pricers spec Req 20).\n\nMirrors the existing ``Literal[\"cap\", \"floor\"]`` vocabulary of\n:class:`~quantvolt.pricing.vanilla.CapFloorRequest` / ``VanillaOptionRequest`` as a typed\nenum field on the instrument -- exactly as :class:`OptionType` does for\n:class:`VanillaOptionContract`'s ``Literal[\"call\", \"put\"]``.",
+          "summary": "Whether a cap/floor strip prices call-side (``CAP``) or put-side (``FLOOR``) caplets/floorlets.",
+          "doc": "Whether a cap/floor strip prices call-side (``CAP``) or put-side (``FLOOR``)\ncaplets/floorlets.\n\nMirrors the existing ``Literal[\"cap\", \"floor\"]`` vocabulary of\n``quantvolt.pricing.vanilla.CapFloorRequest`` / ``VanillaOptionRequest`` as a typed\nenum field on the instrument, exactly as ``OptionType`` does for\n``VanillaOptionContract``'s ``Literal[\"call\", \"put\"]``.",
           "methods": [],
           "fields": [],
           "members": [
@@ -5845,7 +5845,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 457
+          "line": 452
         },
         {
           "name": "ChangeInLawAllocation",
@@ -5880,7 +5880,7 @@ window.API_DATA = {
           "qualified": "quantvolt.models.commodity.CommodityConfig",
           "kind": "class",
           "signature": "CommodityConfig(commodity_id: str, price_unit: str, hub: Hub)",
-          "summary": "Immutable commodity definition containing the stable commodity ID, human-readable name and delivery hub..",
+          "summary": "Immutable commodity definition containing the stable commodity ID, human-readable name and delivery hub.",
           "doc": "Immutable commodity definition containing the stable commodity ID, human-readable name and delivery hub.",
           "methods": [],
           "fields": [
@@ -6050,8 +6050,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.ForwardContract",
           "kind": "class",
           "signature": "ForwardContract(commodity: CommodityConfig, delivery_period: DeliveryPeriod, contract_price: float, notional: float, granularity: Granularity = Granularity.MONTHLY, settlement_type: SettlementType = SettlementType.PHYSICAL, counterparty: str | None = None, side: OptionSide = OptionSide.LONG)",
-          "summary": "Bilateral forward — customisable, OTC, physical or financial settlement.",
-          "doc": "Bilateral forward — customisable, OTC, physical or financial settlement.\n\n``counterparty`` is retained for credit-risk tracking. Direction lives only in\n:attr:`side` (``short-side-instruments`` spec); :attr:`notional` is always strictly\npositive and ``side`` defaults to ``LONG`` (byte-identical to the pre-side behaviour).",
+          "summary": "Bilateral forward: customisable, OTC, physical or financial settlement.",
+          "doc": "Bilateral forward: customisable, OTC, physical or financial settlement.\n\n``counterparty`` is retained for credit-risk tracking. Direction lives only in\n``side``; ``notional`` is always strictly positive and ``side`` defaults to ``LONG``.",
           "methods": [],
           "fields": [
             {
@@ -6097,7 +6097,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 140
+          "line": 136
         },
         {
           "name": "ForwardCurve",
@@ -6151,8 +6151,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.FuturesContract",
           "kind": "class",
           "signature": "FuturesContract(commodity: CommodityConfig, delivery_period: DeliveryPeriod, contract_price: float, notional: float, granularity: Granularity = Granularity.MONTHLY, settlement_type: SettlementType = SettlementType.FINANCIAL, side: OptionSide = OptionSide.LONG)",
-          "summary": "Exchange-traded futures — standardised, margined, typically financial settlement.",
-          "doc": "Exchange-traded futures — standardised, margined, typically financial settlement.\n\nDirection lives only in :attr:`side` (``short-side-instruments`` spec); :attr:`notional`\nis always strictly positive. A ``SHORT`` future prices to the exact negation of the ``LONG``\nposition (``portfolio.valuation._price_forward_like`` sign-flips npv and delta), exactly as\n:class:`VanillaOptionContract` does. ``side`` defaults to ``LONG`` so every existing\nconstruction site is byte-identical.",
+          "summary": "Exchange-traded futures: standardised, margined, typically financial settlement.",
+          "doc": "Exchange-traded futures: standardised, margined, typically financial settlement.\n\nDirection lives only in ``side``; ``notional`` is always strictly positive. A\n``SHORT`` future prices to the exact negation of the ``LONG`` position\n(``portfolio.valuation._price_forward_like`` sign-flips npv and delta), exactly as\n``VanillaOptionContract`` does. ``side`` defaults to ``LONG``.",
           "methods": [],
           "fields": [
             {
@@ -6193,7 +6193,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 117
+          "line": 114
         },
         {
           "name": "Granularity",
@@ -6201,8 +6201,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.schedule.Granularity",
           "kind": "class",
           "signature": "Granularity()",
-          "summary": "Single source of delivery granularity, reused by instruments (Task 3).",
-          "doc": "Single source of delivery granularity, reused by instruments (Task 3).",
+          "summary": "Single source of delivery granularity, reused by instruments.",
+          "doc": "Single source of delivery granularity, reused by instruments.",
           "methods": [],
           "fields": [],
           "members": [
@@ -6287,7 +6287,7 @@ window.API_DATA = {
           "qualified": "quantvolt.models.commodity.Hub",
           "kind": "class",
           "signature": "Hub(hub_id: str, exchange: str, price_unit: str)",
-          "summary": "Immutable market hub definition with stable ID, display name and country or market area..",
+          "summary": "Immutable market hub definition with stable ID, display name and country or market area.",
           "doc": "Immutable market hub definition with stable ID, display name and country or market area.",
           "methods": [],
           "fields": [
@@ -6369,7 +6369,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 85
+          "line": 83
         },
         {
           "name": "Moneyness",
@@ -6405,7 +6405,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "NegativePriceClause(treatment: NegativePriceTreatment, threshold_per_mwh: float = 0.0, min_consecutive_intervals: int | None = None)",
           "summary": "How the fixed leg behaves when spot is strictly below a threshold.",
-          "doc": "How the fixed leg behaves when spot is strictly below a threshold.\n\nThe clause triggers for an interval **iff** the interval's spot price is\nstrictly less than ``threshold_per_mwh``; a spot exactly equal to the\nthreshold does NOT trigger (a declared design decision).\n\n``min_consecutive_intervals`` (default ``None``) is the optional EEG-style\nconsecutive-hour trigger length (Requirement 11): when set, the clause\nonly applies to a *maximal run* of intervals whose spot is strictly below\n``threshold_per_mwh`` that reaches or exceeds this length. **A consecutive-\nhour clause cannot be evaluated interval-locally** — determining run\nmembership needs neighbouring-row state that a single\n:func:`~quantvolt.pricing.ppa.settle_ppa_interval` call does not have. This\nis a **declared design decision**: when ``min_consecutive_intervals`` is\nset, the interval pass treats the clause as inert (``K_eff`` is resolved\nexactly as if no negative-price clause were attached at all) and the\ncross-row suspension is instead computed entirely by the post-processing\n:func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger` pass, as an explicit\n``consecutive_hour_true_up`` cash flow per reconciliation period\n(Requirement 11.2). A length of 1 would be indistinguishable from the\nordinary per-interval clause already covered by Requirement 3, so\n``min_consecutive_intervals``, when given, must be an integer ``>= 2``.",
+          "doc": "How the fixed leg behaves when spot is strictly below a threshold.\n\nThe clause triggers for an interval **iff** the interval's spot price is\nstrictly less than ``threshold_per_mwh``; a spot exactly equal to the\nthreshold does NOT trigger (a declared design decision).\n\n``min_consecutive_intervals`` (default ``None``) is the optional EEG-style\nconsecutive-hour trigger length: when set, the clause\nonly applies to a *maximal run* of intervals whose spot is strictly below\n``threshold_per_mwh`` that reaches or exceeds this length. **A consecutive-\nhour clause cannot be evaluated interval-locally** — determining run\nmembership needs neighbouring-row state that a single\n:func:`~quantvolt.pricing.ppa.settle_ppa_interval` call does not have. This\nis a **declared design decision**: when ``min_consecutive_intervals`` is\nset, the interval pass treats the clause as inert (``K_eff`` is resolved\nexactly as if no negative-price clause were attached at all) and the\ncross-row suspension is instead computed entirely by the post-processing\n:func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger` pass, as an explicit\n``consecutive_hour_true_up`` cash flow per reconciliation period.\nA length of 1 would be indistinguishable from the\nordinary per-interval clause already covered by the interval-local trigger, so\n``min_consecutive_intervals``, when given, must be an integer ``>= 2``.",
           "methods": [
             {
               "name": "triggers",
@@ -6464,7 +6464,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "OptionSide()",
           "summary": "Direction of a position, expressed only through ``side`` (never a signed notional): notional is always positive; ``LONG`` is a holder/buyer, ``SHORT`` a writer/seller.",
-          "doc": "Direction of a position, expressed only through ``side`` (never a signed notional):\nnotional is always positive; ``LONG`` is a holder/buyer, ``SHORT`` a writer/seller.\n\nFirst introduced for the option contracts, this enum now also governs the direction of\nthe forward-like instruments (:class:`FuturesContract`, :class:`ForwardContract`,\n:class:`SwapContract`) — see the ``short-side-instruments`` spec. It is deliberately\nnamed ``OptionSide`` (not a generic ``Side``) to keep the public facade export unchanged;\nthe members are the plain ``LONG``/``SHORT`` pair, correct for any two-sided position.",
+          "doc": "Direction of a position, expressed only through ``side`` (never a signed notional):\nnotional is always positive; ``LONG`` is a holder/buyer, ``SHORT`` a writer/seller.\n\nAlso governs the direction of the forward-like instruments (``FuturesContract``,\n``ForwardContract``, ``SwapContract``). It is deliberately named ``OptionSide`` (not a\ngeneric ``Side``) to keep the public facade export unchanged; the members are the\nplain ``LONG``/``SHORT`` pair, correct for any two-sided position.",
           "methods": [],
           "fields": [],
           "members": [
@@ -6478,7 +6478,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 101
+          "line": 99
         },
         {
           "name": "OptionType",
@@ -6486,8 +6486,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.OptionType",
           "kind": "class",
           "signature": "OptionType()",
-          "summary": "Whether a vanilla option is a call or a put (portfolio-native-pricers spec, Req 4).",
-          "doc": "Whether a vanilla option is a call or a put (portfolio-native-pricers spec, Req 4).",
+          "summary": "Whether a vanilla option is a call or a put.",
+          "doc": "Whether a vanilla option is a call or a put.",
           "methods": [],
           "fields": [],
           "members": [
@@ -6501,7 +6501,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 94
+          "line": 92
         },
         {
           "name": "PipelineRight",
@@ -6509,8 +6509,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.PipelineRight",
           "kind": "class",
           "signature": "PipelineRight(origin: str, destination: str, tariff: float, quantity: float, schedule: DeliverySchedule, direction: TransportDirection = TransportDirection.A_TO_B, loss: float = 0.0, capacity: float | None = None, reverse_tariff: float | None = None)",
-          "summary": "A right to move **gas** from origin hub A to destination hub B (Req 24).",
-          "doc": "A right to move **gas** from origin hub A to destination hub B (Req 24).\n\nEconomically identical to :class:`TransmissionRight` — same payoff\n``Q_delivered * max(P_B - P_A - T_AB, 0)`` and the same field set — differing\nonly in intent (gas pipeline capacity rather than power transmission). Kept a\ndistinct type so a book never silently conflates power transmission with gas\ntransport; both are priced by the one ``value_transport_right`` engine.\n\nSee :class:`TransmissionRight` for the field semantics.",
+          "summary": "A right to move gas from origin hub A to destination hub B.",
+          "doc": "A right to move gas from origin hub A to destination hub B.\n\nEconomically identical to ``TransmissionRight``: same payoff\n``Q_delivered * max(P_B - P_A - T_AB, 0)`` and the same field set, differing only\nin intent (gas pipeline capacity rather than power transmission). Kept a distinct\ntype so a book never silently conflates power transmission with gas transport;\nboth are priced by the one ``value_transport_right`` engine.\n\nSee ``TransmissionRight`` for the field semantics.",
           "methods": [],
           "fields": [
             {
@@ -6561,7 +6561,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 328
+          "line": 325
         },
         {
           "name": "PlantConfig",
@@ -6596,7 +6596,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 249
+          "line": 246
         },
         {
           "name": "PowerDeliveryInterval",
@@ -6760,8 +6760,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.ppa_terms.PpaAvailabilityGuarantee",
           "kind": "class",
           "signature": "PpaAvailabilityGuarantee(deemed_availability_fraction: float)",
-          "summary": "A one-directional deemed-vs-measured availability guarantee (Requirement 10).",
-          "doc": "A one-directional deemed-vs-measured availability guarantee (Requirement 10).\n\n``deemed_availability_fraction`` is the contractually guaranteed minimum\nfraction of contracted volume the asset must make available over a\nreconciliation period. This is a **declared design decision**: the\nguarantee is modelled as **shortfall-only** — it charges a true-up when\nmeasured availability falls below the deemed threshold, and pays nothing\nback when measured availability exceeds it. It is not a symmetric two-way\ntrue-up.",
+          "summary": "A one-directional deemed-vs-measured availability guarantee.",
+          "doc": "A one-directional deemed-vs-measured availability guarantee.\n\n``deemed_availability_fraction`` is the contractually guaranteed minimum\nfraction of contracted volume the asset must make available over a\nreconciliation period. This is a **declared design decision**: the\nguarantee is modelled as **shortfall-only** — it charges a true-up when\nmeasured availability falls below the deemed threshold, and pays nothing\nback when measured availability exceeds it. It is not a symmetric two-way\ntrue-up.",
           "methods": [
             {
               "name": "shortfall_fraction",
@@ -6852,8 +6852,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.ppa_terms.PpaContractMetadata",
           "kind": "class",
           "signature": "PpaContractMetadata(goo_transfer: bool = False, goo_price_per_mwh: float | None = None, credit_support_type: PpaCreditSupportType = PpaCreditSupportType.NONE, credit_support_amount: float | None = None, credit_support_threshold: float | None = None, change_in_law_allocation: ChangeInLawAllocation | None = None)",
-          "summary": "Carried contract metadata with **ZERO settlement semantics** (Requirement 12).",
-          "doc": "Carried contract metadata with **ZERO settlement semantics** (Requirement 12).\n\nGuarantee-of-Origin, credit-support, and change-in-law fields are carried\nand validated but never enter ``K_eff`` resolution, any ledger component,\n``component_sum``, or ``net_cashflow`` — this is verified by the\nmetadata-only branch of Property 85 (Requirement 12.2), which holds for\n*any* metadata content, not only the all-default instance.",
+          "summary": "Carried contract metadata with **ZERO settlement semantics**.",
+          "doc": "Carried contract metadata with **ZERO settlement semantics**.\n\nGuarantee-of-Origin, credit-support, and change-in-law fields are carried\nand validated but never enter ``K_eff`` resolution, any ledger component,\n``component_sum``, or ``net_cashflow`` — this is verified by\nproperty-based tests covering arbitrary metadata content, not only the\nall-default instance.",
           "methods": [],
           "fields": [
             {
@@ -6996,8 +6996,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.ppa_terms.PpaReconciliationTerms",
           "kind": "class",
           "signature": "PpaReconciliationTerms(period: PpaReconciliationPeriod, true_up_price_per_mwh: float, volume_band: PpaToleranceBand | None = None, availability: PpaAvailabilityGuarantee | None = None)",
-          "summary": "Period reconciliation and true-up terms (Requirements 9-11).",
-          "doc": "Period reconciliation and true-up terms (Requirements 9-11).\n\n``period`` (Requirement 9.1) sets the aggregation cadence used by\n:func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger`, a **pure post-\nprocessing pass over an already-settled interval ledger that makes no\nchange to the interval pass** (Requirement 9.2). ``volume_band``, when\npresent, reuses :class:`PpaToleranceBand` **applied to the period's\naggregate** contracted/metered MWh (summed across the period's rows)\nrather than to a single interval — this is economically distinct from any\ninterval-level ``PpaVolumeTerms.tolerance`` (Requirement 4), which the two\nmay coexist with; its own ``penalty_per_mwh`` prices the aggregate true-up.\n``true_up_price_per_mwh`` (Requirement 9.1's \"explicit true-up price\nbasis\") is a **caller-supplied price, not derived from spot or any ledger\ncolumn** — consistent with this framework's I/O-boundary doctrine\n(:class:`IndexationStep` is likewise a precomputed restatement); it prices\nonly the availability true-up (Requirement 10) when ``availability`` is\nattached. This split (the volume band prices itself via\n``penalty_per_mwh``; the availability guarantee is priced by\n``true_up_price_per_mwh``) is a **declared design decision** resolving the\notherwise-ambiguous \"an aggregate volume band, and an explicit true-up\nprice basis\" wording of Requirement 9.1 into two independently\nconfigurable true-up mechanisms.",
+          "summary": "Period reconciliation and true-up terms.",
+          "doc": "Period reconciliation and true-up terms.\n\n``period`` sets the aggregation cadence used by\n:func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger`, a **pure post-\nprocessing pass over an already-settled interval ledger that makes no\nchange to the interval pass**. ``volume_band``, when\npresent, reuses :class:`PpaToleranceBand` **applied to the period's\naggregate** contracted/metered MWh (summed across the period's rows)\nrather than to a single interval — this is economically distinct from any\ninterval-level ``PpaVolumeTerms.tolerance``, which the two\nmay coexist with; its own ``penalty_per_mwh`` prices the aggregate true-up.\n``true_up_price_per_mwh`` (the explicit true-up price basis) is a\n**caller-supplied price, not derived from spot or any ledger column** —\nconsistent with this framework's I/O-boundary doctrine\n(:class:`IndexationStep` is likewise a precomputed restatement); it prices\nonly the availability true-up when ``availability`` is\nattached. This split (the volume band prices itself via\n``penalty_per_mwh``; the availability guarantee is priced by\n``true_up_price_per_mwh``) is a **declared design decision** resolving the\notherwise-ambiguous case of an aggregate volume band coexisting with an\nexplicit true-up price basis into two independently configurable true-up\nmechanisms.",
           "methods": [],
           "fields": [
             {
@@ -7055,7 +7055,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "PpaTerms(price: PpaPriceTerms | None = None, negative_price: NegativePriceClause | None = None, volume: PpaVolumeTerms | None = None, reconciliation: PpaReconciliationTerms | None = None, metadata: PpaContractMetadata | None = None)",
           "summary": "Optional bundle of composable PPA settlement terms.",
-          "doc": "Optional bundle of composable PPA settlement terms.\n\nEvery field defaults to ``None``. ``PpaTerms()`` (all fields ``None``)\nrepresents \"no additional terms\" and is semantically equivalent to\nattaching no terms at all (Property 85). ``reconciliation`` (Requirements\n9-11), when attached, drives :func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger`'s\nperiod-level true-ups (volume-band and availability) via its four fields\n(:class:`PpaReconciliationTerms`); ``metadata`` (:class:`PpaContractMetadata`)\nremains a settlement-inert bundle of non-computational, world-facing facts\n(Requirement 12) that no pricing or reconciliation path ever reads.",
+          "doc": "Optional bundle of composable PPA settlement terms.\n\nEvery field defaults to ``None``. ``PpaTerms()`` (all fields ``None``)\nrepresents \"no additional terms\" and is semantically equivalent to\nattaching no terms at all. ``reconciliation`` (Requirements\n9-11), when attached, drives :func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger`'s\nperiod-level true-ups (volume-band and availability) via its four fields\n(:class:`PpaReconciliationTerms`); ``metadata`` (:class:`PpaContractMetadata`)\nremains a settlement-inert bundle of non-computational, world-facing facts\nthat no pricing or reconciliation path ever reads.",
           "methods": [],
           "fields": [
             {
@@ -7188,13 +7188,13 @@ window.API_DATA = {
           "qualified": "quantvolt.models.units.PriceUnit",
           "kind": "class",
           "signature": "PriceUnit(currency: str, denominator: str)",
-          "summary": "A validated ``currency/denominator`` price unit (Req 1).",
-          "doc": "A validated ``currency/denominator`` price unit (Req 1).\n\n``currency`` is either three uppercase ASCII letters (ISO 4217, e.g. ``\"EUR\"``,\n``\"GBP\"``, ``\"USD\"``) or the literal ``\"GBp\"`` (pence sterling). ``denominator``\nis one of ``{\"MWh\", \"therm\", \"MMBtu\", \"tCO2\", \"bbl\", \"t\"}``. ``\"tCO2\"`` (emissions),\n``\"bbl\"`` (barrel, crude/refined products), and ``\"t\"`` (metric tonne, e.g. coal) are\n*energy-inconvertible*: they parse and round-trip like any other denominator, but\n:func:`convert_price` refuses to convert between them and an energy denominator (no\ncalorific-value assumption is made).",
+          "summary": "A validated ``currency/denominator`` price unit.",
+          "doc": "A validated ``currency/denominator`` price unit.\n\n``currency`` is either three uppercase ASCII letters (ISO 4217, e.g. ``\"EUR\"``,\n``\"GBP\"``, ``\"USD\"``) or the literal ``\"GBp\"`` (pence sterling). ``denominator``\nis one of ``{\"MWh\", \"therm\", \"MMBtu\", \"tCO2\", \"bbl\", \"t\"}``. ``\"tCO2\"`` (emissions),\n``\"bbl\"`` (barrel, crude/refined products), and ``\"t\"`` (metric tonne, e.g. coal) are\n*energy-inconvertible*: they parse and round-trip like any other denominator, but\n:func:`convert_price` refuses to convert between them and an energy denominator (no\ncalorific-value assumption is made).",
           "methods": [
             {
               "name": "parse",
               "signature": "parse(cls, text: str) -> PriceUnit",
-              "summary": "Parse ``\"CCY/denominator\"`` into a validated :class:`PriceUnit` (Req 2)."
+              "summary": "Parse ``\"CCY/denominator\"`` into a validated :class:`PriceUnit`."
             }
           ],
           "fields": [
@@ -7250,7 +7250,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 73
+          "line": 71
         },
         {
           "name": "SettlementType",
@@ -7273,7 +7273,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 51
+          "line": 50
         },
         {
           "name": "SpreadOptionContract",
@@ -7281,8 +7281,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.SpreadOptionContract",
           "kind": "class",
           "signature": "SpreadOptionContract(commodity_1: str, commodity_2: str, delivery_period: DeliveryPeriod, strike: float, notional: float, leg2_weight: float = 1.0, side: OptionSide = OptionSide.LONG, expiry: date | None = None)",
-          "summary": "A spread (or spark-spread) option between two forward-curve commodities (Req 5).",
-          "doc": "A spread (or spark-spread) option between two forward-curve commodities (Req 5).\n\nPriced natively by ``portfolio.valuation._price_spread_option``, which delegates to\n:func:`quantvolt.pricing.spread_option.price_spread_option` (``leg2_weight == 1.0``,\nMargrabe/Kirk selection by strike) or\n:func:`quantvolt.pricing.spread_option.price_spark_spread_option` (``leg2_weight !=\n1.0``, e.g. a heat rate), base design §2.9.\n\n``commodity_1`` / ``commodity_2`` are forward-curve keys (``MarketData.curve_for``),\nnot :class:`CommodityConfig` objects — the two legs may live on different curves\n(e.g. power vs. gas). ``strike == 0.0`` selects the exact Margrabe exchange-option\nbranch; any other non-negative strike selects Kirk's approximation. ``expiry``\ndefaults to ``delivery_period.last_day``, exactly as :class:`VanillaOptionContract`.",
+          "summary": "A spread (or spark-spread) option between two forward-curve commodities.",
+          "doc": "A spread (or spark-spread) option between two forward-curve commodities.\n\nPriced natively by ``portfolio.valuation._price_spread_option``, which delegates to\n``quantvolt.pricing.spread_option.price_spread_option`` (``leg2_weight == 1.0``,\nMargrabe/Kirk selection by strike) or\n``quantvolt.pricing.spread_option.price_spark_spread_option`` (``leg2_weight != 1.0``,\ne.g. a heat rate).\n\n``commodity_1`` / ``commodity_2`` are forward-curve keys (``MarketData.curve_for``),\nnot ``CommodityConfig`` objects; the two legs may live on different curves (e.g.\npower vs. gas). ``strike == 0.0`` selects the exact Margrabe exchange-option branch;\nany other non-negative strike selects Kirk's approximation. ``expiry`` defaults to\n``delivery_period.last_day``, exactly as ``VanillaOptionContract``.",
           "methods": [],
           "fields": [
             {
@@ -7328,7 +7328,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 217
+          "line": 214
         },
         {
           "name": "SwapContract",
@@ -7336,8 +7336,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.SwapContract",
           "kind": "class",
           "signature": "SwapContract(commodity: CommodityConfig, fixed_rate: float, floating_index: str, notional: float, schedule: DeliverySchedule, granularity: Granularity = Granularity.MONTHLY, side: OptionSide = OptionSide.LONG)",
-          "summary": "Fixed-for-floating swap — OTC, customisable, financial settlement.",
-          "doc": "Fixed-for-floating swap — OTC, customisable, financial settlement.\n\nDirection lives only in :attr:`side` (``short-side-instruments`` spec): ``LONG`` is the\npay-fixed / receive-floating leg (the pricer's native perspective), ``SHORT`` its exact\nnegation (receive-fixed / pay-floating). :attr:`notional` is always strictly positive and\n``side`` defaults to ``LONG`` (byte-identical to the pre-side behaviour).",
+          "summary": "Fixed-for-floating swap: OTC, customisable, financial settlement.",
+          "doc": "Fixed-for-floating swap: OTC, customisable, financial settlement.\n\nDirection lives only in ``side``: ``LONG`` is the pay-fixed / receive-floating leg\n(the pricer's native perspective), ``SHORT`` its exact negation (receive-fixed /\npay-floating). ``notional`` is always strictly positive and ``side`` defaults to\n``LONG``.",
           "methods": [],
           "fields": [
             {
@@ -7378,7 +7378,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 162
+          "line": 157
         },
         {
           "name": "TollingAgreement",
@@ -7386,8 +7386,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.TollingAgreement",
           "kind": "class",
           "signature": "TollingAgreement(plant: PlantConfig, power_commodity_id: str, fuel_commodity_id: str, eua_commodity_id: str, schedule: DeliverySchedule, capacity: float = 1.0, settlement_lag_days: int = 0)",
-          "summary": "A tolling (conversion) agreement, priced as a strip of clean spread options (portfolio-native-pricers spec, Req 14; base design section 2.10).",
-          "doc": "A tolling (conversion) agreement, priced as a strip of clean spread options\n(portfolio-native-pricers spec, Req 14; base design section 2.10).\n\nGrounding note (Task 0/16): no tolling *instrument* value object existed before this\nspec -- only the stateless kernel :func:`quantvolt.pricing.tolling.price_tolling_agreement`,\nwhich takes curves/vol-surface/correlation-matrix as loose positional arguments. This\ntype is therefore ADDED (not reused) so a tolling position can sit in a ``Portfolio``\nlike any other instrument.\n\nPriced natively by ``portfolio.valuation._price_tolling_agreement``, which assembles the\n3x3 ``[power, fuel, eua]`` correlation matrix from three pairwise\n``MarketData.correlations`` entries (via ``correlation_for``, failing loud if any of\n``(power, fuel)``, ``(power, eua)``, ``(fuel, eua)`` is missing) and delegates to\n:func:`~quantvolt.pricing.tolling.price_tolling_agreement`.\n\n``power_commodity_id`` / ``fuel_commodity_id`` / ``eua_commodity_id`` are forward-curve\nkeys (``MarketData.curve_for``). Following the kernel's documented \"ONE volatility\nsurface serves both legs\" simplification, the adapter uses\n``market_data.surface_for(power_commodity_id)`` for every period of the strip.\n\nFields:\n    plant: Heat rate, variable O&M cost, emissions intensity, fuel type.\n    power_commodity_id: Forward-curve key for the power leg.\n    fuel_commodity_id: Forward-curve key for the fuel (gas/coal) leg.\n    eua_commodity_id: Forward-curve key for the EUA (carbon) leg.\n    schedule: The delivery periods the strip covers (1-1200 periods, kernel-enforced).\n    capacity: Per-period notional in MWh, strictly positive (default 1.0 -- unit\n        capacity, the kernel's historical default).\n    settlement_lag_days: Calendar days added to each period's last day to get the\n        discount-factor settlement date (default 0, non-negative); does not affect\n        the option's time-to-expiry (the kernel's decision-horizon convention).",
+          "summary": "A tolling (conversion) agreement, priced as a strip of clean spread options.",
+          "doc": "A tolling (conversion) agreement, priced as a strip of clean spread options.\n\nLets a tolling position sit in a ``Portfolio`` like any other instrument, backed\nby the stateless kernel ``quantvolt.pricing.tolling.price_tolling_agreement``.\n\nPriced natively by ``portfolio.valuation._price_tolling_agreement``, which assembles the\n3x3 ``[power, fuel, eua]`` correlation matrix from three pairwise\n``MarketData.correlations`` entries (via ``correlation_for``, failing loud if any of\n``(power, fuel)``, ``(power, eua)``, ``(fuel, eua)`` is missing) and delegates to\n``quantvolt.pricing.tolling.price_tolling_agreement``.\n\n``power_commodity_id`` / ``fuel_commodity_id`` / ``eua_commodity_id`` are forward-curve\nkeys (``MarketData.curve_for``). Following the kernel's documented \"ONE volatility\nsurface serves both legs\" simplification, the adapter uses\n``market_data.surface_for(power_commodity_id)`` for every period of the strip.\n\nFields:\n    plant: Heat rate, variable O&M cost, emissions intensity, fuel type.\n    power_commodity_id: Forward-curve key for the power leg.\n    fuel_commodity_id: Forward-curve key for the fuel (gas/coal) leg.\n    eua_commodity_id: Forward-curve key for the EUA (carbon) leg.\n    schedule: The delivery periods the strip covers (1-1200 periods, kernel-enforced).\n    capacity: Per-period notional in MWh, strictly positive (default 1.0 -- unit\n        capacity, the kernel's historical default).\n    settlement_lag_days: Calendar days added to each period's last day to get the\n        discount-factor settlement date (default 0, non-negative); does not affect\n        the option's time-to-expiry (the kernel's decision-horizon convention).",
           "methods": [],
           "fields": [
             {
@@ -7428,7 +7428,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 357
+          "line": 354
         },
         {
           "name": "TransmissionRight",
@@ -7436,8 +7436,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.TransmissionRight",
           "kind": "class",
           "signature": "TransmissionRight(origin: str, destination: str, tariff: float, quantity: float, schedule: DeliverySchedule, direction: TransportDirection = TransportDirection.A_TO_B, loss: float = 0.0, capacity: float | None = None, reverse_tariff: float | None = None)",
-          "summary": "A right to move **power** from origin hub A to destination hub B (Req 24).",
-          "doc": "A right to move **power** from origin hub A to destination hub B (Req 24).\n\nThe per-period payoff to the holder is ``Q_delivered * max(P_B - P_A - T_AB, 0)``\n(§12): buy at the origin ``P_A``, pay the transport tariff ``T_AB``, sell at the\ndestination ``P_B`` — an option exercised only when the locational spread covers\nthe tariff. ``delivered = quantity * (1 - loss)``, further capped by ``capacity``.\n\nFields:\n    origin: commodity_id of hub A (the origin forward curve). Matched against\n        the origin curve's commodity when priced.\n    destination: commodity_id of hub B (the destination forward curve).\n    tariff: per-period transport cost T_AB (>= 0), in the price unit.\n    quantity: per-period available quantity Q (>= 0).\n    schedule: the delivery periods the right covers.\n    direction: A_TO_B (default), B_TO_A, or BIDIRECTIONAL.\n    loss: transmission loss fraction in [0, 1); delivered = Q * (1 - loss).\n    capacity: optional physical cap; effective quantity = min(Q, capacity).\n    reverse_tariff: T_BA (>= 0) for the B->A leg of a BIDIRECTIONAL right;\n        when omitted a bidirectional right reuses ``tariff`` symmetrically.",
+          "summary": "A right to move power from origin hub A to destination hub B.",
+          "doc": "A right to move power from origin hub A to destination hub B.\n\nThe per-period payoff to the holder is ``Q_delivered * max(P_B - P_A - T_AB, 0)``:\nbuy at the origin ``P_A``, pay the transport tariff ``T_AB``, sell at the\ndestination ``P_B``, an option exercised only when the locational spread covers\nthe tariff. ``delivered = quantity * (1 - loss)``, further capped by ``capacity``.\n\nFields:\n    origin: commodity_id of hub A (the origin forward curve). Matched against\n        the origin curve's commodity when priced.\n    destination: commodity_id of hub B (the destination forward curve).\n    tariff: per-period transport cost T_AB (>= 0), in the price unit.\n    quantity: per-period available quantity Q (>= 0).\n    schedule: the delivery periods the right covers.\n    direction: A_TO_B (default), B_TO_A, or BIDIRECTIONAL.\n    loss: transmission loss fraction in [0, 1); delivered = Q * (1 - loss).\n    capacity: optional physical cap; effective quantity = min(Q, capacity).\n    reverse_tariff: T_BA (>= 0) for the B->A leg of a BIDIRECTIONAL right;\n        when omitted a bidirectional right reuses ``tariff`` symmetrically.",
           "methods": [],
           "fields": [
             {
@@ -7488,7 +7488,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 289
+          "line": 286
         },
         {
           "name": "TransportDirection",
@@ -7497,7 +7497,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "TransportDirection()",
           "summary": "Permitted flow direction of a transmission (power) or pipeline (gas) right.",
-          "doc": "Permitted flow direction of a transmission (power) or pipeline (gas) right.\n\n``A_TO_B`` / ``B_TO_A`` are one-way rights (origin A -> destination B, or the\nreverse). ``BIDIRECTIONAL`` is a single capacity unit usable in *either*\ndirection per period — the holder commits it to the economically best flow, so\na bidirectional right is worth no more than owning both one-way rights (Property\n68 subadditivity).",
+          "doc": "Permitted flow direction of a transmission (power) or pipeline (gas) right.\n\n``A_TO_B`` / ``B_TO_A`` are one-way rights (origin A -> destination B, or the\nreverse). ``BIDIRECTIONAL`` is a single capacity unit usable in either direction\nper period; the holder commits it to the economically best flow, so a\nbidirectional right is worth no more than owning both one-way rights.",
           "methods": [],
           "fields": [],
           "members": [
@@ -7515,7 +7515,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 58
+          "line": 57
         },
         {
           "name": "ValuationSource",
@@ -7523,8 +7523,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.ValuationSource",
           "kind": "class",
           "signature": "ValuationSource()",
-          "summary": "Provenance tag for a valuation regime -- the single shared vocabulary a caller propagates onto a :class:`~quantvolt.portfolio.model.Position`'s ``tags`` so that downstream risk/portfolio code can tell how a number was produced.",
-          "doc": "Provenance tag for a valuation regime -- the single shared vocabulary a caller\npropagates onto a :class:`~quantvolt.portfolio.model.Position`'s ``tags`` so that\ndownstream risk/portfolio code can tell how a number was produced.\n\nDefined here (not in ``assets/long_dated.py``, which produces two of its three\nvalues) because this leaf-ish module is importable from both ``assets/long_dated.py``\n(via ``portfolio/model.py``) and from :class:`CachedAssetValuation` below without\ncreating an import cycle -- see this module's own dependency-direction note in the\n``portfolio-native-pricers`` design.\n\n- ``FORWARD`` / ``PROJECTED``: the long-dated valuation-governance regimes produced by\n  :func:`quantvolt.assets.long_dated.valuation_benchmark` (base design Req 23.1-23.2).\n- ``SIMULATED``: a precomputed LSMC/dispatch valuation cache, produced by\n  :class:`CachedAssetValuation` (portfolio-native-pricers spec, Req 19 roadmap) -- neither\n  a liquid forward quote nor a simple projected-spot-plus-premium figure, so it is tagged\n  as its own third regime rather than folded into ``PROJECTED``.",
+          "summary": "Provenance tag for a valuation regime: the shared vocabulary a caller propagates onto a ``Position``'s ``tags`` so that downstream risk/portfolio code can tell how a number was produced.",
+          "doc": "Provenance tag for a valuation regime: the shared vocabulary a caller propagates\nonto a ``Position``'s ``tags`` so that downstream risk/portfolio code can tell how a\nnumber was produced.\n\nDefined here (not in ``assets/long_dated.py``, which produces two of its three\nvalues) because this leaf-ish module is importable from both ``assets/long_dated.py``\n(via ``portfolio/model.py``) and from ``CachedAssetValuation`` below without creating\nan import cycle.\n\n- ``FORWARD`` / ``PROJECTED``: the long-dated valuation-governance regimes produced by\n  ``quantvolt.assets.long_dated.valuation_benchmark``.\n- ``SIMULATED``: a precomputed LSMC/dispatch valuation cache, produced by\n  ``CachedAssetValuation``; neither a liquid forward quote nor a simple\n  projected-spot-plus-premium figure, so it is tagged as its own third regime rather\n  than folded into ``PROJECTED``.",
           "methods": [],
           "fields": [],
           "members": [
@@ -7550,8 +7550,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.VanillaOptionContract",
           "kind": "class",
           "signature": "VanillaOptionContract(commodity: CommodityConfig, delivery_period: DeliveryPeriod, option_type: OptionType, strike: float, notional: float, side: OptionSide = OptionSide.LONG, expiry: date | None = None)",
-          "summary": "A European vanilla option on one commodity's forward (Req 4).",
-          "doc": "A European vanilla option on one commodity's forward (Req 4).\n\nPriced natively by ``portfolio.valuation._price_vanilla_option``, which delegates to\n:func:`quantvolt.pricing.vanilla.price_vanilla_option` (Black-76, base design §2.7).\nDirection lives only in :attr:`side`; :attr:`notional` is always strictly positive.\n\n``expiry`` defaults to ``None``, in which case the pricer treats expiry as\n``delivery_period.last_day`` — the same decision-horizon convention\n:mod:`quantvolt.pricing.tolling` uses (the option is exercised over the whole\ndelivery period, not before it).\n\nBlack-76 requires a strictly positive forward. A delivery period whose observed\nforward is ``<= 0`` (a real occurrence for European power) makes this contract\nunpriceable under Black-76: the pricer propagates the kernel's ``ValidationError``\nrather than clamping or flooring the forward (Req 12; no Bachelier/normal-model\nkernel exists in this library — deferred roadmap).",
+          "summary": "A European vanilla option on one commodity's forward.",
+          "doc": "A European vanilla option on one commodity's forward.\n\nPriced natively by ``portfolio.valuation._price_vanilla_option``, which delegates to\n``quantvolt.pricing.vanilla.price_vanilla_option`` (Black-76). Direction lives only\nin ``side``; ``notional`` is always strictly positive.\n\n``expiry`` defaults to ``None``, in which case the pricer treats expiry as\n``delivery_period.last_day``, the same decision-horizon convention\n``quantvolt.pricing.tolling`` uses (the option is exercised over the whole delivery\nperiod, not before it).\n\nBlack-76 requires a strictly positive forward and strike. A delivery period whose\nobserved forward is ``<= 0`` (a real occurrence for European power) makes this\ncontract unpriceable under Black-76: the pricer propagates the kernel's\n``ValidationError`` rather than clamping or flooring the forward. For a forward that\nmay be zero or negative, price the equivalent request with the separate Bachelier\n(normal-model) pricer, ``quantvolt.pricing.bachelier.price_bachelier_option``;\nthis library never switches models automatically.",
           "methods": [],
           "fields": [
             {
@@ -7592,7 +7592,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/models/instruments.py",
-          "line": 184
+          "line": 179
         },
         {
           "name": "VolatilitySurface",
@@ -7656,8 +7656,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.units.convert_price",
           "kind": "function",
           "signature": "convert_price(value: float, from_unit: PriceUnit | str, to_unit: PriceUnit | str) -> float",
-          "summary": "Convert a *per-unit price* from ``from_unit`` to ``to_unit`` (Req 5).",
-          "doc": "Convert a *per-unit price* from ``from_unit`` to ``to_unit`` (Req 5).\n\nSame-currency energy-denominator conversion multiplies by the reciprocal of the\nquantity factor: a price per therm converted to per MWh is *divided* by\n``MWH_PER_THERM`` (there are ~34 therms in an MWh, so the per-MWh price is ~34x\nlarger). Two currencies that resolve to the same major currency (see\n``_MINOR_UNITS``, e.g. ``GBp``/``GBP``) additionally scale by the ratio of their\nminor-unit scales. Cross-*major*-currency conversion raises :class:`ValidationError`.\nAny *energy-inconvertible* denominator (``\"tCO2\"``, ``\"bbl\"``, ``\"t\"``) paired with a\ndifferent denominator also raises :class:`ValidationError`: these are definitional\ntrade units with no fixed energy-content constant, so converting them to/from an\nenergy denominator (or to a different inconvertible denominator) would require a\ncalorific/heat-content assumption this function does not make.\n\nUnits may be given as ``PriceUnit`` objects or as their string renderings\n(parsed via :meth:`PriceUnit.parse`, so a malformed string raises the same\n:class:`ValidationError` it would anywhere else).\n\nWorked example (Req 5.7): ``convert_price(85.0, \"GBp/therm\", \"GBp/MWh\")\n== 85.0 / MWH_PER_THERM ~= 2900.32`` GBp/MWh.",
+          "summary": "Convert a *per-unit price* from ``from_unit`` to ``to_unit``.",
+          "doc": "Convert a *per-unit price* from ``from_unit`` to ``to_unit``.\n\nSame-currency energy-denominator conversion multiplies by the reciprocal of the\nquantity factor: a price per therm converted to per MWh is *divided* by\n``MWH_PER_THERM`` (there are ~34 therms in an MWh, so the per-MWh price is ~34x\nlarger). Two currencies that resolve to the same major currency (see\n``_MINOR_UNITS``, e.g. ``GBp``/``GBP``) additionally scale by the ratio of their\nminor-unit scales. Cross-*major*-currency conversion raises :class:`ValidationError`.\nAny *energy-inconvertible* denominator (``\"tCO2\"``, ``\"bbl\"``, ``\"t\"``) paired with a\ndifferent denominator also raises :class:`ValidationError`: these are definitional\ntrade units with no fixed energy-content constant, so converting them to/from an\nenergy denominator (or to a different inconvertible denominator) would require a\ncalorific/heat-content assumption this function does not make.\n\nUnits may be given as ``PriceUnit`` objects or as their string renderings\n(parsed via :meth:`PriceUnit.parse`, so a malformed string raises the same\n:class:`ValidationError` it would anywhere else).\n\nWorked example: ``convert_price(85.0, \"GBp/therm\", \"GBp/MWh\")\n== 85.0 / MWH_PER_THERM ~= 2900.32`` GBp/MWh.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -7671,7 +7671,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "merge_commodities(extra_commodities: dict[str, CommodityConfig] | None=None) -> dict[str, CommodityConfig]",
           "summary": "Return a new registry: ``extra_commodities`` merged OVER the built-ins.",
-          "doc": "Return a new registry: ``extra_commodities`` merged OVER the built-ins.\n\nCaller-supplied entries win on id collision (Adapter seam, Req 1.6). Neither\n:data:`BUILT_IN_COMMODITIES` nor ``extra_commodities`` is mutated — the result\nis a fresh dict. ``CurveBuilder`` reuses this to assemble its registry.",
+          "doc": "Return a new registry: ``extra_commodities`` merged OVER the built-ins.\n\nCaller-supplied entries win on id collision. Neither\n:data:`BUILT_IN_COMMODITIES` nor ``extra_commodities`` is mutated — the result\nis a fresh dict. ``CurveBuilder`` reuses this to assemble its registry.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -7684,8 +7684,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.units.mmbtu_to_mwh",
           "kind": "function",
           "signature": "mmbtu_to_mwh(value: float) -> float",
-          "summary": "Convert an energy quantity from MMBtu to MWh (Req 4).",
-          "doc": "Convert an energy quantity from MMBtu to MWh (Req 4).",
+          "summary": "Convert an energy quantity from MMBtu to MWh.",
+          "doc": "Convert an energy quantity from MMBtu to MWh.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -7698,8 +7698,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.units.mwh_to_mmbtu",
           "kind": "function",
           "signature": "mwh_to_mmbtu(value: float) -> float",
-          "summary": "Convert an energy quantity from MWh to MMBtu (Req 4).",
-          "doc": "Convert an energy quantity from MWh to MMBtu (Req 4).",
+          "summary": "Convert an energy quantity from MWh to MMBtu.",
+          "doc": "Convert an energy quantity from MWh to MMBtu.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -7712,8 +7712,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.units.mwh_to_therms",
           "kind": "function",
           "signature": "mwh_to_therms(value: float) -> float",
-          "summary": "Convert an energy quantity from MWh to therm (Req 4).",
-          "doc": "Convert an energy quantity from MWh to therm (Req 4).",
+          "summary": "Convert an energy quantity from MWh to therm.",
+          "doc": "Convert an energy quantity from MWh to therm.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -7740,8 +7740,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.units.therms_to_mwh",
           "kind": "function",
           "signature": "therms_to_mwh(value: float) -> float",
-          "summary": "Convert an energy quantity from therm to MWh (Req 4).",
-          "doc": "Convert an energy quantity from therm to MWh (Req 4).",
+          "summary": "Convert an energy quantity from therm to MWh.",
+          "doc": "Convert an energy quantity from therm to MWh.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -7754,7 +7754,7 @@ window.API_DATA = {
           "qualified": "quantvolt.models.commodity.BUILT_IN_COMMODITIES",
           "kind": "constant",
           "signature": "BUILT_IN_COMMODITIES",
-          "summary": "Read-only-by-convention registry of the package's built-in European power, gas and carbon commodity definitions, keyed by stable commodity ID..",
+          "summary": "Read-only-by-convention registry of the package's built-in European power, gas and carbon commodity definitions, keyed by stable commodity ID.",
           "doc": "Read-only-by-convention registry of the package's built-in European power, gas and carbon commodity definitions, keyed by stable commodity ID.",
           "methods": [],
           "fields": [],
@@ -7768,7 +7768,7 @@ window.API_DATA = {
           "qualified": "quantvolt.models.units.KWH_PER_THERM",
           "kind": "constant",
           "signature": "KWH_PER_THERM",
-          "summary": "Statutory therm in kWh (29.3071), from the ICE UK NBP futures spec..",
+          "summary": "Statutory therm in kWh (29.3071), from the ICE UK NBP futures spec.",
           "doc": "Statutory therm in kWh (29.3071), from the ICE UK NBP futures spec.",
           "methods": [],
           "fields": [],
@@ -7782,7 +7782,7 @@ window.API_DATA = {
           "qualified": "quantvolt.models.units.MWH_PER_MMBTU",
           "kind": "constant",
           "signature": "MWH_PER_MMBTU",
-          "summary": "MWh per MMBtu, derived from THERMS_PER_MMBTU * MWH_PER_THERM (0.293071)..",
+          "summary": "MWh per MMBtu, derived from THERMS_PER_MMBTU * MWH_PER_THERM (0.293071).",
           "doc": "MWh per MMBtu, derived from THERMS_PER_MMBTU * MWH_PER_THERM (0.293071).",
           "methods": [],
           "fields": [],
@@ -7796,7 +7796,7 @@ window.API_DATA = {
           "qualified": "quantvolt.models.units.MWH_PER_THERM",
           "kind": "constant",
           "signature": "MWH_PER_THERM",
-          "summary": "Statutory therm in MWh; the base therm<->MWh conversion factor..",
+          "summary": "Statutory therm in MWh; the base therm<->MWh conversion factor.",
           "doc": "Statutory therm in MWh; the base therm<->MWh conversion factor.",
           "methods": [],
           "fields": [],
@@ -7810,7 +7810,7 @@ window.API_DATA = {
           "qualified": "quantvolt.models.units.PENCE_PER_POUND",
           "kind": "constant",
           "signature": "PENCE_PER_POUND",
-          "summary": "Pence sterling per pound (100.0); the GBp/GBP factor for convert_price..",
+          "summary": "Pence sterling per pound (100.0); the GBp/GBP factor for convert_price.",
           "doc": "Pence sterling per pound (100.0); the GBp/GBP factor for convert_price.",
           "methods": [],
           "fields": [],
@@ -7824,7 +7824,7 @@ window.API_DATA = {
           "qualified": "quantvolt.models.units.THERMS_PER_MMBTU",
           "kind": "constant",
           "signature": "THERMS_PER_MMBTU",
-          "summary": "Definitional therms per MMBtu (10.0): 1 MMBtu = 1e6 Btu = 10 therms..",
+          "summary": "Definitional therms per MMBtu (10.0): 1 MMBtu = 1e6 Btu = 10 therms.",
           "doc": "Definitional therms per MMBtu (10.0): 1 MMBtu = 1e6 Btu = 10 therms.",
           "methods": [],
           "fields": [],
@@ -7846,7 +7846,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "CorrelatedSimulationRequest(z0: npt.ArrayLike, drift_steps: npt.ArrayLike, covariance_steps: npt.ArrayLike, path_count: int, seed: int, active_steps: npt.ArrayLike | None = None, antithetic: bool = True, repair: bool = False, symmetry_tol: float = field(default=_SYMMETRY_TOL, kw_only=True), psd_tol: float = field(default=_PSD_EIG_TOL, kw_only=True))",
           "summary": "Inputs for a time-varying correlated state simulation.",
-          "doc": "Inputs for a time-varying correlated state simulation.\n\nRows of ``drift_steps`` and ``covariance_steps`` are Appendix A's ``mu_t`` and\n``C_t``. ``active_steps[t, d]`` represents the advancing live-tenor set: an inactive\ncoordinate is held fixed during that step. If omitted, positive step variance defines\nactivity. Arrays are copied at the public boundary before entering the native kernel.\n\n``symmetry_tol`` and ``psd_tol`` gate the per-step covariance validation (Property 61\n/ Req 20.3); defaults match the module's standard tolerances.\n\n``eq=False`` disables the auto-generated field-tuple ``__eq__`` (Fix 9): dataclass\nequality by default compares fields with plain ``==``, and NumPy arrays make that\nambiguous (``ValueError: The truth value of an array ... is ambiguous``) — which broke\nboth ``req == deepcopy(req)`` and the shipped\n:func:`~quantvolt.testing.assert_input_unchanged` on this request type, since that\nutility's mutation check falls back to plain ``==`` for a non-array, non-Polars input.\n:meth:`__eq__` below compares array fields via :func:`numpy.array_equal` and every\nother field via plain ``==``. With ``eq=False`` dataclass leaves ``__hash__``\nuntouched (falling back to ``object``'s identity-based hash); this request is a bag of\nmutable-looking array-like fields with no principled value-hash, so identity hashing\nis an acceptable, documented consequence, not a further defect.",
+          "doc": "Inputs for a time-varying correlated state simulation.\n\nRows of ``drift_steps`` and ``covariance_steps`` are Appendix A's ``mu_t`` and\n``C_t``. ``active_steps[t, d]`` represents the advancing live-tenor set: an inactive\ncoordinate is held fixed during that step. If omitted, positive step variance defines\nactivity. Arrays are copied at the public boundary before entering the native kernel.\n\n``symmetry_tol`` and ``psd_tol`` gate the per-step covariance validation; defaults\nmatch the module's standard tolerances.\n\n``eq=False`` disables the auto-generated field-tuple ``__eq__`` (Fix 9): dataclass\nequality by default compares fields with plain ``==``, and NumPy arrays make that\nambiguous (``ValueError: The truth value of an array ... is ambiguous``) — which broke\nboth ``req == deepcopy(req)`` and the shipped\n:func:`~quantvolt.testing.assert_input_unchanged` on this request type, since that\nutility's mutation check falls back to plain ``==`` for a non-array, non-Polars input.\n:meth:`__eq__` below compares array fields via :func:`numpy.array_equal` and every\nother field via plain ``==``. With ``eq=False`` dataclass leaves ``__hash__``\nuntouched (falling back to ``object``'s identity-based hash); this request is a bag of\nmutable-looking array-like fields with no principled value-hash, so identity hashing\nis an acceptable, documented consequence, not a further defect.",
           "methods": [],
           "fields": [
             {
@@ -7933,7 +7933,7 @@ window.API_DATA = {
           "qualified": "quantvolt.numerics.interpolation.InterpolationMethod",
           "kind": "class",
           "signature": "InterpolationMethod()",
-          "summary": "Type alias restricting interpolation selection to the supported piecewise-flat, piecewise-linear and cubic-spline method names..",
+          "summary": "Type alias restricting interpolation selection to the supported piecewise-flat, piecewise-linear and cubic-spline method names.",
           "doc": "Type alias restricting interpolation selection to the supported piecewise-flat, piecewise-linear and cubic-spline method names.",
           "methods": [],
           "fields": [],
@@ -8083,7 +8083,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "black76_implied_vol(option_type: Literal['call', 'put'], market_premium: float, forward: float, strike: float, time_to_expiry: float, discount_factor: float, tol: float=0.0001, *, vol_lower: float=1e-09, vol_upper: float=10.0, max_iter: int=100) -> float",
           "summary": "Recover the Black-76 volatility that reprices ``market_premium``.",
-          "doc": "Recover the Black-76 volatility that reprices ``market_premium``.\n\nThe premium is monotonically increasing in ``sigma``, bounded below by the\ndiscounted intrinsic value (as ``sigma -> 0``) and above by the discounted\nforward/strike (as ``sigma -> inf``). The market premium must therefore lie\nstrictly inside those no-arbitrage bounds, checked *before* inversion\n(Req 5.3):\n\n- call: ``DF*max(F-K, 0) < premium < DF*F``\n- put:  ``DF*max(K-F, 0) < premium < DF*K``\n\nA premium outside its bounds cannot be reproduced by any volatility, so this\nis a numeric precondition on the caller-supplied premium and raises\n:class:`~quantvolt.exceptions.NumericalError` (a ``ValueError`` subclass, for\ncompatibility with callers using the low-level kernel API directly).\nInversion then uses Brent's method over ``[vol_lower, vol_upper]`` (default\n``[1e-9, 10.0]``) — a bracketing solver, so it cannot diverge near zero vega\nthe way Newton-Raphson would (design §2.7).\n\nArgs:\n    option_type: ``\"call\"`` or ``\"put\"``.\n    market_premium: Observed (discounted) option premium to invert.\n    forward: Forward price of the underlying (``F``), positive.\n    strike: Option strike (``K``), positive.\n    time_to_expiry: Time to expiry in years (``T``).\n    discount_factor: Discount factor to settlement (``DF``), in ``(0, 1]``.\n    tol: Absolute x-tolerance on the recovered volatility.\n    vol_lower: Lower Brent bracket endpoint for the recovered volatility,\n        must be strictly positive.\n    vol_upper: Upper Brent bracket endpoint, must be strictly greater than\n        ``vol_lower``.\n    max_iter: Maximum number of Brent iterations.\n\nReturns:\n    The implied volatility ``sigma`` located in ``[vol_lower, vol_upper]``.\n\nRaises:\n    NumericalError: If ``market_premium`` lies outside the no-arbitrage bounds,\n        or if ``vol_lower``/``vol_upper`` do not form a valid bracket.",
+          "doc": "Recover the Black-76 volatility that reprices ``market_premium``.\n\nThe premium is monotonically increasing in ``sigma``, bounded below by the\ndiscounted intrinsic value (as ``sigma -> 0``) and above by the discounted\nforward/strike (as ``sigma -> inf``). The market premium must therefore lie\nstrictly inside those no-arbitrage bounds, checked *before* inversion:\n\n- call: ``DF*max(F-K, 0) < premium < DF*F``\n- put:  ``DF*max(K-F, 0) < premium < DF*K``\n\nA premium outside its bounds cannot be reproduced by any volatility, so this\nis a numeric precondition on the caller-supplied premium and raises\n:class:`~quantvolt.exceptions.NumericalError` (a ``ValueError`` subclass, for\ncompatibility with callers using the low-level kernel API directly).\nInversion then uses Brent's method over ``[vol_lower, vol_upper]`` (default\n``[1e-9, 10.0]``) — a bracketing solver, so it cannot diverge near zero vega\nthe way Newton-Raphson would (design §2.7).\n\nArgs:\n    option_type: ``\"call\"`` or ``\"put\"``.\n    market_premium: Observed (discounted) option premium to invert.\n    forward: Forward price of the underlying (``F``), positive.\n    strike: Option strike (``K``), positive.\n    time_to_expiry: Time to expiry in years (``T``).\n    discount_factor: Discount factor to settlement (``DF``), in ``(0, 1]``.\n    tol: Absolute x-tolerance on the recovered volatility.\n    vol_lower: Lower Brent bracket endpoint for the recovered volatility,\n        must be strictly positive.\n    vol_upper: Upper Brent bracket endpoint, must be strictly greater than\n        ``vol_lower``.\n    max_iter: Maximum number of Brent iterations.\n\nReturns:\n    The implied volatility ``sigma`` located in ``[vol_lower, vol_upper]``.\n\nRaises:\n    NumericalError: If ``market_premium`` lies outside the no-arbitrage bounds,\n        or if ``vol_lower``/``vol_upper`` do not form a valid bracket.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -8125,7 +8125,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "build_covariance(sigma: npt.ArrayLike, corr: npt.ArrayLike, dt: float, *, symmetry_tol: float=_SYMMETRY_TOL, unit_diagonal_tol: float=_UNIT_DIAGONAL_TOL) -> npt.NDArray[np.float64]",
           "summary": "Assemble the one-step covariance ``C = diag(sigma)·R·diag(sigma)·Δt`` (Appendix A, eq A.8).",
-          "doc": "Assemble the one-step covariance ``C = diag(sigma)·R·diag(sigma)·Δt`` (Appendix A, eq A.8).\n\n``sigma`` is the flat per-index instantaneous volatility vector over the flattened\ncommodity/tenor state, ``corr`` the ``(D, D)`` cross-commodity/cross-tenor\ncorrelation matrix ``R`` (eq A.7), and ``dt`` the step length ``Δt``. Entry\n``C[a, b] = sigma_a · R[a, b] · sigma_b · Δt``.\n\nA per-index ``sigma = 0`` marks an **expired tenor** (eq A.5): it zeroes that row and\ncolumn of ``C``, and the simulator then holds that state fixed. Validation is eager\n(Req 11.5): ``dt > 0``; ``sigma`` finite and non-negative; ``corr`` square, finite,\nsymmetric (within ``symmetry_tol``), unit-diagonal (within ``unit_diagonal_tol``),\nentries in ``[-1, 1]``. The assembled matrix is *not* PSD-checked here — that gate\nlives in :func:`simulate_correlated_forwards`, which consumes it.\n\nArgs:\n    sigma: Flat per-index volatility vector.\n    corr: ``(D, D)`` correlation matrix ``R``.\n    dt: Step length ``Δt``, positive.\n    symmetry_tol: Maximum tolerated ``max(|R - Rᵀ|)`` asymmetry.\n    unit_diagonal_tol: Maximum tolerated deviation of ``diag(R)`` from 1.",
+          "doc": "Assemble the one-step covariance ``C = diag(sigma)·R·diag(sigma)·Δt`` (Appendix A, eq A.8).\n\n``sigma`` is the flat per-index instantaneous volatility vector over the flattened\ncommodity/tenor state, ``corr`` the ``(D, D)`` cross-commodity/cross-tenor\ncorrelation matrix ``R`` (eq A.7), and ``dt`` the step length ``Δt``. Entry\n``C[a, b] = sigma_a · R[a, b] · sigma_b · Δt``.\n\nA per-index ``sigma = 0`` marks an **expired tenor** (eq A.5): it zeroes that row and\ncolumn of ``C``, and the simulator then holds that state fixed. Validation is eager:\n``dt > 0``; ``sigma`` finite and non-negative; ``corr`` square, finite,\nsymmetric (within ``symmetry_tol``), unit-diagonal (within ``unit_diagonal_tol``),\nentries in ``[-1, 1]``. The assembled matrix is *not* PSD-checked here — that gate\nlives in :func:`simulate_correlated_forwards`, which consumes it.\n\nArgs:\n    sigma: Flat per-index volatility vector.\n    corr: ``(D, D)`` correlation matrix ``R``.\n    dt: Step length ``Δt``, positive.\n    symmetry_tol: Maximum tolerated ``max(|R - Rᵀ|)`` asymmetry.\n    unit_diagonal_tol: Maximum tolerated deviation of ``diag(R)`` from 1.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -8139,7 +8139,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "cubic_spline(knot_times: NDArray[np.float64], knot_prices: NDArray[np.float64], query_times: NDArray[np.float64], *, bc_type: str='natural') -> NDArray[np.float64]",
           "summary": "Cubic spline through the knots via :class:`scipy.interpolate.CubicSpline`.",
-          "doc": "Cubic spline through the knots via :class:`scipy.interpolate.CubicSpline`.\n\n``bc_type`` selects the boundary condition (default ``\"natural\"``, which sets\nthe second derivative to zero at both ends). The spline passes through every\nknot exactly regardless of ``bc_type``.\n\nArgs:\n    knot_times: Strictly increasing knot times.\n    knot_prices: Knot prices, same length as ``knot_times``.\n    query_times: Times at which to evaluate the spline.\n    bc_type: One of ``\"not-a-knot\"``, ``\"periodic\"``, ``\"clamped\"``,\n        ``\"natural\"`` — the boundary condition passed to\n        :class:`scipy.interpolate.CubicSpline`.\n\nRaises:\n    NumericalError: If ``bc_type`` is not one of the supported string values,\n        or if :class:`scipy.interpolate.CubicSpline` itself rejects the knots\n        (e.g. non-increasing ``knot_times``, mismatched lengths, too few knots,\n        or mismatched periodic endpoints) — mirroring\n        :func:`~quantvolt.numerics.rootfind.brent_root`'s wrapping of scipy\n        errors, so no raw ``ValueError`` escapes this package's exception\n        hierarchy (``coding-style.md`` §7).",
+          "doc": "Cubic spline through the knots via :class:`scipy.interpolate.CubicSpline`.\n\n``bc_type`` selects the boundary condition (default ``\"natural\"``, which sets\nthe second derivative to zero at both ends). The spline passes through every\nknot exactly regardless of ``bc_type``.\n\nArgs:\n    knot_times: Strictly increasing knot times.\n    knot_prices: Knot prices, same length as ``knot_times``.\n    query_times: Times at which to evaluate the spline.\n    bc_type: One of ``\"not-a-knot\"``, ``\"periodic\"``, ``\"clamped\"``,\n        ``\"natural\"`` — the boundary condition passed to\n        :class:`scipy.interpolate.CubicSpline`.\n\nRaises:\n    NumericalError: If ``bc_type`` is not one of the supported string values,\n        or if :class:`scipy.interpolate.CubicSpline` itself rejects the knots\n        (e.g. non-increasing ``knot_times``, mismatched lengths, too few knots,\n        or mismatched periodic endpoints) — mirroring\n        :func:`~quantvolt.numerics.rootfind.brent_root`'s wrapping of scipy\n        errors, so no raw ``ValueError`` escapes this package's exception\n        hierarchy.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -8293,7 +8293,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "risk_adjusted_drift(mu: float, lambda_s: float, sigma: float) -> float",
           "summary": "Risk-adjusted drift ``mu - lambda_S*sigma`` (eq 10.5).",
-          "doc": "Risk-adjusted drift ``mu - lambda_S*sigma`` (eq 10.5).\n\nDrift term of the risk-adjusted process ``dS*/S* = (mu - lambda_S*sigma)dt + sigma*dW``.\n\nArgs:\n    mu: Drift of the underlying under the physical measure.\n    lambda_s: Price of S risk ``lambda_S`` (from :func:`price_of_risk`,\n        :func:`tradable_price_of_risk`, or a caller-supplied corporate value).\n    sigma: Volatility of the underlying, strictly positive.\n\nReturns:\n    The risk-adjusted drift. For a tradable underlying with\n    ``lambda_S = (mu + y - r)/sigma`` this collapses to ``r - y`` (Property 58).\n\nRaises:\n    ValidationError: If ``sigma`` is not strictly positive.",
+          "doc": "Risk-adjusted drift ``mu - lambda_S*sigma`` (eq 10.5).\n\nDrift term of the risk-adjusted process ``dS*/S* = (mu - lambda_S*sigma)dt + sigma*dW``.\n\nArgs:\n    mu: Drift of the underlying under the physical measure.\n    lambda_s: Price of S risk ``lambda_S`` (from :func:`price_of_risk`,\n        :func:`tradable_price_of_risk`, or a caller-supplied corporate value).\n    sigma: Volatility of the underlying, strictly positive.\n\nReturns:\n    The risk-adjusted drift. For a tradable underlying with\n    ``lambda_S = (mu + y - r)/sigma`` this collapses to ``r - y``.\n\nRaises:\n    ValidationError: If ``sigma`` is not strictly positive.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -8307,7 +8307,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "simulate_correlated_forwards(z0: npt.ArrayLike, drift: npt.ArrayLike, cov: npt.ArrayLike, steps: int, path_count: int, seed: int, antithetic: bool=True, *, repair: bool=False, symmetry_tol: float=_SYMMETRY_TOL, psd_tol: float=_PSD_EIG_TOL) -> npt.NDArray[np.float64]",
           "summary": "Simulate correlated multi-commodity log-forward curves (Appendix A, GBM).",
-          "doc": "Simulate correlated multi-commodity log-forward curves (Appendix A, GBM).\n\nGiven the initial log-forward vector ``z0 = log F(0, ·)`` (flattened over the\ncommodity/tenor state, dimension ``D``), a per-step drift ``μ`` (``drift``, length\n``D``), and the assembled covariance ``C`` (``cov``, ``(D, D)``), each of ``steps``\nsteps draws ``ε ~ N(0, I)`` and updates ``Z ← Z + μ + L·ε`` where ``L = chol(C)``\n(eqs A.9-A.13). Returns a ``float64`` array of shape ``(n_paths, steps + 1, D)``;\nrecord 0 of each path is ``z0``.\n\nConventions (see ``rust/src/paths.rs``):\n\n* **Measure-agnostic.** The caller supplies ``μ`` under its own measure — physical\n  ``P`` for VaR/scenarios, risk-neutral ``Q`` for pricing (where\n  ``μ = -½·diag(C)`` makes the forward a martingale).\n* **Expired-tenor masking (eq A.5).** A state index with zero variance\n  (``C[d, d] == 0``, i.e. ``sigma_d = 0``) is held fixed at ``z0[d]`` on every path and\n  step — drift and noise both suppressed.\n* **Antithetic variates (default on).** Paths are drawn in ``(+ε, -ε)`` pairs; each\n  pair counts as 2 toward ``path_count`` and an odd ``path_count`` rounds up.\n* **Determinism (Req 11.2).** Identical inputs and ``seed`` give bit-identical paths;\n  the Rust RNG stream does not match NumPy's.\n\nPSD gate (Property 61 / Req 20.3): a non-symmetric or non-PSD ``cov`` raises\n``ValidationError`` naming the violated property; ``repair=True`` opts into a\nnearest-PSD (Higham eigenvalue-clipping) projection instead. ``symmetry_tol`` and\n``psd_tol`` gate that check (defaults match the module's standard tolerances).",
+          "doc": "Simulate correlated multi-commodity log-forward curves (Appendix A, GBM).\n\nGiven the initial log-forward vector ``z0 = log F(0, ·)`` (flattened over the\ncommodity/tenor state, dimension ``D``), a per-step drift ``μ`` (``drift``, length\n``D``), and the assembled covariance ``C`` (``cov``, ``(D, D)``), each of ``steps``\nsteps draws ``ε ~ N(0, I)`` and updates ``Z ← Z + μ + L·ε`` where ``L = chol(C)``\n(eqs A.9-A.13). Returns a ``float64`` array of shape ``(n_paths, steps + 1, D)``;\nrecord 0 of each path is ``z0``.\n\nConventions (see ``rust/src/paths.rs``):\n\n* **Measure-agnostic.** The caller supplies ``μ`` under its own measure — physical\n  ``P`` for VaR/scenarios, risk-neutral ``Q`` for pricing (where\n  ``μ = -½·diag(C)`` makes the forward a martingale).\n* **Expired-tenor masking (eq A.5).** A state index with zero variance\n  (``C[d, d] == 0``, i.e. ``sigma_d = 0``) is held fixed at ``z0[d]`` on every path and\n  step — drift and noise both suppressed.\n* **Antithetic variates (default on).** Paths are drawn in ``(+ε, -ε)`` pairs; each\n  pair counts as 2 toward ``path_count`` and an odd ``path_count`` rounds up.\n* **Determinism.** Identical inputs and ``seed`` give bit-identical paths across\n  runs of the same native-extension build; the Rust RNG stream does not match\n  NumPy's.\n\nPSD gate: a non-symmetric or non-PSD ``cov`` raises ``ValidationError`` naming the\nviolated constraint; ``repair=True`` opts into a nearest-PSD (Higham\neigenvalue-clipping) projection instead. ``symmetry_tol`` and ``psd_tol`` gate that\ncheck (defaults match the module's standard tolerances).",
           "methods": [],
           "fields": [],
           "members": [],
@@ -8326,7 +8326,7 @@ window.API_DATA = {
           "fields": [],
           "members": [],
           "source": "src/quantvolt/numerics/monte_carlo.py",
-          "line": 426
+          "line": 427
         },
         {
           "name": "simulate_ou_paths",
@@ -8335,7 +8335,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "simulate_ou_paths(x0: float, kappa: float, mu: float, sigma: float, dt: float, steps: int, path_count: int, *, seed: int) -> npt.NDArray[np.float64]",
           "summary": "Simulate seeded Ornstein-Uhlenbeck (mean-reverting) paths via the Rust kernel.",
-          "doc": "Simulate seeded Ornstein-Uhlenbeck (mean-reverting) paths via the Rust kernel.\n\nEuler recursion ``x_{t+dt} = x_t + kappa*(mu - x_t)*dt + sigma*sqrt(dt)*z``. Returns a\n``float64`` array of shape ``(path_count, steps + 1)`` with ``x0`` in column 0.\nDeterministic per ``seed`` (Req 11.2) — seeded-Rust-RNG reproducible, not\nNumPy-matching. Complements the OU *fit* in ``stats/mean_reversion.py`` (this is the\nforward simulation). Raises ``NativeExtensionError`` if ``_core`` is not built and\n``ValidationError`` for non-finite params, ``dt <= 0``, or ``steps``/``path_count`` < 1.",
+          "doc": "Simulate seeded Ornstein-Uhlenbeck (mean-reverting) paths via the Rust kernel.\n\nEuler recursion ``x_{t+dt} = x_t + kappa*(mu - x_t)*dt + sigma*sqrt(dt)*z``. Returns a\n``float64`` array of shape ``(path_count, steps + 1)`` with ``x0`` in column 0.\nDeterministic per ``seed`` — seeded-Rust-RNG reproducible, not\nNumPy-matching. Complements the OU *fit* in ``stats/mean_reversion.py`` (this is the\nforward simulation). Raises ``NativeExtensionError`` if ``_core`` is not built and\n``ValidationError`` for non-finite params, ``dt <= 0``, or ``steps``/``path_count`` < 1.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -8349,7 +8349,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "tradable_price_of_risk(mu: float, y: float, r: float, sigma: float) -> float",
           "summary": "Price of risk for a fully tradable underlying ``lambda_S = (mu + y - r)/sigma`` (eq 10.6).",
-          "doc": "Price of risk for a fully tradable underlying ``lambda_S = (mu + y - r)/sigma`` (eq 10.6).\n\nAdds the net convenience yield ``y`` (including storage costs) to the numerator.\nWhen the underlying is *not* fully hedgeable, lambda_S is instead a free,\ncaller-supplied parameter (Req 19.2) and this function should not be used to derive it.\n\nArgs:\n    mu: Drift of the underlying under the physical measure.\n    y: Net convenience yield including storage costs.\n    r: Risk-free rate.\n    sigma: Volatility of the underlying, strictly positive.\n\nReturns:\n    The tradable price of risk ``lambda_S``.\n\nRaises:\n    ValidationError: If ``sigma`` is not strictly positive.",
+          "doc": "Price of risk for a fully tradable underlying ``lambda_S = (mu + y - r)/sigma`` (eq 10.6).\n\nAdds the net convenience yield ``y`` (including storage costs) to the numerator.\nWhen the underlying is *not* fully hedgeable, lambda_S is instead a free,\ncaller-supplied parameter and this function should not be used to derive it.\n\nArgs:\n    mu: Drift of the underlying under the physical measure.\n    y: Net convenience yield including storage costs.\n    r: Risk-free rate.\n    sigma: Volatility of the underlying, strictly positive.\n\nReturns:\n    The tradable price of risk ``lambda_S``.\n\nRaises:\n    ValidationError: If ``sigma`` is not strictly positive.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -8376,7 +8376,7 @@ window.API_DATA = {
           "qualified": "quantvolt.numerics.interpolation.INTERPOLATION_METHODS",
           "kind": "constant",
           "signature": "INTERPOLATION_METHODS",
-          "summary": "Registry mapping every supported interpolation method name to its numerical implementation..",
+          "summary": "Registry mapping every supported interpolation method name to its numerical implementation.",
           "doc": "Registry mapping every supported interpolation method name to its numerical implementation.",
           "methods": [],
           "fields": [],
@@ -8397,8 +8397,8 @@ window.API_DATA = {
           "qualified": "quantvolt.curves.arbitrage.ArbitrageChecker",
           "kind": "class",
           "signature": "ArbitrageChecker()",
-          "summary": "Thin class alias over :func:`check_arbitrage` (Task 18).",
-          "doc": "Thin class alias over :func:`check_arbitrage` (Task 18).\n\n``ArbitrageChecker`` was originally the sole home of this logic; per\n``coding-style.md`` §0/§2 a stateless single-method class is realised as a\nmodule function instead (the \"lightest Python construct\"). The class is kept\n— delegating to :func:`check_arbitrage` — only because it is part of the\npublic facade and directly exercised by tests as ``ArbitrageChecker().check(...)``.",
+          "summary": "Thin class alias over ``check_arbitrage``.",
+          "doc": "Thin class alias over ``check_arbitrage``.\n\nA stateless single-method class delegating to ``check_arbitrage``; kept\nonly because it is part of the public facade and directly exercised by\ntests as ``ArbitrageChecker().check(...)``.",
           "methods": [
             {
               "name": "check",
@@ -8459,7 +8459,7 @@ window.API_DATA = {
           "fields": [],
           "members": [],
           "source": "src/quantvolt/curves/builder.py",
-          "line": 56
+          "line": 55
         },
         {
           "name": "CurveBuildResult",
@@ -8489,7 +8489,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/curves/builder.py",
-          "line": 38
+          "line": 37
         },
         {
           "name": "check_arbitrage",
@@ -8575,7 +8575,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 60
+          "line": 58
         },
         {
           "name": "BachelierOptionRequest",
@@ -8633,8 +8633,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.bachelier.BachelierOptionResult",
           "kind": "class",
           "signature": "BachelierOptionResult(premium: float, greeks: Greeks)",
-          "summary": "Bachelier (normal-model) option output containing the discounted premium and the complete analytical Greeks object..",
-          "doc": "Bachelier (normal-model) option output containing the discounted premium and the complete analytical Greeks object.",
+          "summary": "Bachelier (normal-model) option output containing the discounted premium and the complete analytical Greeks object.",
+          "doc": "Bachelier (normal-model) option output containing the discounted premium and the\ncomplete analytical Greeks object.",
           "methods": [],
           "fields": [
             {
@@ -8705,7 +8705,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 74
+          "line": 72
         },
         {
           "name": "BasisResult",
@@ -8713,8 +8713,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spreads.BasisResult",
           "kind": "class",
           "signature": "BasisResult(per_period: dict[DeliveryPeriod, float], mean: float, std: float, p5: float, p95: float)",
-          "summary": "Per-period locational basis (A - B) with summary statistics (Req 2.4).",
-          "doc": "Per-period locational basis (A - B) with summary statistics (Req 2.4).\n\n``std`` is the standard deviation (population by default, ``ddof=0``);\n``p5``/``p95`` are the ``lower_percentile``/``upper_percentile`` (5th/95th by\ndefault) via :func:`numpy.percentile` (linear interpolation). See :func:`basis`.",
+          "summary": "Per-period locational basis (A - B) with summary statistics.",
+          "doc": "Per-period locational basis (A - B) with summary statistics.\n\n``std`` is the standard deviation (population by default, ``ddof=0``);\n``p5``/``p95`` are the ``lower_percentile``/``upper_percentile`` (5th/95th by\ndefault) via ``numpy.percentile`` (linear interpolation). See ``basis``.",
           "methods": [],
           "fields": [
             {
@@ -8745,7 +8745,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 93
+          "line": 92
         },
         {
           "name": "CalendarSpreadResult",
@@ -8753,8 +8753,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spreads.CalendarSpreadResult",
           "kind": "class",
           "signature": "CalendarSpreadResult(period_early: DeliveryPeriod, period_late: DeliveryPeriod, price_difference: float, storage_cost_total: float, spread: float)",
-          "summary": "Storage-related calendar spread between two delivery periods (Property 44).",
-          "doc": "Storage-related calendar spread between two delivery periods (Property 44).\n\n``price_difference`` is the raw later-minus-earlier price difference;\n``storage_cost_total`` is ``storage_cost`` (per month) times the number of\nmonths between the two periods; ``spread`` is the storage-adjusted value\n(``price_difference - storage_cost_total``). A positive ``spread`` indicates\ncontango net of carry (profitable storage injection); negative indicates\nbackwardation.",
+          "summary": "Storage-related calendar spread between two delivery periods.",
+          "doc": "Storage-related calendar spread between two delivery periods.\n\n``price_difference`` is the raw later-minus-earlier price difference;\n``storage_cost_total`` is ``storage_cost`` (per month) times the number of\nmonths between the two periods; ``spread`` is the storage-adjusted value\n(``price_difference - storage_cost_total``). A positive ``spread`` indicates\ncontango net of carry (profitable storage injection); negative indicates\nbackwardation.",
           "methods": [],
           "fields": [
             {
@@ -8785,7 +8785,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 121
+          "line": 120
         },
         {
           "name": "CapFloorRequest",
@@ -8793,8 +8793,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.vanilla.CapFloorRequest",
           "kind": "class",
           "signature": "CapFloorRequest(option_type: Literal['cap', 'floor'], strike: float, notional: float, caplets: tuple[VanillaOptionRequest, ...])",
-          "summary": "Inputs for a cap or floor strip over aligned forward, strike, volatility, expiry and discount-factor sequences..",
-          "doc": "Inputs for a cap or floor strip over aligned forward, strike, volatility, expiry and discount-factor sequences.",
+          "summary": "Inputs for a cap or floor strip over aligned forward, strike, volatility, expiry and discount-factor sequences.",
+          "doc": "Inputs for a cap or floor strip over aligned forward, strike, volatility, expiry and\ndiscount-factor sequences.",
           "methods": [],
           "fields": [
             {
@@ -8820,7 +8820,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/vanilla.py",
-          "line": 45
+          "line": 50
         },
         {
           "name": "CapFloorResult",
@@ -8828,8 +8828,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.vanilla.CapFloorResult",
           "kind": "class",
           "signature": "CapFloorResult(premium: float, greeks: Greeks, per_period: tuple[VanillaOptionResult, ...])",
-          "summary": "Aggregate cap/floor premium together with the individual caplet or floorlet contributions used to reconcile it..",
-          "doc": "Aggregate cap/floor premium together with the individual caplet or floorlet contributions used to reconcile it.",
+          "summary": "Aggregate cap/floor premium together with the individual caplet or floorlet contributions used to reconcile it.",
+          "doc": "Aggregate cap/floor premium together with the individual caplet or floorlet\ncontributions used to reconcile it.",
           "methods": [],
           "fields": [
             {
@@ -8850,7 +8850,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/vanilla.py",
-          "line": 53
+          "line": 61
         },
         {
           "name": "CleanSpreadResult",
@@ -8859,7 +8859,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "CleanSpreadResult(spread_type: SpreadType, per_period: dict[DeliveryPeriod, float], carbon_cost: dict[DeliveryPeriod, float])",
           "summary": "A carbon-cleaned spread: base ``spread_type``, cleaned values, carbon cost.",
-          "doc": "A carbon-cleaned spread: base ``spread_type``, cleaned values, carbon cost.\n\n``per_period`` holds the cleaned spread (uncleaned - carbon cost) and\n``carbon_cost`` the deducted ``emissions_intensity * EUA_price`` per period,\nso callers can reconstruct the uncleaned spread (Property 7).",
+          "doc": "A carbon-cleaned spread: base ``spread_type``, cleaned values, carbon cost.\n\n``per_period`` holds the cleaned spread (uncleaned - carbon cost) and\n``carbon_cost`` the deducted ``emissions_intensity * EUA_price`` per period,\nso callers can reconstruct the uncleaned spread.",
           "methods": [],
           "fields": [
             {
@@ -8880,7 +8880,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 66
+          "line": 65
         },
         {
           "name": "CrackSpreadResult",
@@ -8889,7 +8889,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "CrackSpreadResult(per_period: dict[DeliveryPeriod, float], ratio: tuple[int, ...])",
           "summary": "Refining margin per delivery period, normalised per unit of crude.",
-          "doc": "Refining margin per delivery period, normalised per unit of crude.\n\n``ratio`` echoes the crack convention used, e.g. ``(3, 2, 1)`` — crude units\nfirst, then one output entry per product curve in insertion order.",
+          "doc": "Refining margin per delivery period, normalised per unit of crude.\n\n``ratio`` echoes the crack convention used, e.g. ``(3, 2, 1)``: crude units\nfirst, then one output entry per product curve in insertion order.",
           "methods": [],
           "fields": [
             {
@@ -8905,7 +8905,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 109
+          "line": 108
         },
         {
           "name": "ExoticOptionResult",
@@ -8913,7 +8913,7 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.exotic.ExoticOptionResult",
           "kind": "class",
           "signature": "ExoticOptionResult(premium: float, greeks: Greeks, standard_error: float | None = None)",
-          "summary": "Typed exotic-option output containing premium, method attribution and optional Monte Carlo standard error..",
+          "summary": "Typed exotic-option output containing premium, method attribution and optional Monte Carlo standard error.",
           "doc": "Typed exotic-option output containing premium, method attribution and optional Monte Carlo standard error.",
           "methods": [],
           "fields": [
@@ -8935,7 +8935,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 97
+          "line": 95
         },
         {
           "name": "FuturesPricingResult",
@@ -8969,7 +8969,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "ImpliedHeatRateResult(per_period: dict[DeliveryPeriod, float], anomalous: tuple[DeliveryPeriod, ...])",
           "summary": "Implied heat rate (power/gas) per shared period plus anomaly flags.",
-          "doc": "Implied heat rate (power/gas) per shared period plus anomaly flags.\n\n``anomalous`` lists, in chronological order, the periods whose implied heat\nrate falls strictly outside the caller-supplied ``anomaly_range``; it is empty\nwhen no range was supplied (Req 2.3).",
+          "doc": "Implied heat rate (power/gas) per shared period plus anomaly flags.\n\n``anomalous`` lists, in chronological order, the periods whose implied heat\nrate falls strictly outside the caller-supplied ``anomaly_range``; it is empty\nwhen no range was supplied.",
           "methods": [],
           "fields": [
             {
@@ -8985,7 +8985,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 80
+          "line": 79
         },
         {
           "name": "ImpliedVolResult",
@@ -8994,7 +8994,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "ImpliedVolResult(implied_vol: float, moneyness: Moneyness, iteration_count: int, converged: bool)",
           "summary": "Outcome of a premium inversion (design \"Implied Volatility Calculator\").",
-          "doc": "Outcome of a premium inversion (design \"Implied Volatility Calculator\").\n\n``iteration_count`` is the number of objective (Black-76 repricing) evaluations\nBrent performed, including the two bracket-endpoint evaluations — the closest\nobservable proxy for the solver's iteration count. This matches\n:func:`scipy.optimize.brentq`'s own evaluation count exactly (verified by\n``test_implied_vol.py::test_iteration_count_matches_scipy_brentq_call_count_exactly``):\n:func:`~quantvolt.numerics.rootfind.brent_root` no longer pre-evaluates the\nendpoints itself before delegating to ``brentq`` (which evaluates them again\ninternally), a redundant pre-check that previously double-counted them and\ninflated this value by exactly 2. ``converged`` is ``True`` whenever a result is\nreturned; non-convergence raises instead of returning a partial result (fail\nloudly, ``coding-style.md`` §7).",
+          "doc": "Outcome of a premium inversion (design \"Implied Volatility Calculator\").\n\n``iteration_count`` is the number of objective (Black-76 repricing) evaluations\nBrent performed, including the two bracket-endpoint evaluations — the closest\nobservable proxy for the solver's iteration count. This matches\n:func:`scipy.optimize.brentq`'s own evaluation count exactly (verified by\n``test_implied_vol.py::test_iteration_count_matches_scipy_brentq_call_count_exactly``):\n:func:`~quantvolt.numerics.rootfind.brent_root` no longer pre-evaluates the\nendpoints itself before delegating to ``brentq`` (which evaluates them again\ninternally), a redundant pre-check that previously double-counted them and\ninflated this value by exactly 2. ``converged`` is ``True`` whenever a result is\nreturned; non-convergence raises instead of returning a partial result.",
           "methods": [],
           "fields": [
             {
@@ -9028,7 +9028,7 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.exotic.LookbackOptionRequest",
           "kind": "class",
           "signature": "LookbackOptionRequest(option_type: Literal['call', 'put'], strike_type: Literal['floating', 'fixed'], forward: float, sigma: float, time_to_expiry: float, discount_factor: float, strike: float | None = None)",
-          "summary": "Inputs for a fixed- or floating-strike lookback option, including observed extrema, volatility, expiry, discounting and notional..",
+          "summary": "Inputs for a fixed- or floating-strike lookback option, including observed extrema, volatility, expiry, discounting and notional.",
           "doc": "Inputs for a fixed- or floating-strike lookback option, including observed extrema, volatility, expiry, discounting and notional.",
           "methods": [],
           "fields": [
@@ -9070,7 +9070,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 86
+          "line": 84
         },
         {
           "name": "MissingImbalancePricePolicy",
@@ -9101,8 +9101,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.mark_to_market.MtMPosition",
           "kind": "class",
           "signature": "MtMPosition(commodity_id: str, delivery_period: DeliveryPeriod, notional: float, trade_price: float, prior_mark_price: float)",
-          "summary": "An open position to be marked to market (Req 10.1).",
-          "doc": "An open position to be marked to market (Req 10.1).\n\n``prior_mark_price`` is the mark from the previous valuation date and\n``trade_price`` the original contract price. Both may be negative — negative\nenergy prices are real in European markets — but ``notional`` must be\nstrictly positive (validated eagerly at construction).",
+          "summary": "An open position to be marked to market.",
+          "doc": "An open position to be marked to market.\n\n``prior_mark_price`` is the mark from the previous valuation date and\n``trade_price`` the original contract price. Both may be negative — negative\nenergy prices are real in European markets — but ``notional`` must be\nstrictly positive (validated eagerly at construction).",
           "methods": [],
           "fields": [
             {
@@ -9141,8 +9141,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.mark_to_market.MtMPositionResult",
           "kind": "class",
           "signature": "MtMPositionResult(daily_pnl: float, cumulative_pnl: float, current_mark: float, status: Literal['settled', 'estimated'])",
-          "summary": "Per-position mark, P&L pair, and how the mark was sourced (Req 10.1, 10.2).",
-          "doc": "Per-position mark, P&L pair, and how the mark was sourced (Req 10.1, 10.2).",
+          "summary": "Per-position mark, P&L pair, and how the mark was sourced.",
+          "doc": "Per-position mark, P&L pair, and how the mark was sourced.",
           "methods": [],
           "fields": [
             {
@@ -9243,7 +9243,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/implied_vol.py",
-          "line": 282
+          "line": 281
         },
         {
           "name": "PowerHedgeDataColumns",
@@ -9527,8 +9527,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.ppa_valuation.PpaPeriodValuation",
           "kind": "class",
           "signature": "PpaPeriodValuation(period: DeliveryPeriod, forward: float, discount_factor: float, expected_mwh: float, capture_factor: float, cashflow: float, delta: float)",
-          "summary": "One period's detail behind the aggregate :class:`PpaValuationResult` (Req 15.2).",
-          "doc": "One period's detail behind the aggregate :class:`PpaValuationResult` (Req 15.2).",
+          "summary": "One period's detail behind the aggregate :class:`PpaValuationResult`.",
+          "doc": "One period's detail behind the aggregate :class:`PpaValuationResult`.",
           "methods": [],
           "fields": [
             {
@@ -9577,8 +9577,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.ppa_valuation.PpaPeriodVolume",
           "kind": "class",
           "signature": "PpaPeriodVolume(period: DeliveryPeriod, expected_mwh: float, capture_factor: float = 1.0)",
-          "summary": "Expected delivered energy and capture factor for one delivery period (Req 15.1).",
-          "doc": "Expected delivered energy and capture factor for one delivery period (Req 15.1).\n\n``expected_mwh`` is the forecast delivered energy for the period (non-negative — a\nperiod with no expected generation is a legitimate, zero-value input, not an error).\n``capture_factor`` scales the flat forward down (or up) to the plant's expected\nrealised price relative to the flat baseload forward; it defaults to ``1.0`` (a\nbaseload-like assumption) and must be strictly positive.",
+          "summary": "Expected delivered energy and capture factor for one delivery period.",
+          "doc": "Expected delivered energy and capture factor for one delivery period.\n\n``expected_mwh`` is the forecast delivered energy for the period (non-negative — a\nperiod with no expected generation is a legitimate, zero-value input, not an error).\n``capture_factor`` scales the flat forward down (or up) to the plant's expected\nrealised price relative to the flat baseload forward; it defaults to ``1.0`` (a\nbaseload-like assumption) and must be strictly positive.",
           "methods": [],
           "fields": [
             {
@@ -9608,7 +9608,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "PpaReconciliationColumns(interval_start_utc: str = 'interval_start_utc', interval_end_utc: str = 'interval_end_utc', contracted_mwh: str = 'contracted_mwh', metered_generation_mwh: str = 'metered_generation_mwh', effective_fixed_price_per_mwh: str = 'effective_fixed_price_per_mwh', spot_price_per_mwh: str = 'spot_price_per_mwh')",
           "summary": "Map caller-owned column names onto :func:`reconcile_ppa_ledger`'s ledger inputs.",
-          "doc": "Map caller-owned column names onto :func:`reconcile_ppa_ledger`'s ledger inputs.\n\nAll five columns are ordinary columns of a :func:`settle_ppa_frame` ledger\n**except** ``spot_price_per_mwh``, which that ledger does not carry (the\ninterval pass never records raw spot — see Requirement 5/6). A caller\nwhose ``contract.terms.negative_price`` carries a consecutive-hour trigger\nlength must join a spot-price column onto the ledger themselves (for\nexample from the original input frame) before calling\n:func:`reconcile_ppa_ledger`; it is required only in that case.",
+          "doc": "Map caller-owned column names onto :func:`reconcile_ppa_ledger`'s ledger inputs.\n\nAll five columns are ordinary columns of a :func:`settle_ppa_frame` ledger\n**except** ``spot_price_per_mwh``, which that ledger does not carry (the\ninterval pass never records raw spot). A caller\nwhose ``contract.terms.negative_price`` carries a consecutive-hour trigger\nlength must join a spot-price column onto the ledger themselves (for\nexample from the original input frame) before calling\n:func:`reconcile_ppa_ledger`; it is required only in that case.",
           "methods": [],
           "fields": [
             {
@@ -9644,7 +9644,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/ppa.py",
-          "line": 555
+          "line": 552
         },
         {
           "name": "PpaValuationResult",
@@ -9652,8 +9652,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.ppa_valuation.PpaValuationResult",
           "kind": "class",
           "signature": "PpaValuationResult(npv: float, per_period: tuple[PpaPeriodValuation, ...], delta: dict[tuple[str, DeliveryPeriod], float])",
-          "summary": "Producer-side intrinsic mark-to-market: aggregate NPV plus per-period detail and per-period producer delta, keyed ``(contract.bidding_zone, period)`` (Req 15.3).",
-          "doc": "Producer-side intrinsic mark-to-market: aggregate NPV plus per-period detail\nand per-period producer delta, keyed ``(contract.bidding_zone, period)`` (Req 15.3).",
+          "summary": "Producer-side intrinsic mark-to-market: aggregate NPV plus per-period detail and per-period producer delta, keyed ``(contract.bidding_zone, period)``.",
+          "doc": "Producer-side intrinsic mark-to-market: aggregate NPV plus per-period detail\nand per-period producer delta, keyed ``(contract.bidding_zone, period)``.",
           "methods": [],
           "fields": [
             {
@@ -9682,8 +9682,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.ppa_valuation.PpaVolumeProfile",
           "kind": "class",
           "signature": "PpaVolumeProfile(volumes: tuple[PpaPeriodVolume, ...])",
-          "summary": "A non-empty, strictly period-increasing run of :class:`PpaPeriodVolume` (Req 15.1).",
-          "doc": "A non-empty, strictly period-increasing run of :class:`PpaPeriodVolume` (Req 15.1).",
+          "summary": "A non-empty, strictly period-increasing run of :class:`PpaPeriodVolume`.",
+          "doc": "A non-empty, strictly period-increasing run of :class:`PpaPeriodVolume`.",
           "methods": [],
           "fields": [
             {
@@ -9702,8 +9702,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spread_option.SpreadOptionRequest",
           "kind": "class",
           "signature": "SpreadOptionRequest(forward1: float, forward2: float, strike: float, sigma1: float, sigma2: float, correlation: float, time_to_expiry: float, discount_factor: float, notional: float = 1.0)",
-          "summary": "Inputs for a call on ``forward1 - forward2 - strike`` (Req 7.1).",
-          "doc": "Inputs for a call on ``forward1 - forward2 - strike`` (Req 7.1).",
+          "summary": "Inputs for a call on ``forward1 - forward2 - strike``.",
+          "doc": "Inputs for a call on ``forward1 - forward2 - strike``.",
           "methods": [],
           "fields": [
             {
@@ -9762,8 +9762,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spread_option.SpreadOptionResult",
           "kind": "class",
           "signature": "SpreadOptionResult(premium: float, delta1: float, delta2: float, vega1: float, vega2: float, correlation_sensitivity: float)",
-          "summary": "Premium plus finite-difference sensitivities, all scaled by notional (Req 7.2).",
-          "doc": "Premium plus finite-difference sensitivities, all scaled by notional (Req 7.2).\n\n``delta1``/``delta2`` are sensitivities to ``forward1``/``forward2`` exactly as\npassed to :func:`price_spread_option`. :func:`price_spark_spread_option` is the\none exception: it chain-rules ``delta2`` back onto the RAW gas forward it was\ngiven (``request.forward2``, before the internal ``heat_rate`` scaling), so that\n``delta2`` always means \"sensitivity to the underlying commodity forward the\ncaller supplied\" — the same convention :mod:`quantvolt.pricing.tolling` uses when\nit chain-rules a spread option's ``delta2`` onto the raw fuel/EUA forwards.",
+          "summary": "Premium plus finite-difference sensitivities, all scaled by notional.",
+          "doc": "Premium plus finite-difference sensitivities, all scaled by notional.\n\n``delta1``/``delta2`` are sensitivities to ``forward1``/``forward2`` exactly as\npassed to :func:`price_spread_option`. :func:`price_spark_spread_option` is the\none exception: it chain-rules ``delta2`` back onto the RAW gas forward it was\ngiven (``request.forward2``, before the internal ``heat_rate`` scaling), so that\n``delta2`` always means \"sensitivity to the underlying commodity forward the\ncaller supplied\" — the same convention :mod:`quantvolt.pricing.tolling` uses when\nit chain-rules a spread option's ``delta2`` onto the raw fuel/EUA forwards.",
           "methods": [],
           "fields": [
             {
@@ -9808,7 +9808,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "SpreadResult(spread_type: SpreadType, per_period: dict[DeliveryPeriod, float])",
           "summary": "A generation-margin spread per delivery period, labelled by its type.",
-          "doc": "A generation-margin spread per delivery period, labelled by its type.\n\n``spread_type`` records whether the values are spark (gas-fired) or dark\n(coal-fired) margins; the label is what lets :func:`clean_spread` name its\noutput and what keeps spark and dark results distinct objects (Property 6).\n``per_period`` preserves chronological key order.",
+          "doc": "A generation-margin spread per delivery period, labelled by its type.\n\n``spread_type`` records whether the values are spark (gas-fired) or dark\n(coal-fired) margins; the label is what lets ``clean_spread`` name its\noutput and what keeps spark and dark results distinct objects.\n``per_period`` preserves chronological key order.",
           "methods": [],
           "fields": [
             {
@@ -9824,7 +9824,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 52
+          "line": 51
         },
         {
           "name": "SwapPricingResult",
@@ -9832,7 +9832,7 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.swap.SwapPricingResult",
           "kind": "class",
           "signature": "SwapPricingResult(npv: float, delta: tuple[float, ...], rho: float)",
-          "summary": "Swap valuation output containing total NPV, one forward delta per schedule period and rho for the documented parallel rate bump..",
+          "summary": "Swap valuation output containing total NPV, one forward delta per schedule period and rho for the documented parallel rate bump.",
           "doc": "Swap valuation output containing total NPV, one forward delta per schedule period and rho for the documented parallel rate bump.",
           "methods": [],
           "fields": [
@@ -9863,7 +9863,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "TollingResult(npv: float, intrinsic_value: float, time_value: float, per_period_values: tuple[float, ...], per_period_deltas: dict[str, tuple[float, ...]], aggregate_deltas: dict[str, float])",
           "summary": "Strip-level tolling valuation: NPV decomposition plus per-period detail.",
-          "doc": "Strip-level tolling valuation: NPV decomposition plus per-period detail.\n\n``per_period_values`` are the discounted per-period spread-option values in\nschedule order; ``npv`` is their sum. ``per_period_deltas`` and\n``aggregate_deltas`` are keyed ``\"power\"``/``\"fuel\"``/``\"eua\"``, and each\naggregate equals the sum of its per-period tuple exactly (Property 20).",
+          "doc": "Strip-level tolling valuation: NPV decomposition plus per-period detail.\n\n``per_period_values`` are the discounted per-period spread-option values in\nschedule order; ``npv`` is their sum. ``per_period_deltas`` and\n``aggregate_deltas`` are keyed ``\"power\"``/``\"fuel\"``/``\"eua\"``, and each\naggregate equals the sum of its per-period tuple exactly.",
           "methods": [],
           "fields": [
             {
@@ -9899,7 +9899,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/tolling.py",
-          "line": 90
+          "line": 89
         },
         {
           "name": "TransportPeriodValue",
@@ -9908,7 +9908,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "TransportPeriodValue(period: DeliveryPeriod, payoff: float, discount_factor: float, intrinsic: float, extrinsic: float, value: float, direction: TransportDirection | None, delta_origin: float, delta_destination: float)",
           "summary": "One shared delivery period's transport-right valuation.",
-          "doc": "One shared delivery period's transport-right valuation.\n\n``payoff`` is the undiscounted per-period intrinsic payoff\n``Q_delivered · max(P_sink - P_source - tariff, 0)`` (Property 67 form);\n``intrinsic`` is that payoff discounted at ``discount_factor``; ``extrinsic`` is\nthe option time value (0 without vols); ``value = intrinsic + extrinsic``.\n``direction`` is the committed flow (``None`` for no-flow). ``delta_origin`` and\n``delta_destination`` are ``∂value/∂P_A`` and ``∂value/∂P_B`` from the holder's\nperspective — always opposite in sign for an active flow.",
+          "doc": "One shared delivery period's transport-right valuation.\n\n``payoff`` is the undiscounted per-period intrinsic payoff\n``Q_delivered · max(P_sink - P_source - tariff, 0)``;\n``intrinsic`` is that payoff discounted at ``discount_factor``; ``extrinsic`` is\nthe option time value (0 without vols); ``value = intrinsic + extrinsic``.\n``direction`` is the committed flow (``None`` for no-flow). ``delta_origin`` and\n``delta_destination`` are ``∂value/∂P_A`` and ``∂value/∂P_B`` from the holder's\nperspective — always opposite in sign for an active flow.",
           "methods": [],
           "fields": [
             {
@@ -9967,8 +9967,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.transmission_right.TransportRightResult",
           "kind": "class",
           "signature": "TransportRightResult(origin: str, destination: str, intrinsic: float, extrinsic: float, total: float, delta_origin: float, delta_destination: float, per_period: tuple[TransportPeriodValue, ...])",
-          "summary": "Aggregate transport-right value plus per-period detail (Req 24.1-24.3).",
-          "doc": "Aggregate transport-right value plus per-period detail (Req 24.1-24.3).\n\n``intrinsic``/``extrinsic``/``total`` are the sums over ``per_period`` with\n``total == intrinsic + extrinsic``. ``delta_origin``/``delta_destination`` are the\naggregate per-hub deltas (opposite-signed nets), keyed for the portfolio adapter\nby ``origin``/``destination`` commodity ids.",
+          "summary": "Aggregate transport-right value plus per-period detail.",
+          "doc": "Aggregate transport-right value plus per-period detail.\n\n``intrinsic``/``extrinsic``/``total`` are the sums over ``per_period`` with\n``total == intrinsic + extrinsic``. ``delta_origin``/``delta_destination`` are the\naggregate per-hub deltas (opposite-signed nets), keyed for the portfolio adapter\nby ``origin``/``destination`` commodity ids.",
           "methods": [],
           "fields": [
             {
@@ -10022,8 +10022,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.vanilla.VanillaOptionRequest",
           "kind": "class",
           "signature": "VanillaOptionRequest(option_type: Literal['call', 'put', 'cap', 'floor'], strike: float, notional: float, forward: float, sigma: float, time_to_expiry: float, discount_factor: float)",
-          "summary": "Complete Black–76 call or put inputs: type, strike, notional, forward, volatility, time to expiry and discount factor..",
-          "doc": "Complete Black–76 call or put inputs: type, strike, notional, forward, volatility, time to expiry and discount factor.",
+          "summary": "Complete Black-76 call or put inputs: type, strike, notional, forward, volatility, time to expiry and discount factor.",
+          "doc": "Complete Black-76 call or put inputs: type, strike, notional, forward, volatility,\ntime to expiry and discount factor.",
           "methods": [],
           "fields": [
             {
@@ -10064,7 +10064,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/vanilla.py",
-          "line": 28
+          "line": 27
         },
         {
           "name": "VanillaOptionResult",
@@ -10072,8 +10072,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.vanilla.VanillaOptionResult",
           "kind": "class",
           "signature": "VanillaOptionResult(premium: float, greeks: Greeks)",
-          "summary": "Vanilla option output containing discounted premium and the complete analytical Greeks object..",
-          "doc": "Vanilla option output containing discounted premium and the complete analytical Greeks object.",
+          "summary": "Vanilla option output containing discounted premium and the complete analytical Greeks object.",
+          "doc": "Vanilla option output containing discounted premium and the complete analytical\nGreeks object.",
           "methods": [],
           "fields": [
             {
@@ -10089,7 +10089,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/pricing/vanilla.py",
-          "line": 39
+          "line": 41
         },
         {
           "name": "basis",
@@ -10097,13 +10097,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spreads.basis",
           "kind": "function",
           "signature": "basis(curve_a: ForwardCurve, curve_b: ForwardCurve, start: date, end: date, *, lower_percentile: float=5.0, upper_percentile: float=95.0, ddof: int=0) -> BasisResult",
-          "summary": "Locational basis ``price(A) - price(B)`` per period in ``[start, end]`` (Req 2.4).",
-          "doc": "Locational basis ``price(A) - price(B)`` per period in ``[start, end]`` (Req 2.4).\n\nThe computation covers the shared delivery periods whose last calendar day\nfalls within the inclusive ``[start, end]`` range; no such period raises\n:class:`InsufficientDataError` naming both commodities and the range rather\nthan returning empty statistics (Property 9). Summary statistics: mean,\nstandard deviation (``ddof=0`` by default — the periods are the whole\npopulation of interest, not a sample), and the ``lower_percentile``/\n``upper_percentile`` (default 5th/95th) via :func:`numpy.percentile`\n(linear interpolation).\n\nArgs:\n    curve_a: First curve of the basis (``A`` in ``A - B``).\n    curve_b: Second curve of the basis.\n    start: Inclusive lower bound on each period's last calendar day.\n    end: Inclusive upper bound; must be ``>= start``.\n    lower_percentile: Percentile reported as ``p5``, in ``[0, 100]``\n        (default 5.0) and strictly below ``upper_percentile``.\n    upper_percentile: Percentile reported as ``p95``, in ``[0, 100]``\n        (default 95.0).\n    ddof: Delta degrees of freedom for :func:`numpy.std`, non-negative\n        (default 0, population standard deviation).",
+          "summary": "Locational basis ``price(A) - price(B)`` per period in ``[start, end]``.",
+          "doc": "Locational basis ``price(A) - price(B)`` per period in ``[start, end]``.\n\nThe computation covers the shared delivery periods whose last calendar day\nfalls within the inclusive ``[start, end]`` range; no such period raises\n``InsufficientDataError`` naming both commodities and the range rather than\nreturning empty statistics. Summary statistics: mean, standard deviation\n(``ddof=0`` by default; the periods are the whole population of interest,\nnot a sample), and the ``lower_percentile``/``upper_percentile`` (default\n5th/95th) via ``numpy.percentile`` (linear interpolation).\n\nArgs:\n    curve_a: First curve of the basis (``A`` in ``A - B``).\n    curve_b: Second curve of the basis.\n    start: Inclusive lower bound on each period's last calendar day.\n    end: Inclusive upper bound; must be ``>= start``.\n    lower_percentile: Percentile reported as ``p5``, in ``[0, 100]``\n        (default 5.0) and strictly below ``upper_percentile``.\n    upper_percentile: Percentile reported as ``p95``, in ``[0, 100]``\n        (default 95.0).\n    ddof: Delta degrees of freedom for ``numpy.std``, non-negative\n        (default 0, population standard deviation).",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 318
+          "line": 316
         },
         {
           "name": "build_volatility_surface",
@@ -10111,13 +10111,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.implied_vol.build_volatility_surface",
           "kind": "function",
           "signature": "build_volatility_surface(option_quotes: list[OptionQuote], interpolation: Literal['linear', 'cubic_spline']='linear', extrapolate: bool=False, *, commodity: CommodityConfig) -> VolatilitySurface",
-          "summary": "Build an implied-volatility surface from option quotes (Task 36).",
-          "doc": "Build an implied-volatility surface from option quotes (Task 36).\n\nEvery quote is inverted through :func:`implied_vol` (so every quote is fully\nvalidated — a bad quote fails loudly rather than being dropped). Because\n:class:`~quantvolt.models.vol_surface.VolatilitySurface` holds **one sigma per\nperiod tenor** (a term structure), multiple strikes quoted for the same period\nare aggregated to the *ATM-nearest* quote's vol: the quote whose strike is\nclosest to its forward (relative distance; first quote wins a tie). This\nanchors each tenor at the most liquid, smile-neutral point; the smile across\nstrikes is thereby collapsed by nearest-ATM selection.\n\nCalendar months missing between the first and last quoted period are filled by\ninterpolating the vol term structure on a monotone month axis with the selected\nmethod; quoted periods keep their exactly inverted vols. With\n``extrapolate=False`` the surface covers only ``[first, last]`` quoted period.\n\n``commodity`` is required and keyword-only: the stub signature carried no\ncommodity, but :class:`VolatilitySurface` requires one, and guessing a default\nwould silently mislabel the surface — an additive keyword parameter completes\nthe stub without breaking positional callers.\n\nArgs:\n    option_quotes: Non-empty list of :class:`OptionQuote` observations.\n    interpolation: ``\"linear\"`` (piecewise linear) or ``\"cubic_spline\"``\n        (natural cubic spline), selected via a dispatch dict.\n    extrapolate: Must be ``False``; extrapolation beyond the quoted period\n        range is not supported (there is no principled extension target).\n    commodity: The commodity the surface belongs to (keyword-only, required).\n\nReturns:\n    A :class:`VolatilitySurface` with one tenor per calendar month from the\n    first to the last quoted period, inclusive. Inputs are never mutated.\n\nRaises:\n    ValidationError: If ``option_quotes`` is empty, ``interpolation`` is\n        unknown, ``extrapolate`` is ``True``, or any quote fails the\n        :func:`implied_vol` domain / no-arbitrage checks.",
+          "summary": "Build an implied-volatility surface from option quotes.",
+          "doc": "Build an implied-volatility surface from option quotes.\n\nEvery quote is inverted through :func:`implied_vol` (so every quote is fully\nvalidated — a bad quote fails loudly rather than being dropped). Because\n:class:`~quantvolt.models.vol_surface.VolatilitySurface` holds **one sigma per\nperiod tenor** (a term structure), multiple strikes quoted for the same period\nare aggregated to the *ATM-nearest* quote's vol: the quote whose strike is\nclosest to its forward (relative distance; first quote wins a tie). This\nanchors each tenor at the most liquid, smile-neutral point; the smile across\nstrikes is thereby collapsed by nearest-ATM selection.\n\nCalendar months missing between the first and last quoted period are filled by\ninterpolating the vol term structure on a monotone month axis with the selected\nmethod; quoted periods keep their exactly inverted vols. With\n``extrapolate=False`` the surface covers only ``[first, last]`` quoted period.\n\n``commodity`` is required and keyword-only: the stub signature carried no\ncommodity, but :class:`VolatilitySurface` requires one, and guessing a default\nwould silently mislabel the surface — an additive keyword parameter completes\nthe stub without breaking positional callers.\n\nArgs:\n    option_quotes: Non-empty list of :class:`OptionQuote` observations.\n    interpolation: ``\"linear\"`` (piecewise linear) or ``\"cubic_spline\"``\n        (natural cubic spline), selected via a dispatch dict.\n    extrapolate: Must be ``False``; extrapolation beyond the quoted period\n        range is not supported (there is no principled extension target).\n    commodity: The commodity the surface belongs to (keyword-only, required).\n\nReturns:\n    A :class:`VolatilitySurface` with one tenor per calendar month from the\n    first to the last quoted period, inclusive. Inputs are never mutated.\n\nRaises:\n    ValidationError: If ``option_quotes`` is empty, ``interpolation`` is\n        unknown, ``extrapolate`` is ``True``, or any quote fails the\n        :func:`implied_vol` domain / no-arbitrage checks.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/implied_vol.py",
-          "line": 309
+          "line": 308
         },
         {
           "name": "calendar_spread",
@@ -10125,13 +10125,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spreads.calendar_spread",
           "kind": "function",
           "signature": "calendar_spread(curve: ForwardCurve, period_early: DeliveryPeriod, period_late: DeliveryPeriod, storage_cost: float=0.0) -> CalendarSpreadResult",
-          "summary": "Storage-related calendar spread on one curve (Task 34, Property 44).",
-          "doc": "Storage-related calendar spread on one curve (Task 34, Property 44).\n\n``spread = price(period_late) - price(period_early) - storage_cost * months``\nwhere ``months`` is the whole-month distance between the two delivery periods\nand ``storage_cost`` is the cost of carry per month. This is the spread a\nstorage operator captures by injecting in ``period_early`` and withdrawing in\n``period_late``; positive means contango net of carry, negative means\nbackwardation.\n\nRaises :class:`~quantvolt.exceptions.ValidationError` unless\n``period_early < period_late`` and ``storage_cost >= 0``; a period absent from\nthe curve raises :class:`~quantvolt.exceptions.MissingTenorError` (via\n:meth:`ForwardCurve.price_at`).",
+          "summary": "Storage-related calendar spread on one curve.",
+          "doc": "Storage-related calendar spread on one curve.\n\n``spread = price(period_late) - price(period_early) - storage_cost * months``\nwhere ``months`` is the whole-month distance between the two delivery periods\nand ``storage_cost`` is the cost of carry per month. This is the spread a\nstorage operator captures by injecting in ``period_early`` and withdrawing in\n``period_late``; positive means contango net of carry, negative means\nbackwardation.\n\nRaises ``ValidationError`` unless ``period_early < period_late`` and\n``storage_cost >= 0``; a period absent from the curve raises\n``MissingTenorError`` (via ``ForwardCurve.price_at``).",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 456
+          "line": 452
         },
         {
           "name": "classify_moneyness",
@@ -10139,13 +10139,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.implied_vol.classify_moneyness",
           "kind": "function",
           "signature": "classify_moneyness(strike: float, forward: float, tolerance_pct: float=2.0) -> Moneyness",
-          "summary": "Classify option moneyness relative to the forward price (Property 32).",
-          "doc": "Classify option moneyness relative to the forward price (Property 32).\n\nClassification is from the **call perspective**: a strike above the forward has\nno intrinsic value for a call (OTM); a strike below the forward is ITM. The put\nclassification is the mirror image, so callers holding puts should swap\nITM/OTM. Deviations of at most ``tolerance_pct`` percent of the forward — the\nboundary is *inclusive* — classify as ATM:\n\n- ``|strike - forward| / forward * 100 <= tolerance_pct`` -> ATM\n- ``strike > forward * (1 + tolerance_pct/100)`` -> OTM\n- ``strike < forward * (1 - tolerance_pct/100)`` -> ITM\n\nArgs:\n    strike: Option strike (``K``), positive.\n    forward: Forward price of the underlying (``F``), positive.\n    tolerance_pct: ATM band half-width as a percentage of the forward,\n        non-negative (default 2.0 = within 2% of the forward).\n\nReturns:\n    Exactly one of :class:`Moneyness` ``ATM`` / ``OTM`` / ``ITM``.\n\nRaises:\n    ValidationError: If ``strike`` or ``forward`` is not positive, or\n        ``tolerance_pct`` is negative.",
+          "summary": "Classify option moneyness relative to the forward price.",
+          "doc": "Classify option moneyness relative to the forward price.\n\nClassification is from the **call perspective**: a strike above the forward has\nno intrinsic value for a call (OTM); a strike below the forward is ITM. The put\nclassification is the mirror image, so callers holding puts should swap\nITM/OTM. Deviations of at most ``tolerance_pct`` percent of the forward — the\nboundary is *inclusive* — classify as ATM:\n\n- ``|strike - forward| / forward * 100 <= tolerance_pct`` -> ATM\n- ``strike > forward * (1 + tolerance_pct/100)`` -> OTM\n- ``strike < forward * (1 - tolerance_pct/100)`` -> ITM\n\nArgs:\n    strike: Option strike (``K``), positive.\n    forward: Forward price of the underlying (``F``), positive.\n    tolerance_pct: ATM band half-width as a percentage of the forward,\n        non-negative (default 2.0 = within 2% of the forward).\n\nReturns:\n    Exactly one of :class:`Moneyness` ``ATM`` / ``OTM`` / ``ITM``.\n\nRaises:\n    ValidationError: If ``strike`` or ``forward`` is not positive, or\n        ``tolerance_pct`` is negative.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/implied_vol.py",
-          "line": 197
+          "line": 196
         },
         {
           "name": "clean_spread",
@@ -10153,13 +10153,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spreads.clean_spread",
           "kind": "function",
           "signature": "clean_spread(spread: SpreadResult, eua_curve: ForwardCurve, emissions_intensity: float) -> CleanSpreadResult",
-          "summary": "Deduct the carbon cost from an uncleaned spark or dark spread (Req 2.2).",
-          "doc": "Deduct the carbon cost from an uncleaned spark or dark spread (Req 2.2).\n\nDecorator intent as a plain function: wraps one :class:`SpreadResult` and adds\nthe carbon cost, per period: ``cleaned = spread - emissions_intensity *\nEUA_price``. The result keeps the input's ``spread_type``, so cleaning a spark\nspread yields the clean spark spread and cleaning a dark spread the clean dark\nspread — call once per uncleaned spread to obtain both (Property 7).\n\nRaises :class:`~quantvolt.exceptions.ValidationError` unless\n``emissions_intensity >= 0``, and :class:`InsufficientDataError` when\n``eua_curve`` lacks any of the spread's delivery periods (Req 2.5) — no\npartial result is returned.",
+          "summary": "Deduct the carbon cost from an uncleaned spark or dark spread.",
+          "doc": "Deduct the carbon cost from an uncleaned spark or dark spread.\n\nWraps one ``SpreadResult`` and adds the carbon cost, per period:\n``cleaned = spread - emissions_intensity * EUA_price``. The result keeps the\ninput's ``spread_type``, so cleaning a spark spread yields the clean spark\nspread and cleaning a dark spread the clean dark spread; call once per\nuncleaned spread to obtain both.\n\nRaises ``ValidationError`` unless ``emissions_intensity >= 0``, and\n``InsufficientDataError`` when ``eua_curve`` lacks any of the spread's\ndelivery periods; no partial result is returned.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 247
+          "line": 246
         },
         {
           "name": "crack_spread",
@@ -10168,12 +10168,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "crack_spread(product_curves: dict[str, ForwardCurve], crude_curve: ForwardCurve, ratio: tuple[int, ...]=(3, 2, 1)) -> CrackSpreadResult",
           "summary": "Refining margin per delivery period for an ``input:outputs`` crack ratio.",
-          "doc": "Refining margin per delivery period for an ``input:outputs`` crack ratio.\n\nConvention: ``ratio[0]`` is the number of crude (input) units and ``ratio[1:]``\nthe product (output) units, matched to ``product_curves`` in insertion order —\nthe default 3:2:1 means 3 crude → 2 of the first product + 1 of the second.\nPer period, over the shared delivery periods of *all* curves::\n\n    spread = (Σᵢ product_priceᵢ * ratio[1 + i] - crude_price * ratio[0]) / ratio[0]\n\ni.e. the margin normalised per unit of crude. For the standard 3:2:1 and 5:3:2\ncracks the output units sum to the input units, so the product weights sum to 1\n(Property 42).\n\nRaises :class:`~quantvolt.exceptions.ValidationError` unless ``product_curves``\nis non-empty, ``len(ratio) == len(product_curves) + 1`` and every ratio entry\nis > 0; raises :class:`InsufficientDataError` when no delivery period is common\nto the crude curve and every product curve.",
+          "doc": "Refining margin per delivery period for an ``input:outputs`` crack ratio.\n\nConvention: ``ratio[0]`` is the number of crude (input) units and ``ratio[1:]``\nthe product (output) units, matched to ``product_curves`` in insertion order;\nthe default 3:2:1 means 3 crude to 2 of the first product plus 1 of the second.\nPer period, over the shared delivery periods of all curves::\n\n    spread = (sum(product_price_i * ratio[1 + i]) - crude_price * ratio[0]) / ratio[0]\n\ni.e. the margin normalised per unit of crude. For the standard 3:2:1 and 5:3:2\ncracks the output units sum to the input units, so the product weights sum to 1.\n\nRaises ``ValidationError`` unless ``product_curves`` is non-empty,\n``len(ratio) == len(product_curves) + 1`` and every ratio entry is > 0;\nraises ``InsufficientDataError`` when no delivery period is common to the\ncrude curve and every product curve.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 378
+          "line": 375
         },
         {
           "name": "cumulative_historical_vol",
@@ -10187,7 +10187,7 @@ window.API_DATA = {
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/implied_vol.py",
-          "line": 234
+          "line": 233
         },
         {
           "name": "dark_spread",
@@ -10196,12 +10196,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "dark_spread(power_curve: ForwardCurve, fuel_curve: ForwardCurve, heat_rate: float, variable_cost: float, emissions_cost: float) -> SpreadResult",
           "summary": "Dark spread (coal-fired generation margin) per shared delivery period.",
-          "doc": "Dark spread (coal-fired generation margin) per shared delivery period.\n\nSame formula and validation as :func:`spark_spread` with a coal ``fuel_curve``;\nthe result is labelled ``\"dark\"``. It is a separate immutable object, so\ncomputing it never modifies any spark values (Req 2.1, Property 6).",
+          "doc": "Dark spread (coal-fired generation margin) per shared delivery period.\n\nSame formula and validation as ``spark_spread`` with a coal ``fuel_curve``;\nthe result is labelled ``\"dark\"``. It is a separate immutable object, so\ncomputing it never modifies any spark values.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 229
+          "line": 228
         },
         {
           "name": "forward_spread",
@@ -10210,12 +10210,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "forward_spread(power_curve: ForwardCurve, fuel_curve: ForwardCurve, heat_rate: float, variable_cost: float, emissions_cost: float) -> SpreadResult",
           "summary": "Forward spark spread over the curve intersection, for forward price risk.",
-          "doc": "Forward spark spread over the curve intersection, for forward price risk.\n\nThe formula is identical to :func:`spark_spread` — forward power minus\nheat-rate-weighted forward fuel minus costs — differing only in time-horizon\ninterpretation, so this delegates to it and returns the same ``\"spark\"``\n-labelled :class:`SpreadResult` (design §2.4, Property 43).",
+          "doc": "Forward spark spread over the curve intersection, for forward price risk.\n\nThe formula is identical to ``spark_spread``: forward power minus\nheat-rate-weighted forward fuel minus costs, differing only in time-horizon\ninterpretation, so this delegates to it and returns the same\n``\"spark\"``-labelled ``SpreadResult``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 439
+          "line": 435
         },
         {
           "name": "futures_delta",
@@ -10224,7 +10224,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "futures_delta(contract: FuturesContract | ForwardContract, forward_curve: ForwardCurve, valuation_date: date, discount_curve: DiscountCurve, bump: float=1.0, *, settlement_lag_days: int=0) -> float",
           "summary": "Delta of the contract NPV to the forward price: ``discount_factor * notional``.",
-          "doc": "Delta of the contract NPV to the forward price: ``discount_factor * notional``.\n\nThe NPV is linear in the forward price, so this closed form is exact — it is\nwhat a central finite difference at ``forward_price ± bump`` would compute for\nany ``bump > 0`` (up to floating-point round-off), without repricing twice or\nlooking up the forward price at all.\n\nArgs:\n    contract: The futures or forward contract to price.\n    forward_curve: Must have a node for ``contract.delivery_period``.\n    valuation_date: The date NPV is computed as of.\n    discount_curve: Must cover the settlement date.\n    bump: Retained for signature compatibility with the historical\n        finite-difference form and still validated as strictly positive;\n        unused in the closed-form computation itself.\n    settlement_lag_days: Calendar days added to the delivery period's last\n        day to get the settlement date, matching :func:`price_futures` so\n        price and delta agree (default 0, non-negative).\n\nRaises:\n    ValidationError: If ``bump`` is not strictly positive, or\n        ``settlement_lag_days`` is negative.\n    ExpiredContractError: If the delivery period ended strictly before\n        ``valuation_date`` (Req 3.3).\n    MissingTenorError: If ``forward_curve`` has no node for the delivery period\n        or ``discount_curve`` does not cover the settlement date (Req 3.4).",
+          "doc": "Delta of the contract NPV to the forward price: ``discount_factor * notional``.\n\nThe NPV is linear in the forward price, so this closed form is exact — it is\nwhat a central finite difference at ``forward_price ± bump`` would compute for\nany ``bump > 0`` (up to floating-point round-off), without repricing twice or\nlooking up the forward price at all.\n\nArgs:\n    contract: The futures or forward contract to price.\n    forward_curve: Must have a node for ``contract.delivery_period``.\n    valuation_date: The date NPV is computed as of.\n    discount_curve: Must cover the settlement date.\n    bump: Retained for signature compatibility with the historical\n        finite-difference form and still validated as strictly positive;\n        unused in the closed-form computation itself.\n    settlement_lag_days: Calendar days added to the delivery period's last\n        day to get the settlement date, matching :func:`price_futures` so\n        price and delta agree (default 0, non-negative).\n\nRaises:\n    ValidationError: If ``bump`` is not strictly positive, or\n        ``settlement_lag_days`` is negative.\n    ExpiredContractError: If the delivery period ended strictly before\n        ``valuation_date``.\n    MissingTenorError: If ``forward_curve`` has no node for the delivery period\n        or ``discount_curve`` does not cover the settlement date.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -10237,13 +10237,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spreads.implied_heat_rate",
           "kind": "function",
           "signature": "implied_heat_rate(power_curve: ForwardCurve, gas_curve: ForwardCurve, anomaly_range: tuple[float, float] | None=None) -> ImpliedHeatRateResult",
-          "summary": "Implied heat rate ``power_price / gas_price`` per shared period (Req 2.3).",
-          "doc": "Implied heat rate ``power_price / gas_price`` per shared period (Req 2.3).\n\nValidation is eager and complete before any computation: every shared period's\ngas price must be strictly positive; the first violation raises\n:class:`~quantvolt.exceptions.ValidationError` identifying that delivery period\nand no heat rate is computed (Property 8). When ``anomaly_range=(lo, hi)`` is\nsupplied (requiring ``lo < hi``), periods whose implied heat rate falls\n*strictly outside* the inclusive ``[lo, hi]`` band are flagged in\n``anomalous``; without a range no period is flagged.",
+          "summary": "Implied heat rate ``power_price / gas_price`` per shared period.",
+          "doc": "Implied heat rate ``power_price / gas_price`` per shared period.\n\nValidation is eager and complete before any computation: every shared period's\ngas price must be strictly positive; the first violation raises\n``ValidationError`` identifying that delivery period and no heat rate is\ncomputed. When ``anomaly_range=(lo, hi)`` is supplied (requiring ``lo < hi``),\nperiods whose implied heat rate falls strictly outside the inclusive\n``[lo, hi]`` band are flagged in ``anomalous``; without a range no period is\nflagged.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 281
+          "line": 279
         },
         {
           "name": "implied_vol",
@@ -10251,13 +10251,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.implied_vol.implied_vol",
           "kind": "function",
           "signature": "implied_vol(option_type: Literal['call', 'put'], market_premium: float, forward: float, strike: float, time_to_expiry: float, discount_factor: float, tol: float=0.0001, max_iter: int=100, *, sigma_lower: float=_SIGMA_LOWER, sigma_upper: float=_SIGMA_UPPER, tolerance_pct: float=2.0) -> ImpliedVolResult",
-          "summary": "Recover the Black-76 volatility implied by a market premium (Property 31).",
-          "doc": "Recover the Black-76 volatility implied by a market premium (Property 31).\n\nRound-trip contract (Property 31): ``implied_vol`` applied to\n``black76_price(sigma0, ...)`` recovers ``sigma0`` within ``tol``. Inversion uses\nBrent over ``[sigma_lower, sigma_upper]`` (default ``[1e-9, 10.0]``) — a bracketing\nsolver, so it cannot diverge near zero vega the way Newton-Raphson would (design\n§2.7). The inversion is performed locally with :func:`brent_root` and a\ncall-counting objective (instead of delegating to\n:func:`~quantvolt.numerics.black76.black76_implied_vol`) so that\n:attr:`ImpliedVolResult.iteration_count` can be reported — the kernel does not\nexpose its iteration count. Both use the same bracket, objective, and tolerance.\n\nNo-arbitrage precondition (Req 5.3), checked before inversion:\n\n- call: ``DF*max(F-K, 0) < market_premium < DF*F``\n- put:  ``DF*max(K-F, 0) < market_premium < DF*K``\n\nArgs:\n    option_type: ``\"call\"`` or ``\"put\"``.\n    market_premium: Observed (discounted) option premium to invert, positive.\n    forward: Forward price of the underlying (``F``), positive.\n    strike: Option strike (``K``), positive.\n    time_to_expiry: Time to expiry in years (``T``), positive.\n    discount_factor: Discount factor to settlement (``DF``), in ``(0, 1]``.\n    tol: Absolute tolerance on the recovered volatility, positive.\n    max_iter: Maximum Brent iterations, at least 1.\n    sigma_lower: Lower end of the Brent search bracket, positive and strictly\n        below ``sigma_upper`` (default ``1e-9``, matching the kernel's bracket).\n    sigma_upper: Upper end of the Brent search bracket, strictly above\n        ``sigma_lower`` (default ``10.0``).\n    tolerance_pct: ATM band half-width (percent of the forward) passed through to\n        :func:`classify_moneyness` for the reported moneyness (default 2.0).\n\nReturns:\n    An :class:`ImpliedVolResult` with the recovered vol, the moneyness of the\n    quote (at ``tolerance_pct``, default 2% ATM tolerance), the\n    objective-evaluation count, and ``converged=True``.\n\nRaises:\n    ValidationError: If any input violates its domain, or if ``market_premium``\n        lies outside the no-arbitrage bounds (no volatility can reproduce it).",
+          "summary": "Recover the Black-76 volatility implied by a market premium.",
+          "doc": "Recover the Black-76 volatility implied by a market premium.\n\nRound-trip contract: ``implied_vol`` applied to\n``black76_price(sigma0, ...)`` recovers ``sigma0`` within ``tol``. Inversion uses\nBrent over ``[sigma_lower, sigma_upper]`` (default ``[1e-9, 10.0]``) — a bracketing\nsolver, so it cannot diverge near zero vega the way Newton-Raphson would (design\n§2.7). The inversion is performed locally with :func:`brent_root` and a\ncall-counting objective (instead of delegating to\n:func:`~quantvolt.numerics.black76.black76_implied_vol`) so that\n:attr:`ImpliedVolResult.iteration_count` can be reported — the kernel does not\nexpose its iteration count. Both use the same bracket, objective, and tolerance.\n\nNo-arbitrage precondition, checked before inversion:\n\n- call: ``DF*max(F-K, 0) < market_premium < DF*F``\n- put:  ``DF*max(K-F, 0) < market_premium < DF*K``\n\nArgs:\n    option_type: ``\"call\"`` or ``\"put\"``.\n    market_premium: Observed (discounted) option premium to invert, positive.\n    forward: Forward price of the underlying (``F``), positive.\n    strike: Option strike (``K``), positive.\n    time_to_expiry: Time to expiry in years (``T``), positive.\n    discount_factor: Discount factor to settlement (``DF``), in ``(0, 1]``.\n    tol: Absolute tolerance on the recovered volatility, positive.\n    max_iter: Maximum Brent iterations, at least 1.\n    sigma_lower: Lower end of the Brent search bracket, positive and strictly\n        below ``sigma_upper`` (default ``1e-9``, matching the kernel's bracket).\n    sigma_upper: Upper end of the Brent search bracket, strictly above\n        ``sigma_lower`` (default ``10.0``).\n    tolerance_pct: ATM band half-width (percent of the forward) passed through to\n        :func:`classify_moneyness` for the reported moneyness (default 2.0).\n\nReturns:\n    An :class:`ImpliedVolResult` with the recovered vol, the moneyness of the\n    quote (at ``tolerance_pct``, default 2% ATM tolerance), the\n    objective-evaluation count, and ``converged=True``.\n\nRaises:\n    ValidationError: If any input violates its domain, or if ``market_premium``\n        lies outside the no-arbitrage bounds (no volatility can reproduce it).",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/implied_vol.py",
-          "line": 83
+          "line": 82
         },
         {
           "name": "make_ppa_pricer",
@@ -10265,8 +10265,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.ppa_valuation.make_ppa_pricer",
           "kind": "function",
           "signature": "make_ppa_pricer(profiles: Mapping[str, PpaVolumeProfile]) -> Callable[[Any, Any], Any]",
-          "summary": "Build a ``pricers=`` entry that opts ``PpaContract`` positions into ``value_portfolio`` (Req 16).",
-          "doc": "Build a ``pricers=`` entry that opts ``PpaContract`` positions into ``value_portfolio``\n(Req 16).\n\nReturned as a plain closure (typed loosely as ``Callable[[Any, Any], Any]`` here to\nkeep this module's dependencies to ``models/*`` and ``_validation``, per this spec's\nacyclic dependency design — it is never imported by ``portfolio/model.py`` or\n``portfolio/valuation.py``); at the call site it has exactly the shape\n``portfolio.valuation.Pricer`` expects: ``(Position, MarketData) -> PricedPosition``.\nRegister it explicitly:\n\n    ``value_portfolio(book, market, pricers={PpaContract: make_ppa_pricer(profiles)})``\n\n``PpaContract`` is deliberately **NOT** added to ``DEFAULT_PRICERS`` (Req 16.2): a\nraise-on-missing-profile default pricer would silently break every existing mixed\nbook that holds an unmodelled PPA (base-spec Req 13.3's \"lands in unpriced\"\nsemantics). Only callers who explicitly opt in via this factory get a missing-profile\nerror instead of a silent ``unpriced`` landing (Req 16.3).\n\nArgs:\n    profiles: Maps a PPA's ``contract_id`` to the :class:`PpaVolumeProfile` to value\n        it against.\n\nReturns:\n    A pricer closure ``(position, market_data) -> PricedPosition``: looks up the\n    curve at ``instrument.bidding_zone``, delegates to :func:`price_ppa`, and\n    packages the result (``reference_prices`` populated from each period's forward).\n\nRaises (at call time, when the returned closure is invoked):\n    ValidationError: If the position's instrument is not a ``PpaContract``, or its\n        ``contract_id`` has no entry in ``profiles`` (naming the missing key and\n        listing the available ones).",
+          "summary": "Build a ``pricers=`` entry that opts ``PpaContract`` positions into ``value_portfolio``.",
+          "doc": "Build a ``pricers=`` entry that opts ``PpaContract`` positions into ``value_portfolio``.\n\nReturned as a plain closure (typed loosely as ``Callable[[Any, Any], Any]`` here to\nkeep this module's dependencies to ``models/*`` and ``_validation`` — it is never\nimported by ``portfolio/model.py`` or ``portfolio/valuation.py``); at the call site it\nhas exactly the shape ``portfolio.valuation.Pricer`` expects: ``(Position, MarketData)\n-> PricedPosition``. Register it explicitly:\n\n    ``value_portfolio(book, market, pricers={PpaContract: make_ppa_pricer(profiles)})``\n\n``PpaContract`` is deliberately **NOT** added to ``DEFAULT_PRICERS``: a\nraise-on-missing-profile default pricer would silently break every existing mixed\nbook that holds an unmodelled PPA that otherwise lands in the portfolio's\nunpriced set. Only callers who explicitly opt in via this factory get a\nmissing-profile error instead of a silent ``unpriced`` landing.\n\nArgs:\n    profiles: Maps a PPA's ``contract_id`` to the :class:`PpaVolumeProfile` to value\n        it against.\n\nReturns:\n    A pricer closure ``(position, market_data) -> PricedPosition``: looks up the\n    curve at ``instrument.bidding_zone``, delegates to :func:`price_ppa`, and\n    packages the result (``reference_prices`` populated from each period's forward).\n\nRaises (at call time, when the returned closure is invoked):\n    ValidationError: If the position's instrument is not a ``PpaContract``, or its\n        ``contract_id`` has no entry in ``profiles`` (naming the missing key and\n        listing the available ones).",
           "methods": [],
           "fields": [],
           "members": [],
@@ -10279,8 +10279,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.mark_to_market.mark_to_market",
           "kind": "function",
           "signature": "mark_to_market(positions: list[MtMPosition], market_date: date, settlement_prices: dict[tuple[str, DeliveryPeriod], float], forward_curve: ForwardCurve | None=None) -> MtMResult",
-          "summary": "Mark each position to market and compute daily and cumulative P&L (Req 10).",
-          "doc": "Mark each position to market and compute daily and cumulative P&L (Req 10).\n\n``market_date`` documents the as-of date of the marks: ``settlement_prices``\n(and ``forward_curve``, if given) are the caller's pricing data for that date.\nAll marks come solely from these inputs — the function reads no clock and keeps\nno state — so identical inputs always produce an identical result (Req 10.5).\n\nEach position's ``current_mark`` is resolved by ordered fallback: the\nsettlement price for ``(commodity_id, delivery_period)``; else the node of a\nsame-commodity ``forward_curve``, flagged ``\"estimated\"``; else\n:class:`NoPricingDataError`. P&L is then computed identically for settled and\nestimated marks (Req 10.1):\n\n- ``daily_pnl = (current_mark - prior_mark_price) * notional``\n- ``cumulative_pnl = (current_mark - trade_price) * notional``\n\nResults are returned in input order; ``estimated_count`` is the number of\npositions whose status is ``\"estimated\"``. An empty book yields an empty\nresult. Inputs are never mutated.\n\nRaises:\n    NoPricingDataError: If neither a settlement price nor a same-commodity\n        forward-curve node is available for a position's ``(commodity_id,\n        delivery_period)`` (Req 10.3).",
+          "summary": "Mark each position to market and compute daily and cumulative P&L.",
+          "doc": "Mark each position to market and compute daily and cumulative P&L.\n\n``market_date`` documents the as-of date of the marks: ``settlement_prices``\n(and ``forward_curve``, if given) are the caller's pricing data for that date.\nAll marks come solely from these inputs — the function reads no clock and keeps\nno state — so identical inputs always produce an identical result.\n\nEach position's ``current_mark`` is resolved by ordered fallback: the\nsettlement price for ``(commodity_id, delivery_period)``; else the node of a\nsame-commodity ``forward_curve``, flagged ``\"estimated\"``; else\n:class:`NoPricingDataError`. P&L is then computed identically for settled and\nestimated marks:\n\n- ``daily_pnl = (current_mark - prior_mark_price) * notional``\n- ``cumulative_pnl = (current_mark - trade_price) * notional``\n\nResults are returned in input order; ``estimated_count`` is the number of\npositions whose status is ``\"estimated\"``. An empty book yields an empty\nresult. Inputs are never mutated.\n\nRaises:\n    NoPricingDataError: If neither a settlement price nor a same-commodity\n        forward-curve node is available for a position's ``(commodity_id,\n        delivery_period)``.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -10321,13 +10321,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.exotic.price_asian",
           "kind": "function",
           "signature": "price_asian(request: AsianOptionRequest, *, forward_bump_fraction: float=_FORWARD_BUMP_FRACTION, vol_bump: float=_VOL_BUMP, time_bump: float=_TIME_BUMP, averaging_points: int=_MC_AVERAGING_POINTS) -> ExoticOptionResult",
-          "summary": "Price an average-price Asian option on a forward (Req 6.1).",
-          "doc": "Price an average-price Asian option on a forward (Req 6.1).\n\nMethod dispatch (Simple Factory): ``request.method`` if given, otherwise the\naveraging-type default — Turnbull-Wakeman for ``\"arithmetic\"``, Kemna-Vorst for\n``\"geometric\"``. Each closed form prices exactly one averaging type, so an explicit\nmethod that contradicts ``request.averaging`` is rejected rather than silently\nrepriced (fail loudly, coding-style.md §7). ``\"monte_carlo\"`` must be requested\nexplicitly and additionally requires ``seed`` and ``path_count >= 1000``.\n\nClosed forms return central finite-difference Greeks of the selected kernel; the\nMonte Carlo path returns ``Greeks.zero()`` (MC Greeks arrive with the Rust engine,\nTask 59) plus the kernel's ``standard_error``.\n\nArgs:\n    request: Fully specified Asian option; validated eagerly before any\n        computation (Req 6.4).\n    forward_bump_fraction: Relative forward bump used for the closed-form\n        delta/gamma finite differences, positive (default ``1e-4``). Unused\n        for ``method=\"monte_carlo\"``.\n    vol_bump: Absolute vol bump for the closed-form vega finite difference,\n        positive (default ``1e-4``). Unused for ``method=\"monte_carlo\"``.\n    time_bump: Absolute time bump for the closed-form theta finite\n        difference, positive (default ``1e-6``). Unused for\n        ``method=\"monte_carlo\"``.\n    averaging_points: Number of discrete fixings in the Monte Carlo averaging\n        schedule, at least 1 (default 252, one trading year of daily\n        fixings). Unused for the closed forms (continuous averaging).\n\nReturns:\n    Premium, Greeks, and — for Monte Carlo only — the standard error.\n\nRaises:\n    ValidationError: If ``forward``, ``strike``, ``sigma`` or ``time_to_expiry``\n        is not > 0, ``discount_factor`` is outside ``(0, 1]``, ``method``\n        contradicts ``averaging``, ``forward_bump_fraction``/``vol_bump``/\n        ``time_bump`` is not > 0, ``averaging_points`` < 1, or — for\n        ``method=\"monte_carlo\"`` — ``seed`` is missing or ``path_count`` < 1000.\n    NativeExtensionError: If ``method=\"monte_carlo\"`` is requested without a\n        built native Rust extension.",
+          "summary": "Price an average-price Asian option on a forward.",
+          "doc": "Price an average-price Asian option on a forward.\n\nMethod dispatch: ``request.method`` if given, otherwise the averaging-type\ndefault: Turnbull-Wakeman for ``\"arithmetic\"``, Kemna-Vorst for ``\"geometric\"``.\nEach closed form prices exactly one averaging type, so an explicit method that\ncontradicts ``request.averaging`` is rejected rather than silently repriced.\n``\"monte_carlo\"`` must be requested explicitly and additionally requires ``seed``\nand ``path_count >= 1000``.\n\nClosed forms return central finite-difference Greeks of the selected kernel; the\nMonte Carlo path returns ``Greeks.zero()`` (this pricer does not compute pathwise\nMonte Carlo Greeks) plus the kernel's ``standard_error``.\n\nArgs:\n    request: Fully specified Asian option; validated eagerly before any\n        computation.\n    forward_bump_fraction: Relative forward bump used for the closed-form\n        delta/gamma finite differences, positive (default ``1e-4``). Unused\n        for ``method=\"monte_carlo\"``.\n    vol_bump: Absolute vol bump for the closed-form vega finite difference,\n        positive (default ``1e-4``). Unused for ``method=\"monte_carlo\"``.\n    time_bump: Absolute time bump for the closed-form theta finite\n        difference, positive (default ``1e-6``). Unused for\n        ``method=\"monte_carlo\"``.\n    averaging_points: Number of discrete fixings in the Monte Carlo averaging\n        schedule, at least 1 (default 252, one trading year of daily\n        fixings). Unused for the closed forms (continuous averaging).\n\nReturns:\n    Premium, Greeks, and — for Monte Carlo only — the standard error.\n\nRaises:\n    ValidationError: If ``forward``, ``strike``, ``sigma`` or ``time_to_expiry``\n        is not > 0, ``discount_factor`` is outside ``(0, 1]``, ``method``\n        contradicts ``averaging``, ``forward_bump_fraction``/``vol_bump``/\n        ``time_bump`` is not > 0, ``averaging_points`` < 1, or — for\n        ``method=\"monte_carlo\"`` — ``seed`` is missing or ``path_count`` < 1000.\n    NativeExtensionError: If ``method=\"monte_carlo\"`` is requested without a\n        built native Rust extension.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 301
+          "line": 299
         },
         {
           "name": "price_bachelier_option",
@@ -10341,7 +10341,7 @@ window.API_DATA = {
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/bachelier.py",
-          "line": 57
+          "line": 60
         },
         {
           "name": "price_barrier",
@@ -10349,13 +10349,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.exotic.price_barrier",
           "kind": "function",
           "signature": "price_barrier(request: BarrierOptionRequest, *, forward_bump_fraction: float=_FORWARD_BUMP_FRACTION, vol_bump: float=_VOL_BUMP, time_bump: float=_TIME_BUMP) -> ExoticOptionResult",
-          "summary": "Price a single-barrier option via the Reiner-Rubinstein closed form (Req 6.2).",
-          "doc": "Price a single-barrier option via the Reiner-Rubinstein closed form (Req 6.2).\n\nBarrier-vs-forward consistency (Property 17): an *up* barrier must sit strictly\nabove the forward and a *down* barrier strictly below — a barrier on the wrong\nside (or exactly at the forward) is already breached at inception and is rejected\nbefore any computation. Greeks are central finite differences of the barrier\nkernel.\n\nArgs:\n    request: Fully specified barrier option; validated eagerly before any\n        computation (Req 6.4).\n    forward_bump_fraction: Relative forward bump for delta/gamma, positive\n        (default ``1e-4``).\n    vol_bump: Absolute vol bump for vega, positive (default ``1e-4``).\n    time_bump: Absolute time bump for theta, positive (default ``1e-6``).\n\nReturns:\n    Premium and Greeks (``standard_error`` is ``None`` for closed forms).\n\nRaises:\n    ValidationError: If ``forward``, ``strike``, ``barrier``, ``sigma`` or\n        ``time_to_expiry`` is not > 0, ``discount_factor`` is outside ``(0, 1]``,\n        ``forward_bump_fraction``/``vol_bump``/``time_bump`` is not > 0, or\n        ``barrier`` is on the wrong side of ``forward`` for ``barrier_type``.",
+          "summary": "Price a single-barrier option via the Reiner-Rubinstein closed form.",
+          "doc": "Price a single-barrier option via the Reiner-Rubinstein closed form.\n\nBarrier-vs-forward consistency: an up barrier must sit strictly above the\nforward and a down barrier strictly below; a barrier on the wrong side (or\nexactly at the forward) is already breached at inception and is rejected\nbefore any computation. Greeks are central finite differences of the barrier\nkernel.\n\nArgs:\n    request: Fully specified barrier option; validated eagerly before any\n        computation.\n    forward_bump_fraction: Relative forward bump for delta/gamma, positive\n        (default ``1e-4``).\n    vol_bump: Absolute vol bump for vega, positive (default ``1e-4``).\n    time_bump: Absolute time bump for theta, positive (default ``1e-6``).\n\nReturns:\n    Premium and Greeks (``standard_error`` is ``None`` for closed forms).\n\nRaises:\n    ValidationError: If ``forward``, ``strike``, ``barrier``, ``sigma`` or\n        ``time_to_expiry`` is not > 0, ``discount_factor`` is outside ``(0, 1]``,\n        ``forward_bump_fraction``/``vol_bump``/``time_bump`` is not > 0, or\n        ``barrier`` is on the wrong side of ``forward`` for ``barrier_type``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 372
+          "line": 370
         },
         {
           "name": "price_cap_floor",
@@ -10364,12 +10364,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "price_cap_floor(request: CapFloorRequest, *, max_strip_periods: int=_MAX_STRIP_PERIODS) -> CapFloorResult",
           "summary": "Price a cap/floor as a strip of independently priced caplets/floorlets.",
-          "doc": "Price a cap/floor as a strip of independently priced caplets/floorlets.\n\nComposite intent (Req 5.6, Property 16): each period is priced through\n:func:`price_vanilla_option` with its own forward, volatility,\ntime-to-expiry, discount factor and notional; the result carries both the\nper-period results and their plain sums (aggregate premium via ``sum``,\naggregate Greeks via ``Greeks.__add__`` from ``Greeks.zero()``), so the\naggregate equals the sum of the per-period values exactly.\n\nConsistency rule: each caplet's own ``option_type`` must price on the same\ncall/put side as the strip — ``\"call\"``/``\"cap\"`` labels inside a ``\"cap\"``\nstrip, ``\"put\"``/``\"floor\"`` inside a ``\"floor\"`` strip. A mismatched\ncaplet is rejected with a :class:`ValidationError` rather than silently\nrepriced as the strip side (fail loudly, coding-style.md §7).\n\nStrike/notional consistency (Req 5.6): a cap/floor strip has ONE strike\n(the cap/floor rate) and ONE notional; per Req 5.6 only ``forward``,\n``discount_factor`` and ``time_to_expiry`` vary caplet-by-caplet. Every\ncaplet's own ``strike`` and ``notional`` fields (each caplet is a full\n:class:`VanillaOptionRequest`, so it structurally carries them) must\ntherefore equal ``request.strike`` / ``request.notional`` exactly; a\ndivergent caplet is rejected with a :class:`ValidationError` naming the\ncaplet index rather than silently pricing on its own (ignored) values.\n\nArgs:\n    request: The strip; validated eagerly — including the strip-length\n        cap — before any pricing.\n    max_strip_periods: Maximum number of caplets/floorlets in the strip,\n        at least 1 (default 120, Req 5.6).\n\nReturns:\n    Aggregate premium/Greeks plus the per-period results, ordered as the\n    input caplets.\n\nRaises:\n    ValidationError: If ``strike`` or ``notional`` is not > 0,\n        ``max_strip_periods`` < 1, ``caplets`` is empty or exceeds\n        ``max_strip_periods``, a caplet's ``option_type`` is on the wrong\n        side for the strip, a caplet's ``strike``/``notional`` diverges\n        from the strip's (naming the caplet index), or any caplet fails\n        the :func:`price_vanilla_option` domain checks.",
+          "doc": "Price a cap/floor as a strip of independently priced caplets/floorlets.\n\nEach period is priced independently through\n``price_vanilla_option`` with its own forward, volatility,\ntime-to-expiry, discount factor and notional; the result carries both the\nper-period results and their plain sums (aggregate premium via ``sum``,\naggregate Greeks via ``Greeks.__add__`` from ``Greeks.zero()``), so the\naggregate equals the sum of the per-period values exactly.\n\nConsistency rule: each caplet's own ``option_type`` must price on the same\ncall/put side as the strip: ``\"call\"``/``\"cap\"`` labels inside a ``\"cap\"``\nstrip, ``\"put\"``/``\"floor\"`` inside a ``\"floor\"`` strip. A mismatched\ncaplet is rejected with a ``ValidationError`` rather than silently\nrepriced as the strip side.\n\nStrike/notional consistency: a cap/floor strip has ONE strike\n(the cap/floor rate) and ONE notional; only ``forward``,\n``discount_factor`` and ``time_to_expiry`` vary caplet-by-caplet. Every\ncaplet's own ``strike`` and ``notional`` fields (each caplet is a full\n``VanillaOptionRequest``, so it structurally carries them) must\ntherefore equal ``request.strike`` / ``request.notional`` exactly; a\ndivergent caplet is rejected with a ``ValidationError`` naming the\ncaplet index rather than silently pricing on its own (ignored) values.\n\nArgs:\n    request: The strip; validated eagerly, including the strip-length\n        cap, before any pricing.\n    max_strip_periods: Maximum number of caplets/floorlets in the strip,\n        at least 1 (default 120).\n\nReturns:\n    Aggregate premium/Greeks plus the per-period results, ordered as the\n    input caplets.\n\nRaises:\n    ValidationError: If ``strike`` or ``notional`` is not > 0,\n        ``max_strip_periods`` < 1, ``caplets`` is empty or exceeds\n        ``max_strip_periods``, a caplet's ``option_type`` is on the wrong\n        side for the strip, a caplet's ``strike``/``notional`` diverges\n        from the strip's (naming the caplet index), or any caplet fails\n        the ``price_vanilla_option`` domain checks.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/vanilla.py",
-          "line": 117
+          "line": 128
         },
         {
           "name": "price_futures",
@@ -10377,8 +10377,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.futures.price_futures",
           "kind": "function",
           "signature": "price_futures(contract: FuturesContract | ForwardContract, forward_curve: ForwardCurve, valuation_date: date, discount_curve: DiscountCurve, *, settlement_lag_days: int=0) -> FuturesPricingResult",
-          "summary": "Price a futures or forward contract against a forward curve (Req 3.1, 3.2).",
-          "doc": "Price a futures or forward contract against a forward curve (Req 3.1, 3.2).\n\n``NPV = discount_factor(settlement_date) * (forward_price - contract_price) * notional``\nwith a positive notional meaning long; ``delta`` is :func:`futures_delta` at the\ndefault bump. ``settlement_date`` is the delivery period's last day plus\n``settlement_lag_days`` calendar days.\n\nArgs:\n    contract: The futures or forward contract to price.\n    forward_curve: Must have a node for ``contract.delivery_period``.\n    valuation_date: The date NPV is computed as of.\n    discount_curve: Must cover the settlement date.\n    settlement_lag_days: Calendar days added to the delivery period's last\n        day to get the settlement date used for the discount factor\n        (default 0, non-negative).\n\nRaises:\n    ValidationError: If ``settlement_lag_days`` is negative.\n    ExpiredContractError: If the delivery period ended strictly before\n        ``valuation_date`` (Req 3.3).\n    MissingTenorError: If ``forward_curve`` has no node for the delivery period\n        or ``discount_curve`` does not cover the settlement date (Req 3.4).",
+          "summary": "Price a futures or forward contract against a forward curve.",
+          "doc": "Price a futures or forward contract against a forward curve.\n\n``NPV = discount_factor(settlement_date) * (forward_price - contract_price) * notional``\nwith a positive notional meaning long; ``delta`` is :func:`futures_delta` at the\ndefault bump. ``settlement_date`` is the delivery period's last day plus\n``settlement_lag_days`` calendar days.\n\nArgs:\n    contract: The futures or forward contract to price.\n    forward_curve: Must have a node for ``contract.delivery_period``.\n    valuation_date: The date NPV is computed as of.\n    discount_curve: Must cover the settlement date.\n    settlement_lag_days: Calendar days added to the delivery period's last\n        day to get the settlement date used for the discount factor\n        (default 0, non-negative).\n\nRaises:\n    ValidationError: If ``settlement_lag_days`` is negative.\n    ExpiredContractError: If the delivery period ended strictly before\n        ``valuation_date``.\n    MissingTenorError: If ``forward_curve`` has no node for the delivery period\n        or ``discount_curve`` does not cover the settlement date.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -10391,13 +10391,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.exotic.price_lookback",
           "kind": "function",
           "signature": "price_lookback(request: LookbackOptionRequest, *, forward_bump_fraction: float=_FORWARD_BUMP_FRACTION, vol_bump: float=_VOL_BUMP, time_bump: float=_TIME_BUMP) -> ExoticOptionResult",
-          "summary": "Price a lookback option on a forward (Req 6.3).",
-          "doc": "Price a lookback option on a forward (Req 6.3).\n\nStrike-type dispatch: ``\"floating\"`` prices via Goldman-Sosin-Gatto and must carry\n``strike=None`` (the strike *is* the running extreme); ``\"fixed\"`` prices via\nConze-Viswanathan and requires a positive ``strike``. Greeks are central finite\ndifferences of the selected kernel.\n\nArgs:\n    request: Fully specified lookback option; validated eagerly before any\n        computation (Req 6.4).\n    forward_bump_fraction: Relative forward bump for delta/gamma, positive\n        (default ``1e-4``).\n    vol_bump: Absolute vol bump for vega, positive (default ``1e-4``).\n    time_bump: Absolute time bump for theta, positive (default ``1e-6``).\n\nReturns:\n    Premium and Greeks (``standard_error`` is ``None`` for closed forms).\n\nRaises:\n    ValidationError: If ``forward``, ``sigma`` or ``time_to_expiry`` is not > 0,\n        ``discount_factor`` is outside ``(0, 1]``,\n        ``forward_bump_fraction``/``vol_bump``/``time_bump`` is not > 0, a\n        floating-strike request carries a ``strike``, or a fixed-strike request\n        is missing a positive ``strike``.",
+          "summary": "Price a lookback option on a forward.",
+          "doc": "Price a lookback option on a forward.\n\nStrike-type dispatch: ``\"floating\"`` prices via Goldman-Sosin-Gatto and must carry\n``strike=None`` (the strike is the running extreme); ``\"fixed\"`` prices via\nConze-Viswanathan and requires a positive ``strike``. Greeks are central finite\ndifferences of the selected kernel.\n\nArgs:\n    request: Fully specified lookback option; validated eagerly before any\n        computation.\n    forward_bump_fraction: Relative forward bump for delta/gamma, positive\n        (default ``1e-4``).\n    vol_bump: Absolute vol bump for vega, positive (default ``1e-4``).\n    time_bump: Absolute time bump for theta, positive (default ``1e-6``).\n\nReturns:\n    Premium and Greeks (``standard_error`` is ``None`` for closed forms).\n\nRaises:\n    ValidationError: If ``forward``, ``sigma`` or ``time_to_expiry`` is not > 0,\n        ``discount_factor`` is outside ``(0, 1]``,\n        ``forward_bump_fraction``/``vol_bump``/``time_bump`` is not > 0, a\n        floating-strike request carries a ``strike``, or a fixed-strike request\n        is missing a positive ``strike``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/exotic.py",
-          "line": 500
+          "line": 498
         },
         {
           "name": "price_ppa",
@@ -10405,8 +10405,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.ppa_valuation.price_ppa",
           "kind": "function",
           "signature": "price_ppa(contract: PpaContract, profile: PpaVolumeProfile, forward_curve: ForwardCurve, discount_curve: DiscountCurve, valuation_date: date, price_terms: PpaPriceTerms | None=None) -> PpaValuationResult",
-          "summary": "Producer-side intrinsic mark-to-market of an unexpired PPA (Req 15.2).",
-          "doc": "Producer-side intrinsic mark-to-market of an unexpired PPA (Req 15.2).\n\n``npv = sum_t DF(t) * V_t * (K_t - capture_t * F_t)``, where ``DF(t)`` is\n``discount_curve.discount_factor(period.last_day)``, ``F_t`` is\n``forward_curve.price_at(period)``, ``V_t`` is ``expected_mwh``, ``capture_t`` is\n``capture_factor``, and ``K_t`` is the (possibly indexed/clamped) PPA fixed price —\nsee the module docstring's \"K_t resolution\" section. The producer sign\n(``fixed - capture * forward``) follows ``ppa-power-hedging``\n(:mod:`quantvolt.pricing.ppa`).\n\nEach period's producer delta is ``delta_t = -DF(t) * V_t * capture_t`` — the NPV\nsensitivity to a unit bump of that period's forward — keyed\n``(contract.bidding_zone, period)`` (the forward-curve key is the PPA's\n``bidding_zone``, following the transport-right precedent of keying by the curve\nidentifier).\n\nThe PPA's negative-price clause (spot optionality) is **excluded** from this\nintrinsic MtM and never consulted (Req 15.5) — see the module docstring.\n\nArgs:\n    contract: The PPA whose fixed price (and, if attached, ``terms.price``\n        indexation/clamp) supplies ``K_t``.\n    profile: The expected-volume profile to value; every period must be covered by\n        both ``forward_curve`` and ``discount_curve``.\n    forward_curve: Supplies ``F_t``; must have a node for every period in ``profile``.\n    discount_curve: Supplies ``DF(t)``; must cover every period's settlement date\n        (``period.last_day``).\n    valuation_date: The date NPV is computed as of. A period whose delivery ended\n        strictly before this date is an expired cash flow, not a forward-looking\n        one, and raises (the same convention as\n        :func:`quantvolt.pricing.futures.price_futures`).\n    price_terms: An optional explicit :class:`~quantvolt.models.ppa_terms.PpaPriceTerms`\n        override; when ``None`` (the default), ``contract.terms.price`` is consumed\n        if present, else ``K_t`` is the flat ``contract.fixed_price_per_mwh``.\n\nReturns:\n    The aggregate NPV, per-period detail, and the per-period producer delta dict.\n\nRaises:\n    ValidationError: If ``contract`` is not a :class:`~quantvolt.models.ppa.PpaContract`.\n    ExpiredContractError: If any period in ``profile`` ended strictly before\n        ``valuation_date``.\n    MissingTenorError: If ``forward_curve`` has no node for a period, or\n        ``discount_curve`` does not cover a period's settlement date.",
+          "summary": "Producer-side intrinsic mark-to-market of an unexpired PPA.",
+          "doc": "Producer-side intrinsic mark-to-market of an unexpired PPA.\n\n``npv = sum_t DF(t) * V_t * (K_t - capture_t * F_t)``, where ``DF(t)`` is\n``discount_curve.discount_factor(period.last_day)``, ``F_t`` is\n``forward_curve.price_at(period)``, ``V_t`` is ``expected_mwh``, ``capture_t`` is\n``capture_factor``, and ``K_t`` is the (possibly indexed/clamped) PPA fixed price —\nsee the module docstring's \"K_t resolution\" section. The producer sign\n(``fixed - capture * forward``) follows ``ppa-power-hedging``\n(:mod:`quantvolt.pricing.ppa`).\n\nEach period's producer delta is ``delta_t = -DF(t) * V_t * capture_t`` — the NPV\nsensitivity to a unit bump of that period's forward — keyed\n``(contract.bidding_zone, period)`` (the forward-curve key is the PPA's\n``bidding_zone``, following the transport-right precedent of keying by the curve\nidentifier).\n\nThe PPA's negative-price clause (spot optionality) is **excluded** from this\nintrinsic MtM and never consulted — see the module docstring.\n\nArgs:\n    contract: The PPA whose fixed price (and, if attached, ``terms.price``\n        indexation/clamp) supplies ``K_t``.\n    profile: The expected-volume profile to value; every period must be covered by\n        both ``forward_curve`` and ``discount_curve``.\n    forward_curve: Supplies ``F_t``; must have a node for every period in ``profile``.\n    discount_curve: Supplies ``DF(t)``; must cover every period's settlement date\n        (``period.last_day``).\n    valuation_date: The date NPV is computed as of. A period whose delivery ended\n        strictly before this date is an expired cash flow, not a forward-looking\n        one, and raises (the same convention as\n        :func:`quantvolt.pricing.futures.price_futures`).\n    price_terms: An optional explicit :class:`~quantvolt.models.ppa_terms.PpaPriceTerms`\n        override; when ``None`` (the default), ``contract.terms.price`` is consumed\n        if present, else ``K_t`` is the flat ``contract.fixed_price_per_mwh``.\n\nReturns:\n    The aggregate NPV, per-period detail, and the per-period producer delta dict.\n\nRaises:\n    ValidationError: If ``contract`` is not a :class:`~quantvolt.models.ppa.PpaContract`.\n    ExpiredContractError: If any period in ``profile`` ended strictly before\n        ``valuation_date``.\n    MissingTenorError: If ``forward_curve`` has no node for a period, or\n        ``discount_curve`` does not cover a period's settlement date.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -10419,8 +10419,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spread_option.price_spark_spread_option",
           "kind": "function",
           "signature": "price_spark_spread_option(request: SpreadOptionRequest, heat_rate: float, *, forward_bump_fraction: float=_FORWARD_BUMP_FRACTION, vol_bump: float=_VOL_BUMP, correlation_bump: float=_CORRELATION_BUMP) -> SpreadOptionResult",
-          "summary": "Price a spark spread: a call on ``F_power - heat_rate * F_gas - strike`` (Req 7.3).",
-          "doc": "Price a spark spread: a call on ``F_power - heat_rate * F_gas - strike`` (Req 7.3).\n\n``request.forward1`` is the power forward and ``request.forward2`` the RAW gas\nforward. The gas-leg notional is ``notional_power x heat_rate``, realised by\ntransforming the request to ``forward2 * heat_rate`` (``sigma2`` unchanged: a\nconstant multiple of a lognormal forward keeps the same lognormal volatility)\nand delegating to :func:`price_spread_option`. ``forward_bump_fraction``/\n``vol_bump``/``correlation_bump`` are passed through unchanged.\n\n``delta2`` convention (Req 7.2): the transformed request's ``delta2`` is the\nsensitivity to the SCALED gas forward (``heat_rate x F_gas``); this function\nchain-rules it back onto the raw ``F_gas`` the caller passed\n(``delta2_raw = delta2_transformed x heat_rate``), so ``delta2`` always means\n\"sensitivity to the underlying commodity forward the caller supplied\" — the\nsame convention :mod:`quantvolt.pricing.tolling` uses for its fuel/EUA deltas.\n\nRaises:\n    ValidationError: If ``heat_rate`` is not > 0, or the (transformed)\n        request violates any :func:`price_spread_option` constraint.",
+          "summary": "Price a spark spread: a call on ``F_power - heat_rate * F_gas - strike``.",
+          "doc": "Price a spark spread: a call on ``F_power - heat_rate * F_gas - strike``.\n\n``request.forward1`` is the power forward and ``request.forward2`` the RAW gas\nforward. The gas-leg notional is ``notional_power x heat_rate``, realised by\ntransforming the request to ``forward2 * heat_rate`` (``sigma2`` unchanged: a\nconstant multiple of a lognormal forward keeps the same lognormal volatility)\nand delegating to :func:`price_spread_option`. ``forward_bump_fraction``/\n``vol_bump``/``correlation_bump`` are passed through unchanged.\n\n``delta2`` convention: the transformed request's ``delta2`` is the\nsensitivity to the SCALED gas forward (``heat_rate x F_gas``); this function\nchain-rules it back onto the raw ``F_gas`` the caller passed\n(``delta2_raw = delta2_transformed x heat_rate``), so ``delta2`` always means\n\"sensitivity to the underlying commodity forward the caller supplied\" — the\nsame convention :mod:`quantvolt.pricing.tolling` uses for its fuel/EUA deltas.\n\nRaises:\n    ValidationError: If ``heat_rate`` is not > 0, or the (transformed)\n        request violates any :func:`price_spread_option` constraint.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -10433,8 +10433,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.spread_option.price_spread_option",
           "kind": "function",
           "signature": "price_spread_option(request: SpreadOptionRequest, *, forward_bump_fraction: float=_FORWARD_BUMP_FRACTION, vol_bump: float=_VOL_BUMP, correlation_bump: float=_CORRELATION_BUMP) -> SpreadOptionResult",
-          "summary": "Price a spread call and its sensitivities (Req 7.1, 7.2).",
-          "doc": "Price a spread call and its sensitivities (Req 7.1, 7.2).\n\n``strike == 0.0`` prices via Margrabe's exact formula, any other strike via\nKirk's approximation (Property 18). The premium is the kernel premium\nscaled by ``request.notional``; the five sensitivities are central finite\ndifferences of the same kernel, likewise notional-scaled (module docstring\nlists the bump sizes).\n\nArgs:\n    request: Fully specified spread-option request; validated eagerly\n        before any computation.\n    forward_bump_fraction: Relative forward bump for delta1/delta2,\n        positive (default ``1e-4``).\n    vol_bump: Absolute vol bump for vega1/vega2, positive (default\n        ``1e-4``).\n    correlation_bump: Absolute correlation bump for\n        ``correlation_sensitivity``, positive (default ``1e-4``); clamped\n        so ``correlation +/- bump`` stays strictly inside ``(-1, 1)``.\n\nRaises:\n    ValidationError: If ``correlation`` is outside ``(-1, 1)`` (Req 7.4),\n        any of ``forward1``, ``forward2``, ``sigma1``, ``sigma2``,\n        ``time_to_expiry``, ``notional`` is not > 0, ``strike`` < 0,\n        ``discount_factor`` is outside ``(0, 1]``, or\n        ``forward_bump_fraction``/``vol_bump``/``correlation_bump`` is not\n        > 0.",
+          "summary": "Price a spread call and its sensitivities.",
+          "doc": "Price a spread call and its sensitivities.\n\n``strike == 0.0`` prices via Margrabe's exact formula, any other strike via\nKirk's approximation. The premium is the kernel premium\nscaled by ``request.notional``; the five sensitivities are central finite\ndifferences of the same kernel, likewise notional-scaled (module docstring\nlists the bump sizes).\n\nArgs:\n    request: Fully specified spread-option request; validated eagerly\n        before any computation.\n    forward_bump_fraction: Relative forward bump for delta1/delta2,\n        positive (default ``1e-4``).\n    vol_bump: Absolute vol bump for vega1/vega2, positive (default\n        ``1e-4``).\n    correlation_bump: Absolute correlation bump for\n        ``correlation_sensitivity``, positive (default ``1e-4``); clamped\n        so ``correlation +/- bump`` stays strictly inside ``(-1, 1)``.\n\nRaises:\n    ValidationError: If ``correlation`` is outside ``(-1, 1)``,\n        any of ``forward1``, ``forward2``, ``sigma1``, ``sigma2``,\n        ``time_to_expiry``, ``notional`` is not > 0, ``strike`` < 0,\n        ``discount_factor`` is outside ``(0, 1]``, or\n        ``forward_bump_fraction``/``vol_bump``/``correlation_bump`` is not\n        > 0.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -10447,8 +10447,8 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.swap.price_swap",
           "kind": "function",
           "signature": "price_swap(swap: SwapContract, forward_curve: ForwardCurve, discount_curve: DiscountCurve, *, day_count: Callable[[date, date], float]=actual_365, settlement_lag_days: int=0, rate_bump: float=_BASIS_POINT) -> SwapPricingResult",
-          "summary": "Price a fixed-for-floating swap: NPV, per-period delta, and rho (Req 4.1-4.3).",
-          "doc": "Price a fixed-for-floating swap: NPV, per-period delta, and rho (Req 4.1-4.3).\n\nSee the module docstring for the cash-flow (payer-of-fixed / receiver-of-floating)\nand rho (per-bp parallel shift of the continuously compounded zero rate) conventions.\n\nArgs:\n    swap: The swap contract to price.\n    forward_curve: Must cover every delivery period in ``swap.schedule``.\n    discount_curve: Must cover every period's settlement date.\n    day_count: Year-fraction convention used for the rho computation, taking\n        ``(start, end)`` and returning the fraction of a year (default\n        :func:`~quantvolt.numerics.daycount.actual_365`).\n    settlement_lag_days: Calendar days added to each period's last day to get\n        the settlement date used for both the discount-factor lookup and the\n        rho year fraction (default 0, non-negative).\n    rate_bump: The per-basis-point size used to scale rho — the NPV change\n        per this parallel shift of the continuously compounded zero rate\n        (default ``1e-4``, i.e. one basis point).\n\nValidation is eager and ordered, before any computation:\n\n1. ``swap.schedule.periods`` is non-empty;\n2. sort-and-scan overlap/duplicate detection, raising :class:`ValidationError`\n   identifying each offending pair (defensive — see\n   :func:`_require_no_overlapping_periods`);\n3. coverage: every delivery period on the forward curve, then every settlement\n   date within the discount curve's tenor range, raising\n   :class:`MissingTenorError` identifying the missing period(s).\n\nInputs are never mutated; identical inputs produce identical results.\n\nRaises:\n    ValidationError: If ``settlement_lag_days`` is negative or ``rate_bump``\n        is not > 0, in addition to the schedule/coverage errors above.",
+          "summary": "Price a fixed-for-floating swap: NPV, per-period delta, and rho.",
+          "doc": "Price a fixed-for-floating swap: NPV, per-period delta, and rho.\n\nSee the module docstring for the cash-flow (payer-of-fixed / receiver-of-floating)\nand rho (per-bp parallel shift of the continuously compounded zero rate) conventions.\n\nArgs:\n    swap: The swap contract to price.\n    forward_curve: Must cover every delivery period in ``swap.schedule``.\n    discount_curve: Must cover every period's settlement date.\n    day_count: Year-fraction convention used for the rho computation, taking\n        ``(start, end)`` and returning the fraction of a year (default\n        :func:`~quantvolt.numerics.daycount.actual_365`).\n    settlement_lag_days: Calendar days added to each period's last day to get\n        the settlement date used for both the discount-factor lookup and the\n        rho year fraction (default 0, non-negative).\n    rate_bump: The per-basis-point size used to scale rho — the NPV change\n        per this parallel shift of the continuously compounded zero rate\n        (default ``1e-4``, i.e. one basis point).\n\nValidation is eager and ordered, before any computation:\n\n1. ``swap.schedule.periods`` is non-empty;\n2. sort-and-scan overlap/duplicate detection, raising :class:`ValidationError`\n   identifying each offending pair (defensive — see\n   :func:`_require_no_overlapping_periods`);\n3. coverage: every delivery period on the forward curve, then every settlement\n   date within the discount curve's tenor range, raising\n   :class:`MissingTenorError` identifying the missing period(s).\n\nInputs are never mutated; identical inputs produce identical results.\n\nRaises:\n    ValidationError: If ``settlement_lag_days`` is negative or ``rate_bump``\n        is not > 0, in addition to the schedule/coverage errors above.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -10461,13 +10461,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.tolling.price_tolling_agreement",
           "kind": "function",
           "signature": "price_tolling_agreement(plant: PlantConfig, power_curve: ForwardCurve, fuel_curve: ForwardCurve, eua_curve: ForwardCurve, vol_surface: VolatilitySurface, correlation_matrix: np.ndarray, schedule: DeliverySchedule, discount_curve: DiscountCurve, *, capacity: float=_UNIT_NOTIONAL, fuel_sigma: VolatilitySurface | None=None, matrix_tolerance: float=_MATRIX_TOLERANCE, day_count: Callable[[date, date], float]=actual_365, settlement_lag_days: int=0) -> TollingResult",
-          "summary": "Value a tolling agreement as a strip of clean spread options (Req 8.1-8.5).",
-          "doc": "Value a tolling agreement as a strip of clean spread options (Req 8.1-8.5).\n\nOne clean spark (gas) / clean dark (coal) spread option per delivery\nperiod — see the module docstring for the leg composition, unit chain,\nsingle-surface volatility, correlation-indexing and discounting\nconventions. Validation is eager and complete before any pricing:\nschedule length, correlation matrix, full forward-curve / vol-surface /\ndiscount-curve coverage of the schedule.\n\nArgs:\n    plant: Heat rate, variable O&M cost, emissions intensity, fuel type.\n    power_curve: Power forwards; must cover every schedule period.\n    fuel_curve: Gas or coal forwards; must cover every schedule period.\n    eua_curve: EUA forwards; must cover every schedule period.\n    vol_surface: Surface used for the power leg of every period (and the\n        fuel+carbon leg too, when ``fuel_sigma`` is ``None``).\n    correlation_matrix: At least 3x3, ordered ``[power, fuel, eua]``.\n    schedule: 1-1200 delivery periods.\n    discount_curve: Must cover every period's settlement date.\n    capacity: Per-period notional in MWh, positive (default 1.0 —\n        unit-capacity; the historical behaviour). Scales every per-period\n        spread-option notional and the intrinsic-value payoff.\n    fuel_sigma: Optional separate volatility surface for the fuel+carbon\n        leg; must cover every schedule period. ``None`` (default) reuses\n        ``vol_surface`` for both legs, exactly as before.\n    matrix_tolerance: Absolute tolerance for the correlation matrix's\n        symmetry / unit-diagonal checks (default ``1e-9``); must be > 0\n        (a non-positive or NaN tolerance would silently disable or\n        misreport those checks).\n    day_count: Year-fraction convention for each period's time-to-expiry,\n        taking ``(start, end)`` (default\n        :func:`~quantvolt.numerics.daycount.actual_365`).\n    settlement_lag_days: Calendar days added to each period's last day to\n        get the settlement date used for the discount-factor lookup\n        (default 0, non-negative). Does NOT affect the option's\n        ``time_to_expiry``, which is always ``day_count`` from\n        ``discount_curve.reference_date`` to ``period.last_day`` — the\n        decision horizon, not the payment date.\n\nReturns:\n    NPV, intrinsic/time value decomposition, per-period values, and\n    per-period plus aggregate deltas for ``\"power\"``/``\"fuel\"``/``\"eua\"``\n    (aggregate == sum of per-period exactly, Property 20).\n\nRaises:\n    ValidationError: If the schedule has more than 1200 periods; if the\n        correlation matrix is not a square ndarray of size >= 3x3,\n        symmetric with unit diagonal (within ``matrix_tolerance``) and\n        off-diagonals strictly inside (-1, 1) (Property 19); if\n        ``capacity`` is not > 0, ``settlement_lag_days`` is negative, or\n        ``matrix_tolerance`` is not > 0 (including ``NaN``); or\n        if any per-period spread-option input violates\n        :func:`price_spread_option`'s domain (e.g. a non-positive power or\n        fuel+carbon leg forward).\n    InsufficientDataError: If any forward curve misses any schedule period\n        (naming the commodity and the missing periods, Req 8.4), or the\n        vol surface (or ``fuel_sigma``) misses any tenor (naming them,\n        Req 8.5).\n    MissingTenorError: If the discount curve does not cover every\n        period's settlement date.",
+          "summary": "Value a tolling agreement as a strip of clean spread options.",
+          "doc": "Value a tolling agreement as a strip of clean spread options.\n\nOne clean spark (gas) / clean dark (coal) spread option per delivery\nperiod; see the module docstring for the leg composition, unit chain,\nsingle-surface volatility, correlation-indexing and discounting\nconventions. Validation is eager and complete before any pricing:\nschedule length, correlation matrix, full forward-curve / vol-surface /\ndiscount-curve coverage of the schedule.\n\nArgs:\n    plant: Heat rate, variable O&M cost, emissions intensity, fuel type.\n    power_curve: Power forwards; must cover every schedule period.\n    fuel_curve: Gas or coal forwards; must cover every schedule period.\n    eua_curve: EUA forwards; must cover every schedule period.\n    vol_surface: Surface used for the power leg of every period (and the\n        fuel+carbon leg too, when ``fuel_sigma`` is ``None``).\n    correlation_matrix: At least 3x3, ordered ``[power, fuel, eua]``.\n    schedule: 1-1200 delivery periods.\n    discount_curve: Must cover every period's settlement date.\n    capacity: Per-period notional in MWh, positive (default 1.0 —\n        unit-capacity; the historical behaviour). Scales every per-period\n        spread-option notional and the intrinsic-value payoff.\n    fuel_sigma: Optional separate volatility surface for the fuel+carbon\n        leg; must cover every schedule period. ``None`` (default) reuses\n        ``vol_surface`` for both legs, exactly as before.\n    matrix_tolerance: Absolute tolerance for the correlation matrix's\n        symmetry / unit-diagonal checks (default ``1e-9``); must be > 0\n        (a non-positive or NaN tolerance would silently disable or\n        misreport those checks).\n    day_count: Year-fraction convention for each period's time-to-expiry,\n        taking ``(start, end)`` (default ``quantvolt.numerics.daycount.actual_365``).\n    settlement_lag_days: Calendar days added to each period's last day to\n        get the settlement date used for the discount-factor lookup\n        (default 0, non-negative). Does NOT affect the option's\n        ``time_to_expiry``, which is always ``day_count`` from\n        ``discount_curve.reference_date`` to ``period.last_day`` — the\n        decision horizon, not the payment date.\n\nReturns:\n    NPV, intrinsic/time value decomposition, per-period values, and\n    per-period plus aggregate deltas for ``\"power\"``/``\"fuel\"``/``\"eua\"``\n    (aggregate equals the sum of per-period values exactly).\n\nRaises:\n    ValidationError: If the schedule has more than 1200 periods; if the\n        correlation matrix is not a square ndarray of size >= 3x3,\n        symmetric with unit diagonal (within ``matrix_tolerance``) and\n        off-diagonals strictly inside (-1, 1); if\n        ``capacity`` is not > 0, ``settlement_lag_days`` is negative, or\n        ``matrix_tolerance`` is not > 0 (including ``NaN``); or\n        if any per-period spread-option input violates\n        ``price_spread_option``'s domain (e.g. a non-positive power or\n        fuel+carbon leg forward).\n    InsufficientDataError: If any forward curve misses any schedule period\n        (naming the commodity and the missing periods), or the vol\n        surface (or ``fuel_sigma``) misses any tenor (naming them).\n    MissingTenorError: If the discount curve does not cover every\n        period's settlement date.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/tolling.py",
-          "line": 231
+          "line": 230
         },
         {
           "name": "price_vanilla_option",
@@ -10476,12 +10476,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "price_vanilla_option(request: VanillaOptionRequest) -> VanillaOptionResult",
           "summary": "Price a single vanilla European option on a forward under Black-76.",
-          "doc": "Price a single vanilla European option on a forward under Black-76.\n\n``\"cap\"`` and ``\"floor\"`` requests denote a single caplet/floorlet and are\npriced as the equivalent call/put on the floating (forward) price. Premium\nand Greeks are per-unit kernel outputs scaled by ``notional``.\n\nArgs:\n    request: Fully specified option; all domains are validated eagerly\n        before any computation (Req 5.4).\n\nReturns:\n    The notional-scaled premium and Greeks.\n\nRaises:\n    ValidationError: If ``forward``, ``strike``, ``sigma``,\n        ``time_to_expiry`` or ``notional`` is not > 0, or\n        ``discount_factor`` is outside ``(0, 1]``.",
+          "doc": "Price a single vanilla European option on a forward under Black-76.\n\n``\"cap\"`` and ``\"floor\"`` requests denote a single caplet/floorlet and are\npriced as the equivalent call/put on the floating (forward) price. Premium\nand Greeks are per-unit kernel outputs scaled by ``notional``.\n\nArgs:\n    request: Fully specified option; all domains are validated eagerly\n        before any computation.\n\nReturns:\n    The notional-scaled premium and Greeks.\n\nRaises:\n    ValidationError: If ``forward``, ``strike``, ``sigma``,\n        ``time_to_expiry`` or ``notional`` is not > 0, or\n        ``discount_factor`` is outside ``(0, 1]``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/vanilla.py",
-          "line": 71
+          "line": 82
         },
         {
           "name": "reconcile_ppa_ledger",
@@ -10490,12 +10490,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "reconcile_ppa_ledger(contract: PpaContract, ledger: pl.DataFrame, *, columns: PpaReconciliationColumns | None=None) -> pl.DataFrame",
           "summary": "Compute per-reconciliation-period true-up cash flows over a settled ledger.",
-          "doc": "Compute per-reconciliation-period true-up cash flows over a settled ledger.\n\nA **pure post-processing pass**: it never modifies, re-derives, or\ncontradicts a single row of the interval-level ledger produced by\n:func:`settle_ppa_frame` / :func:`settle_ppa_interval` (Requirement 9.2).\nRequires ``contract.terms.reconciliation`` (a\n:class:`~quantvolt.models.ppa_terms.PpaReconciliationTerms`); returns one\nrow per reconciliation period (Requirement 9.1), sorted chronologically,\nwith these columns:\n\n- ``period_start_utc`` / ``period_end_utc`` — the bounds of the ledger\n  rows assigned to this period (the *data's* bounds, not calendar\n  bounds — a declared design decision that needs no calendar library).\n- ``interval_count`` — number of ledger rows in the period.\n- ``total_contracted_mwh`` / ``total_metered_generation_mwh`` — summed\n  over the period's rows.\n- ``volume_band_true_up`` — ``0.0`` unless ``reconciliation.volume_band``\n  is attached, else ``-volume_band.penalty_per_mwh *\n  volume_band.out_of_band_mwh(total_metered, total_contracted)``\n  (Requirement 9; the *aggregate* analogue of the interval-level\n  ``PpaVolumeTerms.tolerance``, economically distinct from it).\n- ``availability_true_up`` — ``0.0`` unless ``reconciliation.availability``\n  is attached, else ``-true_up_price_per_mwh *\n  availability.shortfall_fraction(measured) * total_contracted``, where\n  ``measured = total_metered / total_contracted`` (``1.0`` when\n  ``total_contracted == 0``, a declared decision avoiding division by\n  zero) (Requirement 10).\n- ``consecutive_hour_true_up`` — ``0.0`` unless\n  ``contract.terms.negative_price.min_consecutive_intervals`` is set, else\n  the period's sum of :func:`_consecutive_hour_corrections` (Requirement\n  11); a run spanning a period boundary is attributed row-by-row to\n  whichever period contains each corrected row (a declared design\n  decision — it is not specially split or reallocated). \"Consecutive\"\n  means **clock-time contiguous**, not merely row-adjacent (AMENDED\n  2026-07-19): row ``i + 1`` only continues row ``i``'s run when\n  ``interval_start_utc[i + 1] == interval_end_utc[i]``; a gapped ledger\n  (for example from ``settle_ppa_frame(require_contiguous=False)``, or one\n  the caller assembled by joining rows from more than one source) has its\n  clock-time-disjoint sub-threshold stretches evaluated as separate runs,\n  never concatenated across the gap.\n- ``net_true_up`` — the sum of the three true-up components above.\n\nEach period's ``net_true_up`` is, by construction, exactly the sum of its\nown three stated formulas evaluated over that period's rows only\n(Requirement 9.3's self-reconciliation).",
+          "doc": "Compute per-reconciliation-period true-up cash flows over a settled ledger.\n\nA **pure post-processing pass**: it never modifies, re-derives, or\ncontradicts a single row of the interval-level ledger produced by\n:func:`settle_ppa_frame` / :func:`settle_ppa_interval`.\nRequires ``contract.terms.reconciliation`` (a\n:class:`~quantvolt.models.ppa_terms.PpaReconciliationTerms`); returns one\nrow per reconciliation period, sorted chronologically,\nwith these columns:\n\n- ``period_start_utc`` / ``period_end_utc`` — the bounds of the ledger\n  rows assigned to this period (the *data's* bounds, not calendar\n  bounds — a declared design decision that needs no calendar library).\n- ``interval_count`` — number of ledger rows in the period.\n- ``total_contracted_mwh`` / ``total_metered_generation_mwh`` — summed\n  over the period's rows.\n- ``volume_band_true_up`` — ``0.0`` unless ``reconciliation.volume_band``\n  is attached, else ``-volume_band.penalty_per_mwh *\n  volume_band.out_of_band_mwh(total_metered, total_contracted)``\n  (the *aggregate* analogue of the interval-level\n  ``PpaVolumeTerms.tolerance``, economically distinct from it).\n- ``availability_true_up`` — ``0.0`` unless ``reconciliation.availability``\n  is attached, else ``-true_up_price_per_mwh *\n  availability.shortfall_fraction(measured) * total_contracted``, where\n  ``measured = total_metered / total_contracted`` (``1.0`` when\n  ``total_contracted == 0``, a declared decision avoiding division by\n  zero).\n- ``consecutive_hour_true_up`` — ``0.0`` unless\n  ``contract.terms.negative_price.min_consecutive_intervals`` is set, else\n  the period's sum of :func:`_consecutive_hour_corrections`; a run spanning\n  a period boundary is attributed row-by-row to\n  whichever period contains each corrected row (a declared design\n  decision — it is not specially split or reallocated). \"Consecutive\"\n  means **clock-time contiguous**, not merely row-adjacent (AMENDED\n  2026-07-19): row ``i + 1`` only continues row ``i``'s run when\n  ``interval_start_utc[i + 1] == interval_end_utc[i]``; a gapped ledger\n  (for example from ``settle_ppa_frame(require_contiguous=False)``, or one\n  the caller assembled by joining rows from more than one source) has its\n  clock-time-disjoint sub-threshold stretches evaluated as separate runs,\n  never concatenated across the gap.\n- ``net_true_up`` — the sum of the three true-up components above.\n\nEach period's ``net_true_up`` is, by construction, exactly the sum of its\nown three stated formulas evaluated over that period's rows only\n(each period self-reconciles).",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/ppa.py",
-          "line": 679
+          "line": 676
         },
         {
           "name": "settle_power_hedge_interval",
@@ -10546,12 +10546,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "settle_ppa_interval(contract: PpaContract, interval: PowerDeliveryInterval, *, contracted_mwh: float, metered_generation_mwh: float, spot_price_per_mwh: float, shortfall_price_per_mwh: float | None=None, excess_price_per_mwh: float | None=None, hedge_cashflow: float=0.0, option_payoff: float=0.0, option_premium: float=0.0, variable_cost: float=0.0, transaction_cost: float=0.0, curtailed_mwh: float=0.0) -> PpaIntervalSettlement",
           "summary": "Settle one PPA interval from a producer's perspective.",
-          "doc": "Settle one PPA interval from a producer's perspective.\n\nFor a physical PPA, contracted energy earns the fixed price; own generation\nserves that obligation first, a shortfall is bought at ``shortfall_price``,\nand excess generation is sold at ``excess_price``. Missing imbalance prices\nexplicitly fall back to spot.\n\nFor a financial CfD, all metered generation is sold spot and the contracted\nvolume receives ``fixed - spot``. There is no physical delivery shortfall.\n\nWhen ``contract.terms`` (a :class:`~quantvolt.models.ppa_terms.PpaTerms`) is\nattached, the contracted fixed leg uses the resolved effective price\n``K_eff`` instead of ``contract.fixed_price_per_mwh`` — see\n:func:`_resolve_effective_price` for the fixed indexation -> clamp ->\nnegative-price resolution order.\n\n``curtailed_mwh`` (default ``0.0``) is compensated per\n``contract.terms.volume.curtailment`` under an **indifference** principle\n(AMENDED 2026-07-19, code review FIX 1): a producer curtailed under\n``DEEMED_GENERATION`` is never worse off, and never *better* off, than had it\ndelivered in full — curtailed MWh count *as delivery toward the contracted\nvolume*, they are not an extra, separately-paid quantity on top of it.\n\n- ``PHYSICAL``: curtailed MWh offset the shortfall instead of adding to\n  ``ppa_cashflow``. ``deemed_generation_mwh = min(curtailed_mwh,\n  max(contracted_mwh - metered_generation_mwh, 0.0))`` — the curtailed MWh\n  *actually credited* against the metered/contracted gap (any curtailed MWh\n  beyond that gap cannot offset a shortfall that does not exist, and earns\n  nothing further). ``shortfall = max(contracted_mwh -\n  metered_generation_mwh - deemed_generation_mwh, 0.0)``; ``ppa_cashflow =\n  contracted_mwh * K_eff`` (no curtailment add-on). A fully-curtailed\n  shortfall (``deemed_generation_mwh == shortfall_gap``) reconciles to\n  exactly the full-delivery net cash flow.\n- ``FINANCIAL_CFD``: there is no physical shortfall to offset, so\n  ``deemed_generation_mwh = curtailed_mwh`` in full, and the make-whole pays\n  the curtailed MWh's *lost spot revenue* at the signed spot price:\n  ``ppa_cashflow = contracted_mwh * (K_eff - spot_price_per_mwh) +\n  deemed_generation_mwh * spot_price_per_mwh``. ``spot_cashflow`` keeps its\n  plain ``metered_generation_mwh * spot_price_per_mwh`` meaning; the deemed\n  make-whole is carried entirely on the contractual (``ppa_cashflow``) leg.\n- ``PRODUCER_BEARS`` (or no volume terms at all): ``deemed_generation_mwh =\n  0.0`` and curtailed MWh earn nothing, on either settlement type.\n- **Declared decision — negative spot:** exact indifference means that at a\n  negative spot price, ``DEEMED_GENERATION`` yields *less* net cash flow than\n  ``PRODUCER_BEARS`` (bearing the curtailment, rather than being made whole\n  for it, is genuinely the better outcome when spot is negative — being\n  credited for energy priced negatively is a cost, not a benefit). This\n  inversion only occurs for ``spot_price_per_mwh < 0``; for ``spot >= 0``,\n  ``DEEMED_GENERATION`` net cash flow is always ``>=`` ``PRODUCER_BEARS``'s\n  (see Property 89, scoped to ``spot >= 0`` accordingly).\n\nA volume tolerance band, if attached, charges ``penalty_per_mwh`` on\nout-of-band MWh only, recorded as the separate, always-non-positive\n``tolerance_penalty`` ledger component.\n\nWhen ``contract.terms`` is ``None`` or ``PpaTerms()`` (every field ``None``)\nand ``curtailed_mwh == 0.0``, every shared field is byte-identical to the\nas-built (no-terms) output; the four new fields take their inert values\n(Property 85).\n\nEmbedded floor/cap price bounds (``PpaPriceTerms``), a ``hedges=`` overlay\n(:class:`~quantvolt.models.power_hedge.PowerHedgeContract`, settled into\n``hedge_cashflow``), and caller-supplied ``option_payoff`` are economically\ndistinct cash flows — a bound on the contract's own price is not a separate\nfinancial instrument — and are never conflated or double-counted here.",
+          "doc": "Settle one PPA interval from a producer's perspective.\n\nFor a physical PPA, contracted energy earns the fixed price; own generation\nserves that obligation first, a shortfall is bought at ``shortfall_price``,\nand excess generation is sold at ``excess_price``. Missing imbalance prices\nexplicitly fall back to spot.\n\nFor a financial CfD, all metered generation is sold spot and the contracted\nvolume receives ``fixed - spot``. There is no physical delivery shortfall.\n\nWhen ``contract.terms`` (a :class:`~quantvolt.models.ppa_terms.PpaTerms`) is\nattached, the contracted fixed leg uses the resolved effective price\n``K_eff`` instead of ``contract.fixed_price_per_mwh`` — see\n:func:`_resolve_effective_price` for the fixed indexation -> clamp ->\nnegative-price resolution order.\n\n``curtailed_mwh`` (default ``0.0``) is compensated per\n``contract.terms.volume.curtailment`` under an **indifference** principle\n(AMENDED 2026-07-19, code review FIX 1): a producer curtailed under\n``DEEMED_GENERATION`` is never worse off, and never *better* off, than had it\ndelivered in full — curtailed MWh count *as delivery toward the contracted\nvolume*, they are not an extra, separately-paid quantity on top of it.\n\n- ``PHYSICAL``: curtailed MWh offset the shortfall instead of adding to\n  ``ppa_cashflow``. ``deemed_generation_mwh = min(curtailed_mwh,\n  max(contracted_mwh - metered_generation_mwh, 0.0))`` — the curtailed MWh\n  *actually credited* against the metered/contracted gap (any curtailed MWh\n  beyond that gap cannot offset a shortfall that does not exist, and earns\n  nothing further). ``shortfall = max(contracted_mwh -\n  metered_generation_mwh - deemed_generation_mwh, 0.0)``; ``ppa_cashflow =\n  contracted_mwh * K_eff`` (no curtailment add-on). A fully-curtailed\n  shortfall (``deemed_generation_mwh == shortfall_gap``) reconciles to\n  exactly the full-delivery net cash flow.\n- ``FINANCIAL_CFD``: there is no physical shortfall to offset, so\n  ``deemed_generation_mwh = curtailed_mwh`` in full, and the make-whole pays\n  the curtailed MWh's *lost spot revenue* at the signed spot price:\n  ``ppa_cashflow = contracted_mwh * (K_eff - spot_price_per_mwh) +\n  deemed_generation_mwh * spot_price_per_mwh``. ``spot_cashflow`` keeps its\n  plain ``metered_generation_mwh * spot_price_per_mwh`` meaning; the deemed\n  make-whole is carried entirely on the contractual (``ppa_cashflow``) leg.\n- ``PRODUCER_BEARS`` (or no volume terms at all): ``deemed_generation_mwh =\n  0.0`` and curtailed MWh earn nothing, on either settlement type.\n- **Declared decision — negative spot:** exact indifference means that at a\n  negative spot price, ``DEEMED_GENERATION`` yields *less* net cash flow than\n  ``PRODUCER_BEARS`` (bearing the curtailment, rather than being made whole\n  for it, is genuinely the better outcome when spot is negative — being\n  credited for energy priced negatively is a cost, not a benefit). This\n  inversion only occurs for ``spot_price_per_mwh < 0``; for ``spot >= 0``,\n  ``DEEMED_GENERATION`` net cash flow is always ``>=`` ``PRODUCER_BEARS``'s.\n\nA volume tolerance band, if attached, charges ``penalty_per_mwh`` on\nout-of-band MWh only, recorded as the separate, always-non-positive\n``tolerance_penalty`` ledger component.\n\nWhen ``contract.terms`` is ``None`` or ``PpaTerms()`` (every field ``None``)\nand ``curtailed_mwh == 0.0``, every shared field is byte-identical to the\nas-built (no-terms) output; the four new fields take their inert values.\n\nEmbedded floor/cap price bounds (``PpaPriceTerms``), a ``hedges=`` overlay\n(:class:`~quantvolt.models.power_hedge.PowerHedgeContract`, settled into\n``hedge_cashflow``), and caller-supplied ``option_payoff`` are economically\ndistinct cash flows — a bound on the contract's own price is not a separate\nfinancial instrument — and are never conflated or double-counted here.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/ppa.py",
-          "line": 360
+          "line": 359
         },
         {
           "name": "spark_spread",
@@ -10560,12 +10560,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "spark_spread(power_curve: ForwardCurve, fuel_curve: ForwardCurve, heat_rate: float, variable_cost: float, emissions_cost: float) -> SpreadResult",
           "summary": "Spark spread (gas-fired generation margin) per shared delivery period.",
-          "doc": "Spark spread (gas-fired generation margin) per shared delivery period.\n\nFor each period in the intersection of ``power_curve`` and ``fuel_curve``:\n``power_price - heat_rate * fuel_price - variable_cost - emissions_cost``\n(Req 2.1, Property 6). Computing a spark spread never reads or writes any dark\nvalues: each call returns a new immutable :class:`SpreadResult` labelled\n``\"spark\"``, so any existing dark result remains untouched.\n\nRaises :class:`~quantvolt.exceptions.ValidationError` unless ``heat_rate > 0``,\n``variable_cost >= 0`` and ``emissions_cost >= 0``, and\n:class:`InsufficientDataError` when the curves share no delivery periods.",
+          "doc": "Spark spread (gas-fired generation margin) per shared delivery period.\n\nFor each period in the intersection of ``power_curve`` and ``fuel_curve``:\n``power_price - heat_rate * fuel_price - variable_cost - emissions_cost``.\nComputing a spark spread never reads or writes any dark values: each call\nreturns a new immutable ``SpreadResult`` labelled ``\"spark\"``, so any existing\ndark result remains untouched.\n\nRaises ``ValidationError`` unless ``heat_rate > 0``, ``variable_cost >= 0``\nand ``emissions_cost >= 0``, and ``InsufficientDataError`` when the curves\nshare no delivery periods.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/spreads.py",
-          "line": 205
+          "line": 204
         },
         {
           "name": "value_transport_right",
@@ -10573,13 +10573,13 @@ window.API_DATA = {
           "qualified": "quantvolt.pricing.transmission_right.value_transport_right",
           "kind": "function",
           "signature": "value_transport_right(right: TransportRight, curve_a: ForwardCurve, curve_b: ForwardCurve, discount_curve: DiscountCurve, *, vols: tuple[float, float] | None=None, correlation: float | None=None, day_count: Callable[[date, date], float]=actual_365, settlement_lag_days: int=0) -> TransportRightResult",
-          "summary": "Value a transmission or pipeline right (Req 24.1-24.5, Properties 67-68).",
-          "doc": "Value a transmission or pipeline right (Req 24.1-24.5, Properties 67-68).\n\n``curve_a`` is the origin (hub A) forward curve and ``curve_b`` the destination\n(hub B) curve; their commodity ids must match ``right.origin`` / ``right.destination``\nso curves cannot be silently swapped. Valuation covers the shared periods of both\ncurves within the right's schedule (Req 24.5). Each period's settlement is its\n``last_day`` plus ``settlement_lag_days`` (the swap/tolling convention): the\ndiscount factor is taken there. For the option path, ``time_to_expiry`` is\n``day_count`` (default actual/365) from ``discount_curve.reference_date`` to the\nperiod's ``last_day`` (the flow decision horizon) — ``settlement_lag_days`` never\nshifts the volatility horizon, only the discount-factor lookup date.\n\nIntrinsic value is ``Σ D · Q_delivered · max(P_B - P_A - T_AB, 0)``. Supplying\n``vols=(sigma_origin, sigma_destination)`` and ``correlation`` (both or neither,\nReq 24.2) adds the spread-option extrinsic value per period. A ``BIDIRECTIONAL``\nright commits each period to the best of A→B (tariff ``tariff``), B→A (tariff\n``reverse_tariff``, defaulting to ``tariff``) or no-flow, and is subadditive versus\ntwo one-way rights (Property 68).\n\nArgs:\n    right: The transmission or pipeline right to value.\n    curve_a: Origin (hub A) forward curve.\n    curve_b: Destination (hub B) forward curve.\n    discount_curve: Discount curve for settlement dates.\n    vols: Optional ``(sigma_origin, sigma_destination)`` pair (both or\n        neither with ``correlation``).\n    correlation: Optional origin/destination correlation (both or neither\n        with ``vols``).\n    day_count: Year-fraction convention for the option ``time_to_expiry``,\n        taking ``(start, end)`` (default\n        :func:`~quantvolt.numerics.daycount.actual_365`).\n    settlement_lag_days: Calendar days added to each period's last day to\n        get the settlement date used for the discount factor (default 0,\n        non-negative). Does NOT affect the option's ``time_to_expiry``,\n        which is always ``day_count`` to ``period.last_day``.\n\nRaises:\n    ValidationError: If ``vols``/``correlation`` are not supplied both-or-neither\n        (Req 24.2), if the curve commodity ids do not match ``right.origin`` /\n        ``right.destination``, if ``settlement_lag_days`` is negative, or if a\n        location forward is non-positive on the option path (from the\n        spread-option engine).\n    InsufficientDataError: If the two curves share no schedule period (Req 24.5).\n    MissingTenorError: If the discount curve does not cover a period's settlement.",
+          "summary": "Value a transmission or pipeline right.",
+          "doc": "Value a transmission or pipeline right.\n\n``curve_a`` is the origin (hub A) forward curve and ``curve_b`` the destination\n(hub B) curve; their commodity ids must match ``right.origin`` / ``right.destination``\nso curves cannot be silently swapped. Valuation covers the shared periods of both\ncurves within the right's schedule. Each period's settlement is its\n``last_day`` plus ``settlement_lag_days`` (the swap/tolling convention): the\ndiscount factor is taken there. For the option path, ``time_to_expiry`` is\n``day_count`` (default actual/365) from ``discount_curve.reference_date`` to the\nperiod's ``last_day`` (the flow decision horizon) — ``settlement_lag_days`` never\nshifts the volatility horizon, only the discount-factor lookup date.\n\nIntrinsic value is ``Σ D · Q_delivered · max(P_B - P_A - T_AB, 0)``. Supplying\n``vols=(sigma_origin, sigma_destination)`` and ``correlation`` (both or neither,\nReq 24.2) adds the spread-option extrinsic value per period. A ``BIDIRECTIONAL``\nright commits each period to the best of A→B (tariff ``tariff``), B→A (tariff\n``reverse_tariff``, defaulting to ``tariff``) or no-flow, and is subadditive versus\ntwo one-way rights.\n\nArgs:\n    right: The transmission or pipeline right to value.\n    curve_a: Origin (hub A) forward curve.\n    curve_b: Destination (hub B) forward curve.\n    discount_curve: Discount curve for settlement dates.\n    vols: Optional ``(sigma_origin, sigma_destination)`` pair (both or\n        neither with ``correlation``).\n    correlation: Optional origin/destination correlation (both or neither\n        with ``vols``).\n    day_count: Year-fraction convention for the option ``time_to_expiry``,\n        taking ``(start, end)`` (default\n        :func:`~quantvolt.numerics.daycount.actual_365`).\n    settlement_lag_days: Calendar days added to each period's last day to\n        get the settlement date used for the discount factor (default 0,\n        non-negative). Does NOT affect the option's ``time_to_expiry``,\n        which is always ``day_count`` to ``period.last_day``.\n\nRaises:\n    ValidationError: If ``vols``/``correlation`` are not supplied both-or-neither\n       , if the curve commodity ids do not match ``right.origin`` /\n        ``right.destination``, if ``settlement_lag_days`` is negative, or if a\n        location forward is non-positive on the option path (from the\n        spread-option engine).\n    InsufficientDataError: If the two curves share no schedule period.\n    MissingTenorError: If the discount curve does not cover a period's settlement.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/pricing/transmission_right.py",
-          "line": 241
+          "line": 240
         }
       ]
     },
@@ -10594,13 +10594,13 @@ window.API_DATA = {
           "qualified": "quantvolt.portfolio.valuation.MarketData",
           "kind": "class",
           "signature": "MarketData(forward_curves: dict[str, ForwardCurve], discount_curve: DiscountCurve, valuation_date: date, vol_surfaces: dict[str, VolatilitySurface] = field(default_factory=dict), correlations: dict[tuple[str, str], float] = field(default_factory=dict))",
-          "summary": "The market inputs needed to value a portfolio (Req 13.2; portfolio-native-pricers Req 1: ``vol_surfaces`` / ``correlations`` extension).",
-          "doc": "The market inputs needed to value a portfolio (Req 13.2; portfolio-native-pricers\nReq 1: ``vol_surfaces`` / ``correlations`` extension).\n\n``forward_curves``, ``vol_surfaces`` and ``correlations`` are all defensively copied\ninto fresh ``dict``s at construction (the ``object.__setattr__`` pattern), so later\nmutation of a caller's mapping cannot reach into this frozen value object. The stored\ncopies are treated as immutable by convention from then on — nothing in the library\nwrites to them. ``vol_surfaces`` and ``correlations`` both default to empty, so every\nexisting ``MarketData(...)`` call site (and the futures/forward/swap/transport\npricers, which never touch either field) continues to work unchanged.\n\nEvery ``correlations`` value is validated once, here, to lie strictly inside\n``(-1, 1)`` via :func:`~quantvolt._validation.require_correlation`; :meth:`correlation_for`\nis therefore a pure lookup that never re-validates.",
+          "summary": "The market inputs needed to value a portfolio: forward curves, a discount curve, the valuation date, and optional volatility surfaces and correlations.",
+          "doc": "The market inputs needed to value a portfolio: forward curves, a discount curve,\nthe valuation date, and optional volatility surfaces and correlations.\n\n``forward_curves``, ``vol_surfaces`` and ``correlations`` are all defensively copied\ninto fresh ``dict``s at construction, so later mutation of a caller's mapping cannot\nreach into this frozen value object. The stored copies are treated as immutable by\nconvention from then on; nothing in the library writes to them. ``vol_surfaces`` and\n``correlations`` both default to empty.\n\nEvery ``correlations`` value is validated once, here, to lie strictly inside ``(-1, 1)``;\n``correlation_for`` is therefore a pure lookup that never re-validates.",
           "methods": [
             {
               "name": "curve_for",
               "signature": "curve_for(self, commodity_id: str) -> ForwardCurve",
-              "summary": "Return the forward curve for ``commodity_id``; raise if absent (Task 61)."
+              "summary": "Return the forward curve for ``commodity_id``; raise if absent."
             },
             {
               "name": "surface_for",
@@ -10642,7 +10642,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/portfolio/valuation.py",
-          "line": 70
+          "line": 68
         },
         {
           "name": "Portfolio",
@@ -10651,7 +10651,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "Portfolio(positions: tuple[Position, ...], name: str | None = None)",
           "summary": "An immutable, iterable Composite of positions — one and many handled uniformly.",
-          "doc": "An immutable, iterable Composite of positions — one and many handled uniformly.\n\nSatisfies Req 13.1: an ordered, immutable collection whose positions can be iterated\nand counted without mutation — ``__iter__`` delegates to the underlying tuple in\nconstruction order and ``__len__`` counts without side effects.",
+          "doc": "An immutable, iterable Composite of positions — one and many handled uniformly.\n\nAn ordered, immutable collection whose positions can be iterated and counted without\nmutation — ``__iter__`` delegates to the underlying tuple in construction order and\n``__len__`` counts without side effects.",
           "methods": [],
           "fields": [
             {
@@ -10705,8 +10705,8 @@ window.API_DATA = {
           "qualified": "quantvolt.portfolio.valuation.PortfolioValuation",
           "kind": "class",
           "signature": "PortfolioValuation(total_npv: float, priced: tuple[PricedPosition, ...], unpriced: tuple[Position, ...])",
-          "summary": "Aggregate NPV plus per-position results, in portfolio order (Req 13.2, 13.3).",
-          "doc": "Aggregate NPV plus per-position results, in portfolio order (Req 13.2, 13.3).",
+          "summary": "Aggregate NPV plus per-position results, in portfolio order.",
+          "doc": "Aggregate NPV plus per-position results, in portfolio order.",
           "methods": [],
           "fields": [
             {
@@ -10727,7 +10727,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/portfolio/valuation.py",
-          "line": 159
+          "line": 149
         },
         {
           "name": "Position",
@@ -10766,7 +10766,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "PricedPosition(position: Position, npv: float, delta: dict[tuple[str, DeliveryPeriod], float] = field(default_factory=dict), greeks: Greeks | None = None, reference_prices: dict[tuple[str, DeliveryPeriod], float] = field(default_factory=dict))",
           "summary": "A position after valuation — exactly what RiskEngine and mark_to_market consume.",
-          "doc": "A position after valuation — exactly what RiskEngine and mark_to_market consume.\n\nInvariants enforced at construction (eager boundary validation, ``coding-style.md`` §7):\n\n- ``npv`` must be finite. A NaN or ±inf NPV would silently poison every downstream\n  aggregate (portfolio NPV, VaR loss quantiles), so it is rejected here with a\n  :class:`~quantvolt.exceptions.ValidationError` naming ``npv``.\n- ``delta`` is defensively copied: the mapping is snapshot into a fresh ``dict`` at\n  construction, so later mutation of the caller's dict cannot reach into this frozen\n  value object. The stored copy is treated as immutable by convention from then on —\n  nothing in the library writes to it. (``object.__setattr__`` is the sanctioned way\n  to assign inside ``__post_init__`` of a frozen dataclass and works with ``slots``.)\n- ``reference_prices`` is defensively copied the same way. It optionally records the\n  forward price level ``value_portfolio`` observed for each ``delta`` entry's\n  ``(commodity_id, delivery period)`` key, in the same units as that commodity's\n  forward curve. ``RiskEngine.apply_scenario`` needs this to correctly scale a\n  *relative* (fractional) scenario shock into currency P&L\n  (``delta x reference_price x shock`` — see :mod:`quantvolt.risk.scenarios`); a key\n  absent from ``reference_prices`` (including an entirely empty mapping, the default)\n  falls back to a reference price of ``1.0``, preserving the legacy\n  ``delta x shock`` behaviour for hand-built positions that never populate it.",
+          "doc": "A position after valuation — exactly what RiskEngine and mark_to_market consume.\n\nInvariants enforced eagerly at construction:\n\n- ``npv`` must be finite. A NaN or ±inf NPV would silently poison every downstream\n  aggregate (portfolio NPV, VaR loss quantiles), so it is rejected here with a\n  :class:`~quantvolt.exceptions.ValidationError` naming ``npv``.\n- ``delta`` is defensively copied: the mapping is snapshot into a fresh ``dict`` at\n  construction, so later mutation of the caller's dict cannot reach into this frozen\n  value object. The stored copy is treated as immutable by convention from then on —\n  nothing in the library writes to it. (``object.__setattr__`` is the sanctioned way\n  to assign inside ``__post_init__`` of a frozen dataclass and works with ``slots``.)\n- ``reference_prices`` is defensively copied the same way. It optionally records the\n  forward price level ``value_portfolio`` observed for each ``delta`` entry's\n  ``(commodity_id, delivery period)`` key, in the same units as that commodity's\n  forward curve. ``RiskEngine.apply_scenario`` needs this to correctly scale a\n  *relative* (fractional) scenario shock into currency P&L\n  (``delta x reference_price x shock`` — see :mod:`quantvolt.risk.scenarios`); a key\n  absent from ``reference_prices`` (including an entirely empty mapping, the default)\n  falls back to a reference price of ``1.0``, preserving the legacy\n  ``delta x shock`` behaviour for hand-built positions that never populate it.",
           "methods": [],
           "fields": [
             {
@@ -10849,13 +10849,13 @@ window.API_DATA = {
           "qualified": "quantvolt.portfolio.valuation.value_portfolio",
           "kind": "function",
           "signature": "value_portfolio(portfolio: Portfolio, market_data: MarketData, pricers: Mapping[type[Any], Pricer] | None=None) -> PortfolioValuation",
-          "summary": "Value every position via its registered pricer and aggregate the NPV (Req 13.2-13.6).",
-          "doc": "Value every position via its registered pricer and aggregate the NPV (Req 13.2-13.6).\n\nThe dispatch registry is :data:`DEFAULT_PRICERS` merged with the caller-supplied\n``pricers`` (caller entries win) — the open/closed extension seam: new instrument\ntypes are registered, never edited in (Req 13.4). Positions are processed in\nportfolio order; a position whose instrument type has no registered pricer is\nreturned in ``unpriced`` rather than raising, so the rest of the book is still\nvalued, and ``total_npv`` sums the priced positions only (Req 13.3).\n\nPricing errors — :class:`~quantvolt.exceptions.ExpiredContractError`,\n:class:`~quantvolt.exceptions.MissingTenorError`, a missing forward curve from\n:meth:`MarketData.curve_for` — **propagate**: they are data errors on a position\nthe registry *does* know how to price, not registry misses, and silently skipping\nthem would hide a mispriced book.\n\nInputs are never mutated, and identical inputs produce identical results (Req 13.6).\n\n**No LSMC or dispatch engine ever runs inside this function** (Req 19.2). A\n:class:`~quantvolt.models.instruments.CachedAssetValuation` position is priced by\nre-emitting its already-computed ``npv``/``delta`` (after a staleness check against\n``market_data.valuation_date``) — ``value_portfolio`` itself never simulates or\nre-optimises anything; every native pricer here is a thin *validate -> gather inputs ->\ndelegate to an existing closed-form kernel -> package a result* orchestration.",
+          "summary": "Value every position via its registered pricer and aggregate the NPV.",
+          "doc": "Value every position via its registered pricer and aggregate the NPV.\n\nThe dispatch registry is ``DEFAULT_PRICERS`` merged with the caller-supplied\n``pricers`` (caller entries win); new instrument types are registered, never edited\nin. Positions are processed in portfolio order; a position whose instrument type has\nno registered pricer is returned in ``unpriced`` rather than raising, so the rest of\nthe book is still valued, and ``total_npv`` sums the priced positions only.\n\nPricing errors -- ``ExpiredContractError``, ``MissingTenorError``, a missing forward\ncurve from ``MarketData.curve_for`` -- propagate: they are data errors on a position\nthe registry does know how to price, not registry misses, and silently skipping them\nwould hide a mispriced book.\n\nInputs are never mutated, and identical inputs produce identical results.\n\nNo LSMC or dispatch engine ever runs inside this function. A\n``CachedAssetValuation`` position is priced by re-emitting its already-computed\n``npv``/``delta`` (after a staleness check against ``market_data.valuation_date``);\n``value_portfolio`` itself never simulates or re-optimises anything -- every native\npricer here validates, gathers inputs, delegates to an existing closed-form kernel,\nand packages a result.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/portfolio/valuation.py",
-          "line": 599
+          "line": 586
         },
         {
           "name": "Instrument",
@@ -10863,7 +10863,7 @@ window.API_DATA = {
           "qualified": "quantvolt.portfolio.model.Instrument",
           "kind": "constant",
           "signature": "Instrument",
-          "summary": "Public type alias for the instrument variants that a Portfolio Position can hold..",
+          "summary": "Public type alias for the instrument variants that a Portfolio Position can hold.",
           "doc": "Public type alias for the instrument variants that a Portfolio Position can hold.",
           "methods": [],
           "fields": [],
@@ -11000,8 +11000,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.cfar.CFaRResult",
           "kind": "class",
           "signature": "CFaRResult(cfar_95: float, expected: float, p5: float, p50: float, p95: float, horizon: int, seed: int, aggregate_cashflows: tuple[float, ...], consistency: Mapping[str, str] | None)",
-          "summary": "Outcome of a :func:`cash_flow_at_risk` computation (Req 16.1).",
-          "doc": "Outcome of a :func:`cash_flow_at_risk` computation (Req 16.1).\n\n``cfar_95`` is the shortfall below the expected aggregate cash flow at the\ncaller's ``confidence_level`` (95% by default; see the module docstring for the\nexact definition and sign convention); it is always ``>= 0``. ``expected`` is the\nmean and ``p5`` / ``p50`` / ``p95`` are percentiles of the aggregate cash-flow\ndistribution (``p5`` sits at ``confidence_level``'s complement — the 5th\npercentile at the default 95% confidence level; ``p50`` / ``p95`` are always the\n50th / 95th percentiles). ``aggregate_cashflows`` is the per-scenario aggregated\ncash flow in the input scenario order, exposing the full distribution. ``horizon``\nand ``seed`` are echoed for reproducibility, and ``consistency`` is the\ncaller-supplied market/operational consistency metadata carried verbatim.",
+          "summary": "Outcome of a :func:`cash_flow_at_risk` computation.",
+          "doc": "Outcome of a :func:`cash_flow_at_risk` computation.\n\n``cfar_95`` is the shortfall below the expected aggregate cash flow at the\ncaller's ``confidence_level`` (95% by default; see the module docstring for the\nexact definition and sign convention); it is always ``>= 0``. ``expected`` is the\nmean and ``p5`` / ``p50`` / ``p95`` are percentiles of the aggregate cash-flow\ndistribution (``p5`` sits at ``confidence_level``'s complement — the 5th\npercentile at the default 95% confidence level; ``p50`` / ``p95`` are always the\n50th / 95th percentiles). ``aggregate_cashflows`` is the per-scenario aggregated\ncash flow in the input scenario order, exposing the full distribution. ``horizon``\nand ``seed`` are echoed for reproducibility, and ``consistency`` is the\ncaller-supplied market/operational consistency metadata carried verbatim.",
           "methods": [],
           "fields": [
             {
@@ -11060,8 +11060,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.credit_var.CounterpartyCreditDetail",
           "kind": "class",
           "signature": "CounterpartyCreditDetail(counterparty: str, default_probability: float, exposure: float, lgd: float, expected_loss: float)",
-          "summary": "Per-counterparty credit inputs and closed-form expected loss (Req 17.1).",
-          "doc": "Per-counterparty credit inputs and closed-form expected loss (Req 17.1).\n\n``exposure`` is the exposure-at-default ``EAD = max(net exposure, 0)`` actually used in\nthe simulation; ``lgd`` is ``1 - recovery``; ``expected_loss`` is the analytic\n``default_probability * lgd * exposure`` (exact, independent of the Monte Carlo draw).",
+          "summary": "Per-counterparty credit inputs and closed-form expected loss.",
+          "doc": "Per-counterparty credit inputs and closed-form expected loss.\n\n``exposure`` is the exposure-at-default ``EAD = max(net exposure, 0)`` actually used in\nthe simulation; ``lgd`` is ``1 - recovery``; ``expected_loss`` is the analytic\n``default_probability * lgd * exposure`` (exact, independent of the Monte Carlo draw).",
           "methods": [],
           "fields": [
             {
@@ -11100,8 +11100,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.credit_var.CreditVaRResult",
           "kind": "class",
           "signature": "CreditVaRResult(credit_var_95: float, credit_var_99: float, expected_credit_loss: float, per_counterparty: tuple[CounterpartyCreditDetail, ...], credit_risk_free: tuple[PricedPosition, ...], seed: int, path_count: int, asset_correlation: float)",
-          "summary": "Outcome of a :func:`credit_var` computation (Req 17.1).",
-          "doc": "Outcome of a :func:`credit_var` computation (Req 17.1).\n\n``credit_var_95`` / ``credit_var_99`` are the (95% / 99% by default) credit-loss\nquantiles and\n``expected_credit_loss`` the mean loss (see the module docstring for the exact\ndefinitions and sign convention); all three are ``>= 0`` and\n``credit_var_99 >= credit_var_95``. ``per_counterparty`` holds one\n:class:`CounterpartyCreditDetail` per credit-bearing counterparty, ordered by\ncounterparty id. ``credit_risk_free`` lists the positions carrying no counterparty,\nreported rather than dropped silently (Req 17.2). ``seed``, ``path_count`` and\n``asset_correlation`` are echoed for reproducibility.",
+          "summary": "Outcome of a :func:`credit_var` computation.",
+          "doc": "Outcome of a :func:`credit_var` computation.\n\n``credit_var_95`` / ``credit_var_99`` are the (95% / 99% by default) credit-loss\nquantiles and\n``expected_credit_loss`` the mean loss (see the module docstring for the exact\ndefinitions and sign convention); all three are ``>= 0`` and\n``credit_var_99 >= credit_var_95``. ``per_counterparty`` holds one\n:class:`CounterpartyCreditDetail` per credit-bearing counterparty, ordered by\ncounterparty id. ``credit_risk_free`` lists the positions carrying no counterparty,\nreported rather than dropped silently. ``seed``, ``path_count`` and\n``asset_correlation`` are echoed for reproducibility.",
           "methods": [],
           "fields": [
             {
@@ -11191,7 +11191,7 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.engine.ExcludedPosition",
           "kind": "class",
           "signature": "ExcludedPosition(index: int, reason: Literal['missing_delta', 'missing_npv', 'unresolvable_instrument'])",
-          "summary": "A portfolio position omitted from a risk calculation together with the actionable reason for exclusion..",
+          "summary": "A portfolio position omitted from a risk calculation together with the actionable reason for exclusion.",
           "doc": "A portfolio position omitted from a risk calculation together with the actionable reason for exclusion.",
           "methods": [],
           "fields": [
@@ -11217,7 +11217,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "FactorModel(market_data: MarketData, factors: tuple[FactorLabel, ...], sigma: npt.NDArray[np.float64], corr: npt.NDArray[np.float64])",
           "summary": "Base market state plus GBM dynamics over an ordered ``(commodity, period)`` grid.",
-          "doc": "Base market state plus GBM dynamics over an ordered ``(commodity, period)`` grid.\n\nFields:\n    market_data: the current/base market state. Its ``forward_curves`` supply the\n        current forwards (``z0 = log F_0``) for every factor, and its\n        ``discount_curve`` / ``valuation_date`` provide the static revaluation context.\n    factors: ordered factor labels; strictly ascending by ``(commodity_id, period)``\n        (see the module docstring for the flattening convention). Factor ``i`` indexes\n        ``sigma[i]`` and row/column ``i`` of ``corr``.\n    sigma: per-factor instantaneous volatility (length ``D``); ``0`` marks an expired,\n        frozen factor (eq A.5). Deep numeric validation lives in ``build_covariance``.\n    corr: the ``(D, D)`` cross-factor correlation matrix ``R``.\n\n``sigma``/``corr`` are snapshot to contiguous ``float64`` at construction. Equality is\ndefined explicitly (``eq=False``) so the array fields compare by value to a single\n``bool`` rather than the element-wise array a generated ``__eq__`` would yield.",
+          "doc": "Base market state plus GBM dynamics over an ordered ``(commodity, period)`` grid.\n\nFields:\n    market_data: the current/base market state. Its ``forward_curves`` supply the\n        current forwards (``z0 = log F_0``) for every factor, and its\n        ``discount_curve`` / ``valuation_date`` provide the static revaluation context.\n    factors: ordered factor labels; strictly ascending by ``(commodity_id, period)``\n        (see the module docstring for the flattening convention). Factor ``i`` indexes\n        ``sigma[i]`` and row/column ``i`` of ``corr``.\n    sigma: per-factor instantaneous volatility (length ``D``); ``0`` marks an expired,\n        frozen factor. Deep numeric validation lives in ``build_covariance``.\n    corr: the ``(D, D)`` cross-factor correlation matrix ``R``.\n\n``sigma``/``corr`` are snapshot to contiguous ``float64`` at construction. Equality is\ndefined explicitly (``eq=False``) so the array fields compare by value to a single\n``bool`` rather than the element-wise array a generated ``__eq__`` would yield.",
           "methods": [
             {
               "name": "current_forwards",
@@ -11257,8 +11257,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.mc_var.McVaRResult",
           "kind": "class",
           "signature": "McVaRResult(var_95: float, var_99: float, cvar_975: float, var_95_se: float, var_99_se: float, cvar_975_se: float, path_count: int, holding_period: float, seed: int)",
-          "summary": "Full-revaluation Monte Carlo VaR outcome (Req 15.1, 15.4).",
-          "doc": "Full-revaluation Monte Carlo VaR outcome (Req 15.1, 15.4).\n\n``var_95`` / ``var_99`` are the ``confidences`` percentiles (95th / 99th by default)\nof the loss distribution ``L = -ΔNPV``; ``cvar_975`` is the mean loss at or above the\n``cvar_confidence`` percentile (97.5th by default, inclusive tail, matching\n:class:`quantvolt.risk.engine.RiskEngine`). The field names are fixed regardless of\nthe levels supplied. Each carries a\nnonparametric bootstrap standard error (``*_se``). ``path_count`` is the number of\nsimulated paths the metrics are computed over, and ``holding_period`` / ``seed`` are\nechoed for reproducibility.",
+          "summary": "Full-revaluation Monte Carlo VaR outcome.",
+          "doc": "Full-revaluation Monte Carlo VaR outcome.\n\n``var_95`` / ``var_99`` are the ``confidences`` percentiles (95th / 99th by default)\nof the loss distribution ``L = -ΔNPV``; ``cvar_975`` is the mean loss at or above the\n``cvar_confidence`` percentile (97.5th by default, inclusive tail, matching\n``quantvolt.risk.engine.RiskEngine``). The field names are fixed regardless of\nthe levels supplied. Each carries a\nnonparametric bootstrap standard error (``*_se``). ``path_count`` is the number of\nsimulated paths the metrics are computed over, and ``holding_period`` / ``seed`` are\nechoed for reproducibility.",
           "methods": [],
           "fields": [
             {
@@ -11317,8 +11317,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.parametric_var.ParametricVaRResult",
           "kind": "class",
           "signature": "ParametricVaRResult(confidences: tuple[float, ...], var_values: tuple[float, ...], method: str, pnl_mean: float, pnl_variance: float, pnl_skewness: float, n_factors: int)",
-          "summary": "Outcome of a parametric-VaR computation (Req 14.1/14.2).",
-          "doc": "Outcome of a parametric-VaR computation (Req 14.1/14.2).\n\n``confidences`` and ``var_values`` are parallel tuples in the caller's request order;\n``var_values[i]`` is the VaR (a loss, in the currency units of ``deltas``) at\n``confidences[i]`` — use :meth:`var_at` for a keyed lookup. ``method`` records the\nquantile method (``\"delta\"`` for :func:`parametric_var`; the delta-gamma method name,\ne.g. ``\"cornish_fisher\"``, for :func:`delta_gamma_var`) so the reported figure is\nself-documenting (Req 14.2).\n\n``pnl_mean`` / ``pnl_variance`` / ``pnl_skewness`` are the first three moments of the\nP&L (``ΔP``, not the loss) distribution under the model: for the linear case they are\n``(0.0, δᵀΣδ, 0.0)``; for the delta-gamma case they are the quadratic-form cumulants\n``(κ₁, κ₂, κ₃/κ₂^1.5)``. ``n_factors`` is the number of risk factors.",
+          "summary": "Outcome of a parametric-VaR computation.",
+          "doc": "Outcome of a parametric-VaR computation.\n\n``confidences`` and ``var_values`` are parallel tuples in the caller's request order;\n``var_values[i]`` is the VaR (a loss, in the currency units of ``deltas``) at\n``confidences[i]``; use ``var_at`` for a keyed lookup. ``method`` records the\nquantile method (``\"delta\"`` for ``parametric_var``; the delta-gamma method name,\ne.g. ``\"cornish_fisher\"``, for ``delta_gamma_var``) so the reported figure is\nself-documenting.\n\n``pnl_mean`` / ``pnl_variance`` / ``pnl_skewness`` are the first three moments of the\nP&L (``ΔP``, not the loss) distribution under the model: for the linear case they are\n``(0.0, δᵀΣδ, 0.0)``; for the delta-gamma case they are the quadratic-form cumulants\n``(κ₁, κ₂, κ₃/κ₂^1.5)``. ``n_factors`` is the number of risk factors.",
           "methods": [
             {
               "name": "var_at",
@@ -11365,7 +11365,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/risk/parametric_var.py",
-          "line": 93
+          "line": 90
         },
         {
           "name": "RiskEngine",
@@ -11373,8 +11373,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.engine.RiskEngine",
           "kind": "class",
           "signature": "RiskEngine(catalogue: ScenarioCatalogue | None=None)",
-          "summary": "Portfolio risk metrics: VaR / CVaR, delta aggregation, stress scenarios (Req 9).",
-          "doc": "Portfolio risk metrics: VaR / CVaR, delta aggregation, stress scenarios (Req 9).\n\nA configured service, not a Singleton: it holds the scenario catalogue used to\nresolve named scenarios and nothing else. All methods are pure with respect to\ntheir inputs.",
+          "summary": "Portfolio risk metrics: VaR / CVaR, delta aggregation, stress scenarios.",
+          "doc": "Portfolio risk metrics: VaR / CVaR, delta aggregation, stress scenarios.\n\nA configured service, not a Singleton: it holds the scenario catalogue used to\nresolve named scenarios and nothing else. All methods are pure with respect to\ntheir inputs.",
           "methods": [
             {
               "name": "compute_risk",
@@ -11384,12 +11384,12 @@ window.API_DATA = {
             {
               "name": "aggregate_delta",
               "signature": "aggregate_delta(self, positions: list[PricedPosition]) -> DeltaMatrix",
-              "summary": "Net delta by commodity x delivery period (Req 9.3)."
+              "summary": "Net delta by commodity x delivery period."
             },
             {
               "name": "apply_scenario",
               "signature": "apply_scenario(self, positions: list[PricedPosition], scenario: str | ScenarioShock) -> ScenarioResult",
-              "summary": "Apply a named or user-defined stress scenario to the book (Req 9.4)."
+              "summary": "Apply a named or user-defined stress scenario to the book."
             }
           ],
           "fields": [],
@@ -11403,7 +11403,7 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.engine.RiskResult",
           "kind": "class",
           "signature": "RiskResult(var_95: float, var_99: float, cvar_975: float, delta_matrix: DeltaMatrix, exclusion_report: list[ExcludedPosition], partial: bool, unprocessed_indices: list[int])",
-          "summary": "Portfolio tail-risk output containing VaR and CVaR levels, scenario P&L observations, factor ordering and excluded-position diagnostics..",
+          "summary": "Portfolio tail-risk output containing VaR and CVaR levels, scenario P&L observations, factor ordering and excluded-position diagnostics.",
           "doc": "Portfolio tail-risk output containing VaR and CVaR levels, scenario P&L observations, factor ordering and excluded-position diagnostics.",
           "methods": [],
           "fields": [
@@ -11453,8 +11453,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.scenarios.ScenarioCatalogue",
           "kind": "class",
           "signature": "ScenarioCatalogue(extra_scenarios: dict[str, ScenarioShock] | None=None)",
-          "summary": "Resolves scenario names to :class:`ScenarioShock` vectors (Req 9.4, 9.7).",
-          "doc": "Resolves scenario names to :class:`ScenarioShock` vectors (Req 9.4, 9.7).\n\nA config-holding service over :data:`BUILT_IN_SCENARIOS` — not a Singleton.\nCaller-supplied ``extra_scenarios`` are merged OVER the built-ins (caller\nwins on name collision); neither input dict is mutated, and later mutation\nof ``extra_scenarios`` by the caller does not affect the catalogue.",
+          "summary": "Resolves scenario names to :class:`ScenarioShock` vectors.",
+          "doc": "Resolves scenario names to :class:`ScenarioShock` vectors.\n\nA config-holding service over :data:`BUILT_IN_SCENARIOS` — not a Singleton.\nCaller-supplied ``extra_scenarios`` are merged OVER the built-ins (caller\nwins on name collision); neither input dict is mutated, and later mutation\nof ``extra_scenarios`` by the caller does not affect the catalogue.",
           "methods": [
             {
               "name": "get",
@@ -11478,8 +11478,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.engine.ScenarioResult",
           "kind": "class",
           "signature": "ScenarioResult(scenario_name: str, total_pnl: float, per_position_pnl: tuple[float, ...])",
-          "summary": "Outcome of applying one stress scenario to a book (Req 9.4).",
-          "doc": "Outcome of applying one stress scenario to a book (Req 9.4).\n\n``per_position_pnl`` is ordered exactly like the input position list, and\n``total_pnl`` is the plain left-to-right sum of those contributions, so\n``total_pnl == sum(per_position_pnl)`` holds exactly (Property 23).",
+          "summary": "Outcome of applying one stress scenario to a book.",
+          "doc": "Outcome of applying one stress scenario to a book.\n\n``per_position_pnl`` is ordered exactly like the input position list, and\n``total_pnl`` is the plain left-to-right sum of those contributions, so\n``total_pnl == sum(per_position_pnl)`` holds exactly.",
           "methods": [],
           "fields": [
             {
@@ -11534,7 +11534,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "TaggedDrift(values: npt.NDArray[np.float64], kind: DriftKind)",
           "summary": "A drift vector tagged with the probability measure it belongs to.",
-          "doc": "A drift vector tagged with the probability measure it belongs to.\n\nUsed for the required ``physical_drift`` argument: routing the tag through\n:func:`~quantvolt.numerics.risk_adjustment.require_physical_drift` rejects a\n``RISK_NEUTRAL`` drift before any simulation runs (Req 15.2 / Property 59). ``values``\nare per-factor physical log-drift *rates* (per unit of the holding period's time\nunit). Snapshot to contiguous ``float64``; equality is value-based (``eq=False``).",
+          "doc": "A drift vector tagged with the probability measure it belongs to.\n\nUsed for the required ``physical_drift`` argument: routing the tag through\n``quantvolt.numerics.risk_adjustment.require_physical_drift`` rejects a\n``RISK_NEUTRAL`` drift before any simulation runs. ``values``\nare per-factor physical log-drift rates (per unit of the holding period's time\nunit). Snapshot to contiguous ``float64``; equality is value-based (``eq=False``).",
           "methods": [],
           "fields": [
             {
@@ -11558,8 +11558,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.aggregation.aggregate_delta",
           "kind": "function",
           "signature": "aggregate_delta(positions: list[PricedPosition]) -> DeltaMatrix",
-          "summary": "Net position-level delta by commodity (rows) x delivery period (cols) — Property 22.",
-          "doc": "Net position-level delta by commodity (rows) x delivery period (cols) — Property 22.\n\nEach cell is the sum of that ``(commodity, period)`` delta across all positions.\nThe grid is the sorted union of the key sets of every position's ``delta`` mapping:\npositions with an empty ``delta`` contribute nothing, and an empty ``positions``\nlist yields the empty matrix (no rows, no columns). Inputs are never mutated —\ntotals accumulate in a fresh dict and the result is built from new tuples.",
+          "summary": "Net position-level delta by commodity (rows) x delivery period (cols).",
+          "doc": "Net position-level delta by commodity (rows) x delivery period (cols).\n\nEach cell is the sum of that ``(commodity, period)`` delta across all positions.\nThe grid is the sorted union of the key sets of every position's ``delta`` mapping:\npositions with an empty ``delta`` contribute nothing, and an empty ``positions``\nlist yields the empty matrix (no rows, no columns). Inputs are never mutated —\ntotals accumulate in a fresh dict and the result is built from new tuples.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -11572,8 +11572,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.cfar.cash_flow_at_risk",
           "kind": "function",
           "signature": "cash_flow_at_risk(cashflow_model: CashFlowModel, scenarios: Sequence[Scenario], horizon: int, seed: int, consistency: Mapping[str, str] | None=None, *, confidence_level: float=0.95) -> CFaRResult",
-          "summary": "Compute CFaR plus summary statistics over a factor scenario set (Req 16).",
-          "doc": "Compute CFaR plus summary statistics over a factor scenario set (Req 16).\n\nFor every scenario the pure ``cashflow_model`` is called exactly once, its returned\nper-period vector is validated to have length ``horizon`` and aggregated (summed)\ninto one realised aggregate cash flow. Across scenarios this forms the distribution\nof aggregated cash flow, from which the mean, the percentiles, and the\nshortfall-below-expected at ``confidence_level`` are computed. See the module\ndocstring for the request surface, the exact CFaR definition, and the sign\nconvention.\n\nArgs:\n    cashflow_model: Pure callable mapping one scenario to a 1-D per-period\n        cash-flow vector of length ``horizon``. Called once per scenario; never\n        mutated.\n    scenarios: Non-empty exhaustive factor scenario set (market + operational\n        factors keyed by name).\n    horizon: Number of periods, ``>= 1``.\n    seed: Reproducibility seed, echoed on the result (Req 16.3).\n    consistency: Optional market/operational consistency metadata, carried through\n        to the result verbatim (Req 16.2).\n    confidence_level: Confidence level for the ``cfar_95`` / ``p5`` shortfall\n        measure; defaults to ``0.95``, reproducing the 5th-percentile shortfall\n        documented in the module docstring. Must be in ``[0, 1]``. ``p50`` / ``p95``\n        always report the 50th / 95th percentiles regardless of this parameter.\n\nReturns:\n    A :class:`CFaRResult`.\n\nRaises:\n    ValidationError: If ``horizon < 1``; if ``scenarios`` is empty; if\n        ``confidence_level`` is outside ``[0, 1]``; or if the model returns, for\n        any scenario, a vector whose shape is not ``(horizon,)`` — the message\n        names the returned shape, the horizon, and the scenario index (Req 16.4).",
+          "summary": "Compute CFaR plus summary statistics over a factor scenario set.",
+          "doc": "Compute CFaR plus summary statistics over a factor scenario set.\n\nFor every scenario the pure ``cashflow_model`` is called exactly once, its returned\nper-period vector is validated to have length ``horizon`` and aggregated (summed)\ninto one realised aggregate cash flow. Across scenarios this forms the distribution\nof aggregated cash flow, from which the mean, the percentiles, and the\nshortfall-below-expected at ``confidence_level`` are computed. See the module\ndocstring for the request surface, the exact CFaR definition, and the sign\nconvention.\n\nArgs:\n    cashflow_model: Pure callable mapping one scenario to a 1-D per-period\n        cash-flow vector of length ``horizon``. Called once per scenario; never\n        mutated.\n    scenarios: Non-empty exhaustive factor scenario set (market + operational\n        factors keyed by name).\n    horizon: Number of periods, ``>= 1``.\n    seed: Reproducibility seed, echoed on the result.\n    consistency: Optional market/operational consistency metadata, carried through\n        to the result verbatim.\n    confidence_level: Confidence level for the ``cfar_95`` / ``p5`` shortfall\n        measure; defaults to ``0.95``, reproducing the 5th-percentile shortfall\n        documented in the module docstring. Must be in ``[0, 1]``. ``p50`` / ``p95``\n        always report the 50th / 95th percentiles regardless of this parameter.\n\nReturns:\n    A :class:`CFaRResult`.\n\nRaises:\n    ValidationError: If ``horizon < 1``; if ``scenarios`` is empty; if\n        ``confidence_level`` is outside ``[0, 1]``; or if the model returns, for\n        any scenario, a vector whose shape is not ``(horizon,)`` — the message\n        names the returned shape, the horizon, and the scenario index.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -11600,8 +11600,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.credit_var.credit_var",
           "kind": "function",
           "signature": "credit_var(positions: Sequence[PricedPosition], transition: Mapping[str, npt.ArrayLike], exposures: Mapping[str, float] | None=None, recovery: float | Mapping[str, float]=0.4, seed: int=0, *, path_count: int=100000, asset_correlation: float=0.2, confidences: Sequence[float]=DEFAULT_CONFIDENCES) -> CreditVaRResult",
-          "summary": "Compute Credit VaR and expected credit loss over the priced book (Req 17).",
-          "doc": "Compute Credit VaR and expected credit loss over the priced book (Req 17).\n\nCounterparty-less positions are set aside as credit-risk-free; every credit-bearing\ncounterparty's default event is drawn jointly with a shared systematic market factor\nvia a one-factor Gaussian copula, and the path loss is the sum of ``LGD * EAD`` over\nthat path's defaulted counterparties. See the module docstring for the request surface,\nthe copula construction, the EAD/LGD conventions, the sign convention, and the\nlimitations.\n\nArgs:\n    positions: The priced book; each position's counterparty is read from its\n        instrument (``ForwardContract.counterparty``; missing / ``None`` -> risk-free).\n    transition: Per-counterparty one-period migration row (last state = default;\n        entries in ``[0, 1]``; sums to ``1`` within ``1e-9``).\n    exposures: Optional per-counterparty exposure; where absent, exposure is the\n        net (summed) NPV of that counterparty's positions. EAD is floored at zero.\n    recovery: Recovery rate in ``[0, 1]``, scalar or per-counterparty. ``LGD = 1 - r``.\n    seed: RNG seed (``>= 0``); results are reproducible under it (Req 17.3).\n    path_count: Number of Monte Carlo paths (``>= 1``).\n    asset_correlation: Copula systematic-factor loading ``rho in [0, 1]``.\n    confidences: The two credit-VaR confidence levels (fractions in ``(0, 1)``,\n        matching :mod:`quantvolt.risk.parametric_var`'s convention) reported as\n        ``credit_var_95`` / ``credit_var_99``; defaults to ``(0.95, 0.99)``.\n\nReturns:\n    A :class:`CreditVaRResult`.\n\nRaises:\n    ValidationError: If ``seed < 0``, ``path_count < 1``, ``asset_correlation`` or any\n        recovery is outside ``[0, 1]``, a transition row has an out-of-range probability\n        or does not sum to 1 within ``1e-9`` (message names the counterparty), a\n        supplied exposure is non-finite, a credit-bearing counterparty has no\n        transition row (message names the counterparty) (Req 17.4), or\n        ``confidences`` does not contain exactly 2 strictly ascending levels in\n        ``(0, 1)``.",
+          "summary": "Compute Credit VaR and expected credit loss over the priced book.",
+          "doc": "Compute Credit VaR and expected credit loss over the priced book.\n\nCounterparty-less positions are set aside as credit-risk-free; every credit-bearing\ncounterparty's default event is drawn jointly with a shared systematic market factor\nvia a one-factor Gaussian copula, and the path loss is the sum of ``LGD * EAD`` over\nthat path's defaulted counterparties. See the module docstring for the request surface,\nthe copula construction, the EAD/LGD conventions, the sign convention, and the\nlimitations.\n\nArgs:\n    positions: The priced book; each position's counterparty is read from its\n        instrument (``ForwardContract.counterparty``; missing / ``None`` -> risk-free).\n    transition: Per-counterparty one-period migration row (last state = default;\n        entries in ``[0, 1]``; sums to ``1`` within ``1e-9``).\n    exposures: Optional per-counterparty exposure; where absent, exposure is the\n        net (summed) NPV of that counterparty's positions. EAD is floored at zero.\n    recovery: Recovery rate in ``[0, 1]``, scalar or per-counterparty. ``LGD = 1 - r``.\n    seed: RNG seed (``>= 0``); results are reproducible under it.\n    path_count: Number of Monte Carlo paths (``>= 1``).\n    asset_correlation: Copula systematic-factor loading ``rho in [0, 1]``.\n    confidences: The two credit-VaR confidence levels (fractions in ``(0, 1)``,\n        matching :mod:`quantvolt.risk.parametric_var`'s convention) reported as\n        ``credit_var_95`` / ``credit_var_99``; defaults to ``(0.95, 0.99)``.\n\nReturns:\n    A :class:`CreditVaRResult`.\n\nRaises:\n    ValidationError: If ``seed < 0``, ``path_count < 1``, ``asset_correlation`` or any\n        recovery is outside ``[0, 1]``, a transition row has an out-of-range probability\n        or does not sum to 1 within ``1e-9`` (message names the counterparty), a\n        supplied exposure is non-finite, a credit-bearing counterparty has no\n        transition row (message names the counterparty), or\n        ``confidences`` does not contain exactly 2 strictly ascending levels in\n        ``(0, 1)``.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -11614,13 +11614,13 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.parametric_var.delta_gamma_var",
           "kind": "function",
           "signature": "delta_gamma_var(deltas: NDArray[np.float64], gamma: NDArray[np.float64], cov: NDArray[np.float64], confidences: Sequence[float]=DEFAULT_CONFIDENCES, method: str='cornish_fisher', *, psd_tol: float=_PSD_TOL, symmetry_rtol: float=_SYMMETRY_RTOL) -> ParametricVaRResult",
-          "summary": "Second-order (delta-gamma) parametric VaR via moment matching (Req 14.2, Property 48).",
-          "doc": "Second-order (delta-gamma) parametric VaR via moment matching (Req 14.2, Property 48).\n\nThe quadratic P&L ``ΔP = δᵀΔf + ½·Δfᵀ Γ Δf`` with ``Δf ~ N(0, Σ)`` has, writing\n``Θ = Γ Σ``, the standard delta-gamma-normal cumulants (Britten-Jones & Schaefer,\n\"Non-linear Value-at-Risk\", 1999, eqs. 6-8; Zangari, RiskMetrics Monitor 1996;\nverified here against Monte Carlo):\n\n* ``κ₁ = ½·tr(Θ)`` — mean;\n* ``κ₂ = δᵀΣδ + ½·tr(Θ²)`` — variance;\n* ``κ₃ = 3·δᵀΣΓΣδ + tr(Θ³)`` — third cumulant.\n\nThe loss ``L = -ΔP`` has mean ``-κ₁``, standard deviation ``√κ₂`` and skewness\n``-κ₃/κ₂^1.5``; its ``c``-quantile is ``VaR_c = -κ₁ + √κ₂ · w(z_c, -γ₁)`` where ``w``\nis the third-order Cornish-Fisher map ``w = z + (z²-1)/6·γ₁`` (dispatched by\n``method``). With ``Γ = 0`` all higher cumulants vanish and this collapses **exactly**\nto :func:`parametric_var` (Property 48).\n\nSign sanity: a long-gamma book (``Γ`` positive definite) has ``κ₁ > 0`` (the quadratic\nterm only ever adds to P&L) and positive P&L skewness, so both the mean shift and the\nskewness correction *reduce* VaR relative to the delta-only figure — the expected\ndirection.\n\nArgs:\n    deltas: Portfolio delta by risk factor, a 1-D vector of length ``n``.\n    gamma: The ``n x n`` gamma matrix ``Γ``; must be square, symmetric, and conformable\n        with ``deltas`` — but need **not** be PSD (a book may be long some gammas and\n        short others).\n    cov: The ``n x n`` factor covariance ``Σ`` (validated square/symmetric/PSD).\n    confidences: Confidence levels; defaults to ``(0.95, 0.99)``.\n    method: Delta-gamma quantile method; defaults to ``\"cornish_fisher\"``. Must be a\n        registered method (currently only ``\"cornish_fisher\"``).\n    psd_tol: Absolute tolerance on the smallest eigenvalue of ``Σ`` used by the PSD\n        check; defaults to ``1e-8``.\n    symmetry_rtol: Relative tolerance (against the matrix scale) for the symmetry\n        checks on ``Σ`` and ``Γ``; defaults to ``1e-8``.\n\nReturns:\n    A :class:`ParametricVaRResult` carrying ``method`` and the P&L cumulant moments\n    ``(κ₁, κ₂, κ₃/κ₂^1.5)``.\n\nRaises:\n    ValidationError: on any dimension, symmetry, PSD, confidence, or unknown-``method``\n        violation, naming the offending quantity.",
+          "summary": "Second-order (delta-gamma) parametric VaR via moment matching.",
+          "doc": "Second-order (delta-gamma) parametric VaR via moment matching.\n\nThe quadratic P&L ``ΔP = δᵀΔf + ½·Δfᵀ Γ Δf`` with ``Δf ~ N(0, Σ)`` has, writing\n``Θ = Γ Σ``, the standard delta-gamma-normal cumulants (Britten-Jones & Schaefer,\n\"Non-linear Value-at-Risk\", 1999, eqs. 6-8; Zangari, RiskMetrics Monitor 1996;\nverified here against Monte Carlo):\n\n* ``κ₁ = ½·tr(Θ)`` — mean;\n* ``κ₂ = δᵀΣδ + ½·tr(Θ²)`` — variance;\n* ``κ₃ = 3·δᵀΣΓΣδ + tr(Θ³)`` — third cumulant.\n\nThe loss ``L = -ΔP`` has mean ``-κ₁``, standard deviation ``√κ₂`` and skewness\n``-κ₃/κ₂^1.5``; its ``c``-quantile is ``VaR_c = -κ₁ + √κ₂ · w(z_c, -γ₁)`` where ``w``\nis the third-order Cornish-Fisher map ``w = z + (z²-1)/6·γ₁`` (dispatched by\n``method``). With ``Γ = 0`` all higher cumulants vanish and this collapses exactly\nto ``parametric_var``.\n\nSign sanity: a long-gamma book (``Γ`` positive definite) has ``κ₁ > 0`` (the quadratic\nterm only ever adds to P&L) and positive P&L skewness, so both the mean shift and the\nskewness correction *reduce* VaR relative to the delta-only figure — the expected\ndirection.\n\nArgs:\n    deltas: Portfolio delta by risk factor, a 1-D vector of length ``n``.\n    gamma: The ``n x n`` gamma matrix ``Γ``; must be square, symmetric, and conformable\n        with ``deltas`` — but need **not** be PSD (a book may be long some gammas and\n        short others).\n    cov: The ``n x n`` factor covariance ``Σ`` (validated square/symmetric/PSD).\n    confidences: Confidence levels; defaults to ``(0.95, 0.99)``.\n    method: Delta-gamma quantile method; defaults to ``\"cornish_fisher\"``. Must be a\n        registered method (currently only ``\"cornish_fisher\"``).\n    psd_tol: Absolute tolerance on the smallest eigenvalue of ``Σ`` used by the PSD\n        check; defaults to ``1e-8``.\n    symmetry_rtol: Relative tolerance (against the matrix scale) for the symmetry\n        checks on ``Σ`` and ``Γ``; defaults to ``1e-8``.\n\nReturns:\n    A ``ParametricVaRResult`` carrying ``method`` and the P&L cumulant moments\n    ``(κ₁, κ₂, κ₃/κ₂^1.5)``.\n\nRaises:\n    ValidationError: on any dimension, symmetry, PSD, confidence, or unknown-``method``\n        violation, naming the offending quantity.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/risk/parametric_var.py",
-          "line": 292
+          "line": 289
         },
         {
           "name": "ewma_covariance",
@@ -11656,8 +11656,8 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.mc_var.monte_carlo_var",
           "kind": "function",
           "signature": "monte_carlo_var(positions: Sequence[Position], factor_model: FactorModel, physical_drift: TaggedDrift, holding_period: float, path_count: int, seed: int, *, confidences: Sequence[float]=DEFAULT_CONFIDENCES, cvar_confidence: float=DEFAULT_CVAR_CONFIDENCE, antithetic: bool=_ANTITHETIC, bootstrap_replicates: int=_BOOTSTRAP_REPLICATES, min_path_count: int=_MIN_PATH_COUNT) -> McVaRResult",
-          "summary": "Full-revaluation Monte Carlo VaR/CVaR over a holding period (Req 15).",
-          "doc": "Full-revaluation Monte Carlo VaR/CVaR over a holding period (Req 15).\n\nSee the module docstring for the request surface, the factor flattening convention,\nthe simulation/revaluation mechanics, the sign convention, and the standard-error\nestimator. In short: simulate correlated GBM forward scenarios to the horizon under\nthe physical drift, fully revalue the book on each path, and take loss quantiles.\n\nArgs:\n    positions: raw held instruments (repriced from their definition each path).\n    factor_model: base market state + GBM dynamics over the factor grid.\n    physical_drift: required, measure-tagged per-factor log-drift rates.\n    holding_period: risk horizon (> 0), in ``sigma``'s time unit.\n    path_count: simulated paths (``>= min_path_count``).\n    seed: reproducibility seed.\n    confidences: The two VaR confidence levels (fractions in ``(0, 1)``, matching\n        :mod:`quantvolt.risk.parametric_var`'s convention) reported as ``var_95`` /\n        ``var_99``; defaults to ``(0.95, 0.99)``.\n    cvar_confidence: The CVaR confidence level (a fraction in ``(0, 1)``) reported\n        as ``cvar_975``; defaults to ``0.975``.\n    antithetic: Whether the simulation uses antithetic-variate path pairing;\n        defaults to ``False`` (iid paths). The bootstrap SE estimator resamples\n        individual paths when ``False`` and whole ``(+eps, -eps)`` pairs when\n        ``True``, so both modes yield consistent SE estimates — see the module\n        docstring.\n    bootstrap_replicates: Number of bootstrap resamples for the quantile standard\n        errors; defaults to ``500``. Must be an integer ``>= 2`` (a sample standard\n        deviation across replicates needs at least 2 of them).\n    min_path_count: Minimum accepted ``path_count`` (Req 15.5); defaults to\n        ``1000``.\n\nReturns:\n    A :class:`McVaRResult` with VaR/CVaR at the requested confidence levels\n    (reported as ``var_95``/``var_99``/``cvar_975`` regardless of the levels used)\n    and bootstrap SEs.\n\nRaises:\n    ValidationError: if ``path_count < min_path_count`` (raised *before* simulating,\n        Req 15.5); if ``holding_period <= 0``; if ``physical_drift`` is not tagged\n        physical (Req 15.2); if ``physical_drift.values`` does not match the factor\n        count; if any current forward is not strictly positive (GBM requires\n        ``F_0 > 0``); if ``confidences`` does not contain exactly 2 strictly\n        ascending levels in ``(0, 1)``; if ``cvar_confidence`` is not in ``(0, 1)``;\n        if ``bootstrap_replicates`` is not an integer ``>= 2`` (a standard deviation\n        needs at least 2 replicates); or if ``min_path_count`` is not ``>= 1``.",
+          "summary": "Full-revaluation Monte Carlo VaR/CVaR over a holding period.",
+          "doc": "Full-revaluation Monte Carlo VaR/CVaR over a holding period.\n\nSee the module docstring for the request surface, the factor flattening convention,\nthe simulation/revaluation mechanics, the sign convention, and the standard-error\nestimator. In short: simulate correlated GBM forward scenarios to the horizon under\nthe physical drift, fully revalue the book on each path, and take loss quantiles.\n\nArgs:\n    positions: raw held instruments (repriced from their definition each path).\n    factor_model: base market state + GBM dynamics over the factor grid.\n    physical_drift: required, measure-tagged per-factor log-drift rates.\n    holding_period: risk horizon (> 0), in ``sigma``'s time unit.\n    path_count: simulated paths (``>= min_path_count``).\n    seed: reproducibility seed.\n    confidences: The two VaR confidence levels (fractions in ``(0, 1)``, matching\n        ``quantvolt.risk.parametric_var``'s convention) reported as ``var_95`` /\n        ``var_99``; defaults to ``(0.95, 0.99)``.\n    cvar_confidence: The CVaR confidence level (a fraction in ``(0, 1)``) reported\n        as ``cvar_975``; defaults to ``0.975``.\n    antithetic: Whether the simulation uses antithetic-variate path pairing;\n        defaults to ``False`` (iid paths). The bootstrap SE estimator resamples\n        individual paths when ``False`` and whole ``(+eps, -eps)`` pairs when\n        ``True``, so both modes yield consistent SE estimates; see the module\n        docstring.\n    bootstrap_replicates: Number of bootstrap resamples for the quantile standard\n        errors; defaults to ``500``. Must be an integer ``>= 2`` (a sample standard\n        deviation across replicates needs at least 2 of them).\n    min_path_count: Minimum accepted ``path_count``; defaults to ``1000``.\n\nReturns:\n    A ``McVaRResult`` with VaR/CVaR at the requested confidence levels\n    (reported as ``var_95``/``var_99``/``cvar_975`` regardless of the levels used)\n    and bootstrap SEs.\n\nRaises:\n    ValidationError: if ``path_count < min_path_count`` (raised before simulating);\n        if ``holding_period <= 0``; if ``physical_drift`` is not tagged\n        physical; if ``physical_drift.values`` does not match the factor\n        count; if any current forward is not strictly positive (GBM requires\n        ``F_0 > 0``); if ``confidences`` does not contain exactly 2 strictly\n        ascending levels in ``(0, 1)``; if ``cvar_confidence`` is not in ``(0, 1)``;\n        if ``bootstrap_replicates`` is not an integer ``>= 2`` (a standard deviation\n        needs at least 2 replicates); or if ``min_path_count`` is not ``>= 1``.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -11684,13 +11684,13 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.parametric_var.parametric_var",
           "kind": "function",
           "signature": "parametric_var(deltas: NDArray[np.float64], cov: NDArray[np.float64], confidences: Sequence[float]=DEFAULT_CONFIDENCES, *, psd_tol: float=_PSD_TOL, symmetry_rtol: float=_SYMMETRY_RTOL) -> ParametricVaRResult",
-          "summary": "First-order (delta) parametric VaR ``VaR_c = z_c·√(δᵀΣδ)`` (Req 14.1, Property 47).",
-          "doc": "First-order (delta) parametric VaR ``VaR_c = z_c·√(δᵀΣδ)`` (Req 14.1, Property 47).\n\nValidates all inputs before any arithmetic (Req 14.4): ``deltas`` is a finite 1-D\nvector; ``cov`` is square, symmetric (within ``symmetry_rtol``), conformable with\n``deltas`` (a mismatch names both dimensions), and positive semidefinite within\n``psd_tol`` (a violation names the offending smallest eigenvalue). See the module\ndocstring for the sign convention, the z-score policy, and the fast PSD test.\n\nArgs:\n    deltas: Portfolio delta by risk factor, a 1-D vector of length ``n``.\n    cov: The ``n x n`` factor covariance forecast ``Σ`` over the loss horizon\n        (e.g. from :mod:`quantvolt.risk.covariance`).\n    confidences: Confidence levels; defaults to ``(0.95, 0.99)``. Each must be in\n        ``(0, 1)``; ``0.95`` / ``0.99`` use the mandated constants ``1.645`` / ``2.326``.\n    psd_tol: Absolute tolerance on the smallest eigenvalue of ``Σ`` used by the PSD\n        check; defaults to ``1e-8`` (the design's documented tolerance, Req 14.4).\n    symmetry_rtol: Relative tolerance (against the matrix scale) for the symmetry\n        check on ``Σ``; defaults to ``1e-8``.\n\nReturns:\n    A :class:`ParametricVaRResult` with ``method=\"delta\"`` and a zero-mean,\n    zero-skew P&L description (``pnl_variance = δᵀΣδ``).\n\nRaises:\n    ValidationError: on any dimension, symmetry, PSD, or confidence violation, naming\n        the offending quantity.",
+          "summary": "First-order (delta) parametric VaR ``VaR_c = z_c·√(δᵀΣδ)``.",
+          "doc": "First-order (delta) parametric VaR ``VaR_c = z_c·√(δᵀΣδ)``.\n\nValidates all inputs before any arithmetic: ``deltas`` is a finite 1-D vector;\n``cov`` is square, symmetric (within ``symmetry_rtol``), conformable with\n``deltas`` (a mismatch names both dimensions), and positive semidefinite within\n``psd_tol`` (a violation names the offending smallest eigenvalue). See the module\ndocstring for the sign convention, the z-score policy, and the fast PSD test.\n\nArgs:\n    deltas: Portfolio delta by risk factor, a 1-D vector of length ``n``.\n    cov: The ``n x n`` factor covariance forecast ``Σ`` over the loss horizon\n        (e.g. from ``quantvolt.risk.covariance``).\n    confidences: Confidence levels; defaults to ``(0.95, 0.99)``. Each must be in\n        ``(0, 1)``; ``0.95`` / ``0.99`` use the fixed constants ``1.645`` / ``2.326``.\n    psd_tol: Absolute tolerance on the smallest eigenvalue of ``Σ`` used by the PSD\n        check; defaults to ``1e-8``.\n    symmetry_rtol: Relative tolerance (against the matrix scale) for the symmetry\n        check on ``Σ``; defaults to ``1e-8``.\n\nReturns:\n    A ``ParametricVaRResult`` with ``method=\"delta\"`` and a zero-mean,\n    zero-skew P&L description (``pnl_variance = δᵀΣδ``).\n\nRaises:\n    ValidationError: on any dimension, symmetry, PSD, or confidence violation, naming\n        the offending quantity.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/risk/parametric_var.py",
-          "line": 235
+          "line": 232
         },
         {
           "name": "BUILT_IN_SCENARIOS",
@@ -11698,7 +11698,7 @@ window.API_DATA = {
           "qualified": "quantvolt.risk.scenarios.BUILT_IN_SCENARIOS",
           "kind": "constant",
           "signature": "BUILT_IN_SCENARIOS",
-          "summary": "Registry of named historical and hypothetical energy stress scenarios supplied with RiskEngine..",
+          "summary": "Registry of named historical and hypothetical energy stress scenarios supplied with RiskEngine.",
           "doc": "Registry of named historical and hypothetical energy stress scenarios supplied with RiskEngine.",
           "methods": [],
           "fields": [],
@@ -11941,7 +11941,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "decomposed_delta(value_fn: Callable[[float, float], float], forward: float, basis_ra_expectation: float, bump: float, *, risk_adjustment: PriceOfRiskKind) -> float",
           "summary": "Incomplete-market delta ``∂Ṽ/∂F`` under a risk-adjusted basis expectation (eqs 10.15-10.18).",
-          "doc": "Incomplete-market delta ``∂Ṽ/∂F`` under a risk-adjusted basis expectation (eqs 10.15-10.18).\n\nFor a non-linear structure whose payoff depends on a spot price decomposed\ninto a hedgeable component and an *uncorrelated* unhedgeable basis (eq 10.15),\nthe structure value is\n\n    ``Ṽ(F) = df · E*[ E^RA_ε[Payoff] ]``    (eq 10.16)\n\n-- a risk-neutral expectation over the hedgeable forward ``F`` of a\n*risk-adjusted* expectation over the basis ``ε``. Because the basis is\nindependent of ``F``, the local variance-minimizing hedge is simply\n\n    ``Δ̃_t = ∂Ṽ(F)/∂F``    (eq 10.17)\n\nwhich this function computes by central finite difference in ``F`` (via\n:func:`quantvolt.numerics.rootfind.finite_difference_bump`), holding the\nrisk-adjusted basis expectation fixed under the bump (it does not co-move with\n``F``, by eq 10.15).\n\n**The Caller supplies the value function and the basis summary.** ``value_fn``\ntakes ``(forward, basis_ra_expectation)`` and returns the scalar structure\nvalue ``Ṽ`` -- it closes over the payoff, discounting, and the risk-neutral\nexpectation over ``F``. ``basis_ra_expectation`` is the *already-computed*\nrisk-adjusted expectation of the unhedgeable basis (a scalar summary such as\nits risk-adjusted mean); passing the risk-adjusted expectation itself makes\nthe corporate risk adjustment explicit at the call site.\n\n**Divergence from the complete-market delta (Req 18.6 / eq 10.18).** The\ncomplete-market delta ``Δ_t = ∂V/∂F`` (eq 10.14) is taken on the fully\nhedgeable value ``V = df · E*[Payoff]`` (eq 10.13), which knows nothing of the\nbasis. The forms of eqs 10.14 and 10.17 are *identical*, but their values\ndiffer because eqs 10.13 and 10.16 differ whenever the basis has a non-zero\nmean or variance -- hence in general ``Δ̃_t ≠ Δ_t`` (eq 10.18, Property 55).\nOnly for a *zero* basis (zero mean and variance) does ``E^RA_ε[Payoff] =\nPayoff``, so ``Ṽ = V`` and the two deltas coincide. For a *linear* product the\nbasis enters ``Ṽ`` only as an additive constant in ``F``, so it drops out of\nthe derivative and ``Δ̃_t`` reduces to ``rho·sigma_t/sigma_h`` regardless of the risk\nadjustment (Example 10.2, eq 10.25); for a non-linear product the basis\ncouples to ``F`` and the delta genuinely shifts.\n\n**Explicit corporate risk adjustment (Req 18.6).** ``risk_adjustment`` is a\nrequired keyword routed through the Task 63\n:class:`~quantvolt.numerics.risk_adjustment.PriceOfRiskKind` vocabulary. Only\n:attr:`PriceOfRiskKind.CORPORATE` is accepted: the unhedgeable basis is not\nspanned by traded instruments, so a market/risk-neutral price of risk cannot\nbe implied for it, and this function never silently assumes risk-neutrality.\n\nArgs:\n    value_fn: Callable ``(forward, basis_ra_expectation) -> Ṽ`` returning the\n        risk-adjusted structure value (eq 10.16).\n    forward: The hedgeable forward price ``F`` at which the delta is evaluated.\n    basis_ra_expectation: The risk-adjusted expectation of the unhedgeable\n        basis, held fixed while ``forward`` is bumped.\n    bump: Strictly positive central-difference step in ``forward``.\n    risk_adjustment: Provenance of the basis risk adjustment; must be\n        :attr:`PriceOfRiskKind.CORPORATE` (Req 18.6).\n\nReturns:\n    The incomplete-market delta ``∂Ṽ/∂F`` (eq 10.17).\n\nRaises:\n    ValidationError: If ``value_fn`` is not callable, ``bump`` is not strictly\n        positive, or ``risk_adjustment`` is not\n        :attr:`PriceOfRiskKind.CORPORATE`.",
+          "doc": "Incomplete-market delta ``∂Ṽ/∂F`` under a risk-adjusted basis expectation (eqs 10.15-10.18).\n\nFor a non-linear structure whose payoff depends on a spot price decomposed\ninto a hedgeable component and an *uncorrelated* unhedgeable basis (eq 10.15),\nthe structure value is\n\n    ``Ṽ(F) = df · E*[ E^RA_ε[Payoff] ]``    (eq 10.16)\n\n-- a risk-neutral expectation over the hedgeable forward ``F`` of a\n*risk-adjusted* expectation over the basis ``ε``. Because the basis is\nindependent of ``F``, the local variance-minimizing hedge is simply\n\n    ``Δ̃_t = ∂Ṽ(F)/∂F``    (eq 10.17)\n\nwhich this function computes by central finite difference in ``F`` (via\n:func:`quantvolt.numerics.rootfind.finite_difference_bump`), holding the\nrisk-adjusted basis expectation fixed under the bump (it does not co-move with\n``F``, by eq 10.15).\n\n**The Caller supplies the value function and the basis summary.** ``value_fn``\ntakes ``(forward, basis_ra_expectation)`` and returns the scalar structure\nvalue ``Ṽ`` -- it closes over the payoff, discounting, and the risk-neutral\nexpectation over ``F``. ``basis_ra_expectation`` is the *already-computed*\nrisk-adjusted expectation of the unhedgeable basis (a scalar summary such as\nits risk-adjusted mean); passing the risk-adjusted expectation itself makes\nthe corporate risk adjustment explicit at the call site.\n\n**Divergence from the complete-market delta (eq 10.18).** The\ncomplete-market delta ``Δ_t = ∂V/∂F`` (eq 10.14) is taken on the fully\nhedgeable value ``V = df · E*[Payoff]`` (eq 10.13), which knows nothing of the\nbasis. The forms of eqs 10.14 and 10.17 are *identical*, but their values\ndiffer because eqs 10.13 and 10.16 differ whenever the basis has a non-zero\nmean or variance -- hence in general ``Δ̃_t ≠ Δ_t`` (eq 10.18).\nOnly for a *zero* basis (zero mean and variance) does ``E^RA_ε[Payoff] =\nPayoff``, so ``Ṽ = V`` and the two deltas coincide. For a *linear* product the\nbasis enters ``Ṽ`` only as an additive constant in ``F``, so it drops out of\nthe derivative and ``Δ̃_t`` reduces to ``rho·sigma_t/sigma_h`` regardless of the risk\nadjustment (Example 10.2, eq 10.25); for a non-linear product the basis\ncouples to ``F`` and the delta genuinely shifts.\n\n**Explicit corporate risk adjustment.** ``risk_adjustment`` is a\nrequired keyword routed through the\n:class:`~quantvolt.numerics.risk_adjustment.PriceOfRiskKind` vocabulary. Only\n:attr:`PriceOfRiskKind.CORPORATE` is accepted: the unhedgeable basis is not\nspanned by traded instruments, so a market/risk-neutral price of risk cannot\nbe implied for it, and this function never silently assumes risk-neutrality.\n\nArgs:\n    value_fn: Callable ``(forward, basis_ra_expectation) -> Ṽ`` returning the\n        risk-adjusted structure value (eq 10.16).\n    forward: The hedgeable forward price ``F`` at which the delta is evaluated.\n    basis_ra_expectation: The risk-adjusted expectation of the unhedgeable\n        basis, held fixed while ``forward`` is bumped.\n    bump: Strictly positive central-difference step in ``forward``.\n    risk_adjustment: Provenance of the basis risk adjustment; must be\n        :attr:`PriceOfRiskKind.CORPORATE`.\n\nReturns:\n    The incomplete-market delta ``∂Ṽ/∂F`` (eq 10.17).\n\nRaises:\n    ValidationError: If ``value_fn`` is not callable, ``bump`` is not strictly\n        positive, or ``risk_adjustment`` is not\n        :attr:`PriceOfRiskKind.CORPORATE`.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -11954,8 +11954,8 @@ window.API_DATA = {
           "qualified": "quantvolt.hedging.mean_variance.global_mean_variance",
           "kind": "function",
           "signature": "global_mean_variance(cov_target_hedge: NDArray[np.float64], cov_hedge: NDArray[np.float64], *, condition_limit: float=_CONDITION_LIMIT) -> NDArray[np.float64]",
-          "summary": "Global (total-horizon) mean-variance hedge ratios (Req 18.4, Property 56).",
-          "doc": "Global (total-horizon) mean-variance hedge ratios (Req 18.4, Property 56).\n\nMinimises the *total* terminal variance ``Var(ΔV_total - gᵀ·ΔH)`` jointly over\nthe whole strategy vector ``g ∈ ℝⁿ`` (``ΔV_total = Σ_t ΔV_t``). The normal\nequations are\n\n    ``C·g = b``,   with ``b_t = Cov(ΔH_t, ΔV_total) = Σ_s M[s, t]``,\n\ni.e. ``b`` is the column-sum vector of ``cov_target_hedge`` and\n``g_global = C⁻¹·b``. Unlike the local hedge, the global optimum exists only\nwhen ``C`` is invertible; the system is solved with :func:`numpy.linalg.solve`\nafter an explicit conditioning check, and a singular / ill-conditioned ``C``\nraises rather than returning a pseudo-inverse solution.\n\nCoincides with :func:`local_mean_variance` exactly when both ``M`` and ``C``\nare diagonal (uncorrelated increments across periods) -- e.g. under\nindependent increments / a martingale hedge instrument, and in particular for\na linear product with constant correlation and volatilities, where the common\nratio is ``rho·sigma_target/sigma_hedge`` (eq 10.22, Property 56).\n\nArgs:\n    cov_target_hedge: The ``(n, n)`` cross-covariance matrix ``M`` with\n        ``M[s, t] = Cov(ΔV_s, ΔH_t)``. Its column sums form the right-hand\n        side ``b_t = Cov(ΔH_t, ΔV_total)``; it need not be symmetric.\n    cov_hedge: The ``(n, n)`` auto-covariance matrix ``C`` of the hedge\n        increments, ``C[s, t] = Cov(ΔH_s, ΔH_t)``. Must be square, symmetric,\n        finite and non-singular.\n    condition_limit: Upper bound on the 2-norm condition number of ``C`` before\n        it is treated as numerically singular; defaults to ``1/eps``, the point\n        past which the linear solve loses all significant digits.\n\nReturns:\n    The ``(n,)`` ``float64`` array of global (total-horizon) hedge ratios.\n\nRaises:\n    ValidationError: If the inputs are not conformable non-empty square finite\n        matrices, ``cov_hedge`` is not symmetric, ``condition_limit`` is not\n        strictly positive, or ``cov_hedge`` is singular / ill-conditioned (the\n        joint variance-minimising strategy then does not exist).",
+          "summary": "Global (total-horizon) mean-variance hedge ratios.",
+          "doc": "Global (total-horizon) mean-variance hedge ratios.\n\nMinimises the *total* terminal variance ``Var(ΔV_total - gᵀ·ΔH)`` jointly over\nthe whole strategy vector ``g ∈ ℝⁿ`` (``ΔV_total = Σ_t ΔV_t``). The normal\nequations are\n\n    ``C·g = b``,   with ``b_t = Cov(ΔH_t, ΔV_total) = Σ_s M[s, t]``,\n\ni.e. ``b`` is the column-sum vector of ``cov_target_hedge`` and\n``g_global = C⁻¹·b``. Unlike the local hedge, the global optimum exists only\nwhen ``C`` is invertible; the system is solved with :func:`numpy.linalg.solve`\nafter an explicit conditioning check, and a singular / ill-conditioned ``C``\nraises rather than returning a pseudo-inverse solution.\n\nCoincides with :func:`local_mean_variance` exactly when both ``M`` and ``C``\nare diagonal (uncorrelated increments across periods) -- e.g. under\nindependent increments / a martingale hedge instrument, and in particular for\na linear product with constant correlation and volatilities, where the common\nratio is ``rho·sigma_target/sigma_hedge`` (eq 10.22).\n\nArgs:\n    cov_target_hedge: The ``(n, n)`` cross-covariance matrix ``M`` with\n        ``M[s, t] = Cov(ΔV_s, ΔH_t)``. Its column sums form the right-hand\n        side ``b_t = Cov(ΔH_t, ΔV_total)``; it need not be symmetric.\n    cov_hedge: The ``(n, n)`` auto-covariance matrix ``C`` of the hedge\n        increments, ``C[s, t] = Cov(ΔH_s, ΔH_t)``. Must be square, symmetric,\n        finite and non-singular.\n    condition_limit: Upper bound on the 2-norm condition number of ``C`` before\n        it is treated as numerically singular; defaults to ``1/eps``, the point\n        past which the linear solve loses all significant digits.\n\nReturns:\n    The ``(n,)`` ``float64`` array of global (total-horizon) hedge ratios.\n\nRaises:\n    ValidationError: If the inputs are not conformable non-empty square finite\n        matrices, ``cov_hedge`` is not symmetric, ``condition_limit`` is not\n        strictly positive, or ``cov_hedge`` is singular / ill-conditioned (the\n        joint variance-minimising strategy then does not exist).",
           "methods": [],
           "fields": [],
           "members": [],
@@ -11968,8 +11968,8 @@ window.API_DATA = {
           "qualified": "quantvolt.hedging.hybrid.hybrid_deltas",
           "kind": "function",
           "signature": "hybrid_deltas(stack_fn: StackFn, drivers: Mapping[str, float], bump: float) -> dict[str, float]",
-          "summary": "Chain-rule deltas of a hybrid power-price model to each tradable driver (eq 10.26, Req 18.5).",
-          "doc": "Chain-rule deltas of a hybrid power-price model to each tradable driver (eq 10.26, Req 18.5).\n\nThe hybrid price is ``p = s^bid(drivers) + epsilon`` (eq 10.26). The local\nvariance-minimizing hedge to a tradable driver ``k`` is the partial derivative\nof the deterministic stack with respect to that driver, ``partial p / partial\ndriver_k`` (the residual ``epsilon`` is, by construction, independent of the\ndrivers and drops out of the derivative). Applying this to each driver gives,\nby the chain rule / Ito's lemma (source, after eq 10.28), the delta vector.\n\nWhen ``drivers`` are the tradable variables themselves -- or the tradable\nproxies through which the fundamental drivers are expressed (eqs 10.27-10.28,\ne.g. gas via its ``BOM`` / option contracts) -- each returned partial is\ndirectly the hedge ratio to that tradable. Each partial is one link of the\nchain rule; the total first-order price move is their sum,\n``dp = sum_k (partial p / partial driver_k) d(driver_k)`` (Property 57,\n\"chain-rule deltas sum consistently across drivers\").\n\nEach partial is estimated by a central finite difference (via\n:func:`quantvolt.numerics.rootfind.finite_difference_bump`): each driver is\nbumped by ``+/- bump`` while the others are held fixed. Choose ``bump`` small\nrelative to the driver's scale but large enough to avoid round-off; for an\nexactly linear stack the central difference is exact.\n\nThe caller's ``drivers`` mapping is never mutated: a fresh mapping is built for\nevery bumped evaluation.\n\nArgs:\n    stack_fn: The deterministic stack ``s^bid`` -- a pure callable mapping a\n        driver mapping ``{name: value}`` to the scalar power price (eq 10.26).\n    drivers: The current driver values ``{name: value}`` at which the deltas\n        are evaluated. Must be non-empty.\n    bump: Strictly positive central-difference step applied to each driver.\n\nReturns:\n    A ``dict`` with one entry per driver name, mapping it to\n    ``partial p / partial driver`` at ``drivers``.\n\nRaises:\n    ValidationError: If ``stack_fn`` is not callable, ``bump`` is not strictly\n        positive, or ``drivers`` is empty.",
+          "summary": "Chain-rule deltas of a hybrid power-price model to each tradable driver (eq 10.26).",
+          "doc": "Chain-rule deltas of a hybrid power-price model to each tradable driver (eq 10.26).\n\nThe hybrid price is ``p = s^bid(drivers) + epsilon`` (eq 10.26). The local\nvariance-minimizing hedge to a tradable driver ``k`` is the partial derivative\nof the deterministic stack with respect to that driver, ``partial p / partial\ndriver_k`` (the residual ``epsilon`` is, by construction, independent of the\ndrivers and drops out of the derivative). Applying this to each driver gives,\nby the chain rule / Ito's lemma (source, after eq 10.28), the delta vector.\n\nWhen ``drivers`` are the tradable variables themselves -- or the tradable\nproxies through which the fundamental drivers are expressed (eqs 10.27-10.28,\ne.g. gas via its ``BOM`` / option contracts) -- each returned partial is\ndirectly the hedge ratio to that tradable. Each partial is one link of the\nchain rule; the total first-order price move is their sum,\n``dp = sum_k (partial p / partial driver_k) d(driver_k)``: chain-rule\ndeltas sum consistently across drivers.\n\nEach partial is estimated by a central finite difference (via\n:func:`quantvolt.numerics.rootfind.finite_difference_bump`): each driver is\nbumped by ``+/- bump`` while the others are held fixed. Choose ``bump`` small\nrelative to the driver's scale but large enough to avoid round-off; for an\nexactly linear stack the central difference is exact.\n\nThe caller's ``drivers`` mapping is never mutated: a fresh mapping is built for\nevery bumped evaluation.\n\nArgs:\n    stack_fn: The deterministic stack ``s^bid`` -- a pure callable mapping a\n        driver mapping ``{name: value}`` to the scalar power price (eq 10.26).\n    drivers: The current driver values ``{name: value}`` at which the deltas\n        are evaluated. Must be non-empty.\n    bump: Strictly positive central-difference step applied to each driver.\n\nReturns:\n    A ``dict`` with one entry per driver name, mapping it to\n    ``partial p / partial driver`` at ``drivers``.\n\nRaises:\n    ValidationError: If ``stack_fn`` is not callable, ``bump`` is not strictly\n        positive, or ``drivers`` is empty.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -11982,8 +11982,8 @@ window.API_DATA = {
           "qualified": "quantvolt.hedging.variance_min.linear_cross_hedge",
           "kind": "function",
           "signature": "linear_cross_hedge(rho: float, sigma_target: float, sigma_hedge: float) -> float",
-          "summary": "Linear two-asset cross-commodity hedge ratio ``rho·sigma_t/sigma_h`` (eq 10.22, Req 18.2).",
-          "doc": "Linear two-asset cross-commodity hedge ratio ``rho·sigma_t/sigma_h`` (eq 10.22, Req 18.2).\n\nThe optimal local variance-minimizing hedge of one forward (the target, with\nvolatility ``sigma_t``) with another (the hedge instrument, volatility ``sigma_h``)\nwhen the two follow jointly arithmetic Brownian motions with correlation\n``rho`` (eq 10.21). For a linear product the hedge is constant in ``rho``, ``sigma_t``\nand ``sigma_h``. This is the one-instrument special case of\n:func:`variance_min_hedge`: with ``Σ_hh = [[sigma_h²]]`` and\n``Σ_ht = [rho·sigma_t·sigma_h]``, ``Σ_hh⁻¹ Σ_ht = rho·sigma_t/sigma_h``.\n\nArgs:\n    rho: Correlation between the target and hedge returns, in ``(-1, 1)``.\n    sigma_target: Volatility ``sigma_t`` of the target, strictly positive.\n    sigma_hedge: Volatility ``sigma_h`` of the hedge instrument, strictly positive.\n\nReturns:\n    The hedge ratio ``rho·sigma_t/sigma_h``.\n\nRaises:\n    ValidationError: If ``rho`` is not in ``(-1, 1)`` or either volatility is\n        not strictly positive.",
+          "summary": "Linear two-asset cross-commodity hedge ratio ``rho·sigma_t/sigma_h`` (eq 10.22).",
+          "doc": "Linear two-asset cross-commodity hedge ratio ``rho·sigma_t/sigma_h`` (eq 10.22).\n\nThe optimal local variance-minimizing hedge of one forward (the target, with\nvolatility ``sigma_t``) with another (the hedge instrument, volatility ``sigma_h``)\nwhen the two follow jointly arithmetic Brownian motions with correlation\n``rho`` (eq 10.21). For a linear product the hedge is constant in ``rho``, ``sigma_t``\nand ``sigma_h``. This is the one-instrument special case of\n:func:`variance_min_hedge`: with ``Σ_hh = [[sigma_h²]]`` and\n``Σ_ht = [rho·sigma_t·sigma_h]``, ``Σ_hh⁻¹ Σ_ht = rho·sigma_t/sigma_h``.\n\nArgs:\n    rho: Correlation between the target and hedge returns, in ``(-1, 1)``.\n    sigma_target: Volatility ``sigma_t`` of the target, strictly positive.\n    sigma_hedge: Volatility ``sigma_h`` of the hedge instrument, strictly positive.\n\nReturns:\n    The hedge ratio ``rho·sigma_t/sigma_h``.\n\nRaises:\n    ValidationError: If ``rho`` is not in ``(-1, 1)`` or either volatility is\n        not strictly positive.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -11996,8 +11996,8 @@ window.API_DATA = {
           "qualified": "quantvolt.hedging.mean_variance.local_mean_variance",
           "kind": "function",
           "signature": "local_mean_variance(cov_target_hedge: NDArray[np.float64], cov_hedge: NDArray[np.float64]) -> NDArray[np.float64]",
-          "summary": "Local (one-step) mean-variance hedge ratios -- the default (Req 18.4, Property 56).",
-          "doc": "Local (one-step) mean-variance hedge ratios -- the default (Req 18.4, Property 56).\n\nMinimises each rebalancing period's one-step variance ``Var(ΔV_t - g·ΔH_t)``\nseparately (Föllmer-Sondermann, 1986), returning the per-period projection\ncoefficients\n\n    ``g_local_t = Cov(ΔV_t, ΔH_t) / Var(ΔH_t) = M[t, t] / C[t, t]``.\n\nOnly the *diagonals* of the two input matrices are used, so the local hedge\n**always exists** whenever every per-period hedge variance is strictly\npositive -- it requires no matrix inversion and is indifferent to cross-period\ncorrelations or to ``cov_hedge`` being singular. This is why it is the default\nof the two mean-variance formulations.\n\nArgs:\n    cov_target_hedge: The ``(n, n)`` cross-covariance matrix ``M`` with\n        ``M[s, t] = Cov(ΔV_s, ΔH_t)``. Only the diagonal ``M[t, t] =\n        Cov(ΔV_t, ΔH_t)`` is read; it need not be symmetric.\n    cov_hedge: The ``(n, n)`` auto-covariance matrix ``C`` of the hedge\n        increments, ``C[s, t] = Cov(ΔH_s, ΔH_t)``. Must be square, symmetric\n        and finite; only the diagonal ``C[t, t] = Var(ΔH_t)`` is read, and\n        each diagonal entry must be strictly positive.\n\nReturns:\n    The ``(n,)`` ``float64`` array of per-period local hedge ratios.\n\nRaises:\n    ValidationError: If the inputs are not conformable non-empty square finite\n        matrices, ``cov_hedge`` is not symmetric, or any per-period hedge\n        variance ``Var(ΔH_t) = cov_hedge[t, t]`` is not strictly positive.",
+          "summary": "Local (one-step) mean-variance hedge ratios -- the default.",
+          "doc": "Local (one-step) mean-variance hedge ratios -- the default.\n\nMinimises each rebalancing period's one-step variance ``Var(ΔV_t - g·ΔH_t)``\nseparately (Föllmer-Sondermann, 1986), returning the per-period projection\ncoefficients\n\n    ``g_local_t = Cov(ΔV_t, ΔH_t) / Var(ΔH_t) = M[t, t] / C[t, t]``.\n\nOnly the *diagonals* of the two input matrices are used, so the local hedge\n**always exists** whenever every per-period hedge variance is strictly\npositive -- it requires no matrix inversion and is indifferent to cross-period\ncorrelations or to ``cov_hedge`` being singular. This is why it is the default\nof the two mean-variance formulations.\n\nArgs:\n    cov_target_hedge: The ``(n, n)`` cross-covariance matrix ``M`` with\n        ``M[s, t] = Cov(ΔV_s, ΔH_t)``. Only the diagonal ``M[t, t] =\n        Cov(ΔV_t, ΔH_t)`` is read; it need not be symmetric.\n    cov_hedge: The ``(n, n)`` auto-covariance matrix ``C`` of the hedge\n        increments, ``C[s, t] = Cov(ΔH_s, ΔH_t)``. Must be square, symmetric\n        and finite; only the diagonal ``C[t, t] = Var(ΔH_t)`` is read, and\n        each diagonal entry must be strictly positive.\n\nReturns:\n    The ``(n,)`` ``float64`` array of per-period local hedge ratios.\n\nRaises:\n    ValidationError: If the inputs are not conformable non-empty square finite\n        matrices, ``cov_hedge`` is not symmetric, or any per-period hedge\n        variance ``Var(ΔH_t) = cov_hedge[t, t]`` is not strictly positive.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -12010,8 +12010,8 @@ window.API_DATA = {
           "qualified": "quantvolt.hedging.hybrid.residual_variance",
           "kind": "function",
           "signature": "residual_variance(stack_fn: StackFn, drivers: Mapping[str, Sequence[float]], realized: Sequence[float]) -> float",
-          "summary": "Hybrid hedge-quality metric: variance of the residual ``epsilon_t`` (eq 10.26, Req 18.5).",
-          "doc": "Hybrid hedge-quality metric: variance of the residual ``epsilon_t`` (eq 10.26, Req 18.5).\n\nFrom ``p_t = s^bid(drivers_t) + epsilon_t`` (eq 10.26) the residual is\n``epsilon_t = p_t - s^bid(drivers_t)``. This applies the deterministic stack to\neach observation of the driver series, subtracts it from the realized power\nprice, and returns the (unbiased, ``ddof=1``) sample variance of the residual.\n\n**Smaller is better** (Property 57). The residual is the unhedgeable part of\nthe price; a representation that explains more of the price leaves a smaller\nresidual, and \"the smaller its variance, the better the representation\"\n(source text after eq 10.28). A zero residual variance means the price is\nfully spanned by the drivers and is completely hedgeable. This metric ranks\ncompeting hybrid representations of the *same* realized price series; pass the\nsame ``drivers`` / ``realized`` with different ``stack_fn`` transformations to\ncompare them.\n\nThis is a physical-measure (``P``) descriptive statistic and carries no risk\nadjustment (the risk-adjusted valuation of the unhedgeable residual lives in\n:func:`quantvolt.hedging.variance_min.decomposed_delta`, Req 18.6).\n\nThe caller's inputs are never mutated.\n\nArgs:\n    stack_fn: The deterministic stack ``s^bid`` -- a pure callable mapping a\n        per-observation driver mapping ``{name: value}`` to the scalar power\n        price (eq 10.26).\n    drivers: The driver series, column-oriented as ``{name: series}`` (the same\n        driver keys ``stack_fn`` reads, each carrying one value per\n        observation). Must be non-empty, and every series must have the same\n        length as ``realized``.\n    realized: The observed power prices ``p_t``, in observation order. At least\n        two observations are required.\n\nReturns:\n    The sample variance (``ddof=1``) of the residual\n    ``epsilon_t = realized_t - s^bid(drivers_t)``.\n\nRaises:\n    ValidationError: If ``stack_fn`` is not callable, ``drivers`` is empty,\n        ``realized`` is not 1-D, or any driver series length does not match\n        ``realized``.\n    InsufficientDataError: If fewer than two observations are supplied (the\n        ``n >= 2`` constraint required to estimate a sample variance).",
+          "summary": "Hybrid hedge-quality metric: variance of the residual ``epsilon_t`` (eq 10.26).",
+          "doc": "Hybrid hedge-quality metric: variance of the residual ``epsilon_t`` (eq 10.26).\n\nFrom ``p_t = s^bid(drivers_t) + epsilon_t`` (eq 10.26) the residual is\n``epsilon_t = p_t - s^bid(drivers_t)``. This applies the deterministic stack to\neach observation of the driver series, subtracts it from the realized power\nprice, and returns the (unbiased, ``ddof=1``) sample variance of the residual.\n\n**Smaller is better**. The residual is the unhedgeable part of\nthe price; a representation that explains more of the price leaves a smaller\nresidual, and \"the smaller its variance, the better the representation\"\n(source text after eq 10.28). A zero residual variance means the price is\nfully spanned by the drivers and is completely hedgeable. This metric ranks\ncompeting hybrid representations of the *same* realized price series; pass the\nsame ``drivers`` / ``realized`` with different ``stack_fn`` transformations to\ncompare them.\n\nThis is a physical-measure (``P``) descriptive statistic and carries no risk\nadjustment (the risk-adjusted valuation of the unhedgeable residual lives in\n``quantvolt.hedging.variance_min.decomposed_delta``).\n\nThe caller's inputs are never mutated.\n\nArgs:\n    stack_fn: The deterministic stack ``s^bid`` -- a pure callable mapping a\n        per-observation driver mapping ``{name: value}`` to the scalar power\n        price (eq 10.26).\n    drivers: The driver series, column-oriented as ``{name: series}`` (the same\n        driver keys ``stack_fn`` reads, each carrying one value per\n        observation). Must be non-empty, and every series must have the same\n        length as ``realized``.\n    realized: The observed power prices ``p_t``, in observation order. At least\n        two observations are required.\n\nReturns:\n    The sample variance (``ddof=1``) of the residual\n    ``epsilon_t = realized_t - s^bid(drivers_t)``.\n\nRaises:\n    ValidationError: If ``stack_fn`` is not callable, ``drivers`` is empty,\n        ``realized`` is not 1-D, or any driver series length does not match\n        ``realized``.\n    InsufficientDataError: If fewer than two observations are supplied (the\n        ``n >= 2`` constraint required to estimate a sample variance).",
           "methods": [],
           "fields": [],
           "members": [],
@@ -12024,8 +12024,8 @@ window.API_DATA = {
           "qualified": "quantvolt.hedging.variance_min.variance_min_hedge",
           "kind": "function",
           "signature": "variance_min_hedge(sigma_hh: NDArray[np.float64], sigma_ht: NDArray[np.float64], *, condition_limit: float=_CONDITION_LIMIT) -> NDArray[np.float64]",
-          "summary": "Variance-minimizing hedge ratios ``h* = Σ_hh⁻¹ Σ_ht`` (Req 18.1, Property 54).",
-          "doc": "Variance-minimizing hedge ratios ``h* = Σ_hh⁻¹ Σ_ht`` (Req 18.1, Property 54).\n\nGiven a target exposure and ``n`` hedge instruments described by their return\ncovariance with the target (``Σ_ht``) and with each other (``Σ_hh``), returns\nthe ratios ``h*`` that minimise the local variance of the hedged position.\n``h*`` solves the normal-equation system ``Σ_hh·h* = Σ_ht``.\n\nThe system is solved with :func:`numpy.linalg.solve` after an explicit\nconditioning check: a singular or ill-conditioned ``Σ_hh`` raises rather than\nsilently returning a pseudo-inverse solution (a pseudo-inverse would hide the\nfact that the hedge instruments are collinear and the ratios are not\nidentified).\n\nArgs:\n    sigma_hh: The ``(n, n)`` covariance matrix of the hedge instruments with\n        each other. Must be square, symmetric, finite and non-singular.\n    sigma_ht: The length-``n`` covariance vector of the hedge instruments with\n        the target exposure. Must be conformable with ``sigma_hh``.\n    condition_limit: Upper bound on the 2-norm condition number of ``sigma_hh``\n        before it is treated as numerically singular; defaults to ``1/eps``, the\n        point past which the linear solve loses all significant digits.\n\nReturns:\n    The ``(n,)`` ``float64`` array of variance-minimizing hedge ratios. For a\n    single instrument (``n == 1``) this collapses to\n    :func:`linear_cross_hedge`'s ``rho·sigma_t/sigma_h`` (Property 54).\n\nRaises:\n    ValidationError: If ``sigma_hh`` is not a non-empty square 2-D matrix, is\n        not symmetric, contains non-finite values, is singular or\n        ill-conditioned; if ``condition_limit`` is not strictly positive; or if\n        ``sigma_ht`` is not a finite 1-D vector conformable with ``sigma_hh``.",
+          "summary": "Variance-minimizing hedge ratios ``h* = Σ_hh⁻¹ Σ_ht``.",
+          "doc": "Variance-minimizing hedge ratios ``h* = Σ_hh⁻¹ Σ_ht``.\n\nGiven a target exposure and ``n`` hedge instruments described by their return\ncovariance with the target (``Σ_ht``) and with each other (``Σ_hh``), returns\nthe ratios ``h*`` that minimise the local variance of the hedged position.\n``h*`` solves the normal-equation system ``Σ_hh·h* = Σ_ht``.\n\nThe system is solved with :func:`numpy.linalg.solve` after an explicit\nconditioning check: a singular or ill-conditioned ``Σ_hh`` raises rather than\nsilently returning a pseudo-inverse solution (a pseudo-inverse would hide the\nfact that the hedge instruments are collinear and the ratios are not\nidentified).\n\nArgs:\n    sigma_hh: The ``(n, n)`` covariance matrix of the hedge instruments with\n        each other. Must be square, symmetric, finite and non-singular.\n    sigma_ht: The length-``n`` covariance vector of the hedge instruments with\n        the target exposure. Must be conformable with ``sigma_hh``.\n    condition_limit: Upper bound on the 2-norm condition number of ``sigma_hh``\n        before it is treated as numerically singular; defaults to ``1/eps``, the\n        point past which the linear solve loses all significant digits.\n\nReturns:\n    The ``(n,)`` ``float64`` array of variance-minimizing hedge ratios. For a\n    single instrument (``n == 1``) this collapses to\n    :func:`linear_cross_hedge`'s ``rho·sigma_t/sigma_h``.\n\nRaises:\n    ValidationError: If ``sigma_hh`` is not a non-empty square 2-D matrix, is\n        not symmetric, contains non-finite values, is singular or\n        ill-conditioned; if ``condition_limit`` is not strictly positive; or if\n        ``sigma_ht`` is not a finite 1-D vector conformable with ``sigma_hh``.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -12059,8 +12059,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.dispatch_approx.BangBangHedgeWarning",
           "kind": "class",
           "signature": "BangBangHedgeWarning()",
-          "summary": "Advisory that bang-bang state aggregation biases hedges far more than values (Req 21.3).",
-          "doc": "Advisory that bang-bang state aggregation biases hedges far more than values (Req 21.3).\n\nCollapsing the output grid to {0, c_max} pins the operating point to full load,\nso the plant value loses only the (often small) part-load optionality. The\n*sensitivities* — the deltas and critical-dispatch surfaces used to hedge — are\na different matter: they read the slope of value against price, and the\napproximation replaces the true, curved heat-rate response with a single kink\nat the on/off boundary. A hedge derived from a bang-bang model can therefore be\nbadly wrong even when the headline value looks reasonable. The approximation is\nnot rejected — for a sufficiently steep heat curve the value error is genuinely\nnegligible — but the caller is warned so the choice is deliberate.",
+          "summary": "Advisory that bang-bang state aggregation biases hedges far more than values.",
+          "doc": "Advisory that bang-bang state aggregation biases hedges far more than values.\n\nCollapsing the output grid to {0, c_max} pins the operating point to full load,\nso the plant value loses only the (often small) part-load optionality. The\nsensitivities (the deltas and critical-dispatch surfaces used to hedge) are\na different matter: they read the slope of value against price, and the\napproximation replaces the true, curved heat-rate response with a single kink\nat the on/off boundary. A hedge derived from a bang-bang model can therefore be\nbadly wrong even when the headline value looks reasonable. The approximation is\nnot rejected: for a sufficiently steep heat curve the value error is genuinely\nnegligible, but the caller is warned so the choice is deliberate.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -12074,7 +12074,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "BenchmarkResult(period: DeliveryPeriod, value: float, source: ValuationSource)",
           "summary": "A long-dated valuation with its provenance tag carried prominently.",
-          "doc": "A long-dated valuation with its provenance tag carried prominently.\n\n``source`` is the load-bearing field: :attr:`ValuationSource.FORWARD` means the\nvalue is the liquid forward price (Req 23.1); :attr:`ValuationSource.PROJECTED`\nmeans it is a projected-spot value (Req 23.2) that carries much higher risk and\nfor which short-horizon VaR is inapplicable.",
+          "doc": "A long-dated valuation with its provenance tag carried prominently.\n\n``source`` is the load-bearing field: ``ValuationSource.FORWARD`` means the\nvalue is the liquid forward price; ``ValuationSource.PROJECTED`` means it is\na projected-spot value that carries much higher risk and for which\nshort-horizon VaR is inapplicable.",
           "methods": [
             {
               "name": "is_projected",
@@ -12106,7 +12106,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/assets/long_dated.py",
-          "line": 111
+          "line": 107
         },
         {
           "name": "CorporatePremium",
@@ -12115,7 +12115,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "CorporatePremium(premium: float, kind: PriceOfRiskKind)",
           "summary": "A projected-spot risk premium with an explicit price-of-risk provenance.",
-          "doc": "A projected-spot risk premium with an explicit price-of-risk provenance.\n\n``kind`` has no default: the caller must state the provenance explicitly, so the\npremium is never applied silently (Req 19.3). :func:`valuation_benchmark` accepts\nonly a :attr:`~quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE`\npremium; a market-tagged one reflects traded quotes, not the firm's own long-dated\nrisk appetite, and cannot stand in for it.\n\nAttributes:\n    premium: The additive corporate risk premium in the commodity's price unit,\n        applied as ``projected_spot = spot_model(period) + premium`` (Req 23.2).\n        May be negative.\n    kind: Provenance of the premium; must be\n        :attr:`~quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE`.",
+          "doc": "A projected-spot risk premium with an explicit price-of-risk provenance.\n\n``kind`` has no default: the caller must state the provenance explicitly, so the\npremium is never applied silently. ``valuation_benchmark`` accepts only a\n``quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE`` premium; a\nmarket-tagged one reflects traded quotes, not the firm's own long-dated risk\nappetite, and cannot stand in for it.\n\nAttributes:\n    premium: The additive corporate risk premium in the commodity's price unit,\n        applied as ``projected_spot = spot_model(period) + premium``. May be\n        negative.\n    kind: Provenance of the premium; must be\n        ``quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE``.",
           "methods": [],
           "fields": [
             {
@@ -12131,7 +12131,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/assets/long_dated.py",
-          "line": 89
+          "line": 85
         },
         {
           "name": "DispatchDiagnostics",
@@ -12185,7 +12185,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "DispatchFactorModel(log_forward0: Vector, drift: Vector, covariance: Vector, drift_kind: DriftKind, peak_kinds: tuple[PeakKind, ...], temperatures: tuple[float, ...], power_on_index: int = 0, power_off_index: int = 1, gas_index: int = 2, temperature_factor: PhysicalFactorMapping | None = None, availability_factor: PhysicalFactorMapping | None = None)",
           "summary": "Risk-adjusted factor dynamics driving stochastic dispatch (eqs. B.2-B.4).",
-          "doc": "Risk-adjusted factor dynamics driving stochastic dispatch (eqs. B.2-B.4).\n\nThe stochastic factors are correlated log-forwards evolved by the Task-62\nengine ``ΔZ = mu + L·ε`` (GBM). At least a power and a gas coordinate are\nrequired; the on-peak / off-peak Markov split (eq. B.4) is expressed by naming\ntwo power coordinates (which may coincide) and a per-period peak label.\nTemperature is supplied deterministically (``temperatures``) -- it drives\n``HR`` and ``c_max`` but is not simulated here; a stochastic temperature factor\nwould simply be another simulated coordinate added to the basis.\n\nAttributes:\n    log_forward0: Initial log-forward vector ``z0 = log F(0, ·)`` over the\n        flattened factor state, dimension ``D`` (``>= 2``).\n    drift: Per-step drift ``mu`` (length ``D``). Must be the **risk-adjusted**\n        (pricing-measure) drift and is tagged by ``drift_kind``.\n    covariance: Per-step covariance ``C`` (``D x D``), assembled by\n        :func:`~quantvolt.numerics.monte_carlo.build_covariance`.\n    drift_kind: Measure tag on ``drift``; ``dispatch_value`` requires\n        :attr:`DriftKind.RISK_NEUTRAL` (Req 21.5).\n    peak_kinds: Per-period :class:`PeakKind` selecting the active power\n        coordinate; its length is the dispatch horizon ``H`` (``>= 1``).\n    temperatures: Per-period ambient temperature ``S_t`` (length ``H``).\n    power_on_index: Coordinate of ``z0`` used as the on-peak power spot.\n    power_off_index: Coordinate used as the off-peak power spot (may equal\n        ``power_on_index`` when the horizon is single-regime).\n    gas_index: Coordinate used as the gas / fuel price.",
+          "doc": "Risk-adjusted factor dynamics driving stochastic dispatch (eqs. B.2-B.4).\n\nThe stochastic factors are correlated log-forwards evolved by the shared\nsimulation engine ``ΔZ = mu + L·ε`` (GBM). At least a power and a gas coordinate are\nrequired; the on-peak / off-peak Markov split (eq. B.4) is expressed by naming\ntwo power coordinates (which may coincide) and a per-period peak label.\nTemperature is supplied deterministically (``temperatures``) -- it drives\n``HR`` and ``c_max`` but is not simulated here; a stochastic temperature factor\nwould simply be another simulated coordinate added to the basis.\n\nAttributes:\n    log_forward0: Initial log-forward vector ``z0 = log F(0, ·)`` over the\n        flattened factor state, dimension ``D`` (``>= 2``).\n    drift: Per-step drift ``mu`` (length ``D``). Must be the risk-adjusted\n        (pricing-measure) drift and is tagged by ``drift_kind``.\n    covariance: Per-step covariance ``C`` (``D x D``), assembled by\n        ``quantvolt.numerics.monte_carlo.build_covariance``.\n    drift_kind: Measure tag on ``drift``; ``dispatch_value`` requires\n        ``DriftKind.RISK_NEUTRAL``.\n    peak_kinds: Per-period ``PeakKind`` selecting the active power\n        coordinate; its length is the dispatch horizon ``H`` (``>= 1``).\n    temperatures: Per-period ambient temperature ``S_t`` (length ``H``).\n    power_on_index: Coordinate of ``z0`` used as the on-peak power spot.\n    power_off_index: Coordinate used as the off-peak power spot (may equal\n        ``power_on_index`` when the horizon is single-regime).\n    gas_index: Coordinate used as the gas / fuel price.",
           "methods": [
             {
               "name": "horizon",
@@ -12200,7 +12200,7 @@ window.API_DATA = {
             {
               "name": "simulate",
               "signature": "simulate(self, seed: int, path_count: int, *, antithetic: bool=True) -> Vector",
-              "summary": "Simulate ``(n_paths, H + 1, D)`` log-forward paths (Task-62 engine)."
+              "summary": "Simulate ``(n_paths, H + 1, D)`` log-forward paths."
             }
           ],
           "fields": [
@@ -12316,7 +12316,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "DispatchSchedule(outputs: tuple[float, ...], online: tuple[bool, ...], started: tuple[bool, ...], stopped: tuple[bool, ...], margins: tuple[float, ...], total_value: float)",
           "summary": "The perfect-foresight optimal dispatch (eq. B.1) over the horizon.",
-          "doc": "The perfect-foresight optimal dispatch (eq. B.1) over the horizon.\n\nEvery tuple is in period order and has the horizon's length.\n\nAttributes:\n    outputs: Generation ``q_t`` per period (MW); ``0`` when not producing.\n    online: Whether the unit is producing in the period.\n    started: Whether a start-up is initiated in the period (start cost charged).\n    stopped: Whether the unit shuts down in the period.\n    margins: Per-period contribution to ``total_value`` (discounted cash\n        flow, net of any start cost); ``sum(margins) == total_value``.\n    total_value: The optimal total value — the perfect-foresight upper bound\n        (Property 62).",
+          "doc": "The perfect-foresight optimal dispatch (eq. B.1) over the horizon.\n\nEvery tuple is in period order and has the horizon's length.\n\nAttributes:\n    outputs: Generation ``q_t`` per period (MW); ``0`` when not producing.\n    online: Whether the unit is producing in the period.\n    started: Whether a start-up is initiated in the period (start cost charged).\n    stopped: Whether the unit shuts down in the period.\n    margins: Per-period contribution to ``total_value`` (discounted cash\n        flow, net of any start cost); ``sum(margins) == total_value``.\n    total_value: The optimal total value, the perfect-foresight upper bound.",
           "methods": [],
           "fields": [
             {
@@ -12352,7 +12352,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/assets/dispatch_deterministic.py",
-          "line": 103
+          "line": 102
         },
         {
           "name": "FactorTransform",
@@ -12387,8 +12387,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.storage.IntrinsicResult",
           "kind": "class",
           "signature": "IntrinsicResult(value: float, inventory: tuple[float, ...], injection: tuple[float, ...], withdrawal: tuple[float, ...], cashflow: tuple[float, ...])",
-          "summary": "The optimal forward-locked injection/withdrawal schedule and its value (Req 22.1).",
-          "doc": "The optimal forward-locked injection/withdrawal schedule and its value (Req 22.1).\n\nEvery per-period tuple is in delivery-period order with the horizon's length ``T``;\n``inventory`` has length ``T + 1`` (level entering each period, then the terminal level).\nBy construction the schedule respects the inventory bounds and ratchets at every step.\n\nAttributes:\n    value: The intrinsic value — the optimal forward-locked total cash flow (including\n        any terminal penalty).\n    inventory: Working-gas inventory path; ``inventory[0] == initial_inventory`` and\n        ``inventory[T] == terminal_inventory`` (hard target) or the optimal terminal level\n        (soft penalty).\n    injection: Working gas injected each period (``0`` when withdrawing/idle).\n    withdrawal: Working gas withdrawn each period (``0`` when injecting/idle).\n    cashflow: Market cash flow each period net of throughput and carry costs;\n        ``sum(cashflow) == value`` when the terminal condition is a hard target (its\n        penalty contribution is then zero), otherwise ``value == sum(cashflow) -\n        terminal_penalty · |inventory[T] - terminal_inventory|``.",
+          "summary": "The optimal forward-locked injection/withdrawal schedule and its value.",
+          "doc": "The optimal forward-locked injection/withdrawal schedule and its value.\n\nEvery per-period tuple is in delivery-period order with the horizon's length ``T``;\n``inventory`` has length ``T + 1`` (level entering each period, then the terminal level).\nBy construction the schedule respects the inventory bounds and ratchets at every step.\n\nAttributes:\n    value: The intrinsic value — the optimal forward-locked total cash flow (including\n        any terminal penalty).\n    inventory: Working-gas inventory path; ``inventory[0] == initial_inventory`` and\n        ``inventory[T] == terminal_inventory`` (hard target) or the optimal terminal level\n        (soft penalty).\n    injection: Working gas injected each period (``0`` when withdrawing/idle).\n    withdrawal: Working gas withdrawn each period (``0`` when injecting/idle).\n    cashflow: Market cash flow each period net of throughput and carry costs;\n        ``sum(cashflow) == value`` when the terminal condition is a hard target (its\n        penalty contribution is then zero), otherwise ``value == sum(cashflow) -\n        terminal_penalty · |inventory[T] - terminal_inventory|``.",
           "methods": [],
           "fields": [
             {
@@ -12449,7 +12449,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/assets/long_dated.py",
-          "line": 153
+          "line": 149
         },
         {
           "name": "MonteCarloEvaluation",
@@ -12709,8 +12709,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.storage.StorageFactorModel",
           "kind": "class",
           "signature": "StorageFactorModel(volatility: float, dt: float, path_count: int = 4000)",
-          "summary": "Single-factor forward-consistent spot model for the extrinsic (LSM) leg (Req 20.5, 22.2).",
-          "doc": "Single-factor forward-consistent spot model for the extrinsic (LSM) leg (Req 20.5, 22.2).\n\nA documented one-factor reduction of the correlated forward engine\n(:func:`quantvolt.numerics.monte_carlo.simulate_correlated_forwards`): a single Brownian\nlog-factor ``X`` drives the whole curve multiplicatively. The period-``t`` spot price on a\npath is ``F(0, t) · exp(X_t)`` where ``X`` is simulated as GBM with per-step variance\n``volatility**2 · dt`` under the risk-neutral drift ``-½·volatility**2·dt`` that makes\n``exp(X)`` a unit martingale. Consequences that the valuation relies on:\n\n* ``X_0 = 0`` deterministically, so the period-0 spot equals ``F(0, 0)`` on every path\n  (today's prompt price is known);\n* ``E[spot_t] = F(0, t)`` — the forward is the risk-neutral spot mean, so the deterministic\n  intrinsic schedule earns exactly the intrinsic value in expectation, which is what\n  guarantees ``extrinsic >= 0`` (Property 64).\n\nThe model is *structured to admit* mean-reverting/OU dynamics without touching the\nvaluation (only the simulated factor changes), per Req 20.5; GBM is the shipped default.\n\nAttributes:\n    volatility: Annualised log-volatility ``sigma`` of the driving factor (``> 0``).\n    dt: Step length in years between consecutive delivery periods (``> 0``).\n    path_count: Number of Monte Carlo paths (``>= 1``); antithetic pairing is used, so an\n        odd count rounds up.",
+          "summary": "Single-factor forward-consistent spot model for the extrinsic (LSM) leg.",
+          "doc": "Single-factor forward-consistent spot model for the extrinsic (LSM) leg.\n\nA documented one-factor reduction of the correlated forward engine\n(:func:`quantvolt.numerics.monte_carlo.simulate_correlated_forwards`): a single Brownian\nlog-factor ``X`` drives the whole curve multiplicatively. The period-``t`` spot price on a\npath is ``F(0, t) · exp(X_t)`` where ``X`` is simulated as GBM with per-step variance\n``volatility**2 · dt`` under the risk-neutral drift ``-½·volatility**2·dt`` that makes\n``exp(X)`` a unit martingale. Consequences that the valuation relies on:\n\n* ``X_0 = 0`` deterministically, so the period-0 spot equals ``F(0, 0)`` on every path\n  (today's prompt price is known);\n* ``E[spot_t] = F(0, t)`` — the forward is the risk-neutral spot mean, so the deterministic\n  intrinsic schedule earns exactly the intrinsic value in expectation, which is what\n  guarantees ``extrinsic >= 0``.\n\nThe model is *structured to admit* mean-reverting/OU dynamics without touching the\nvaluation (only the simulated factor changes); GBM is the shipped default.\n\nAttributes:\n    volatility: Annualised log-volatility ``sigma`` of the driving factor (``> 0``).\n    dt: Step length in years between consecutive delivery periods (``> 0``).\n    path_count: Number of Monte Carlo paths (``>= 1``); antithetic pairing is used, so an\n        odd count rounds up.",
           "methods": [],
           "fields": [
             {
@@ -12739,8 +12739,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.storage.StorageModel",
           "kind": "class",
           "signature": "StorageModel(min_inventory: float, max_inventory: float, initial_inventory: float, terminal_inventory: float, injection_rate: RateCurve, withdrawal_rate: RateCurve, injection_cost: float = 0.0, withdrawal_cost: float = 0.0, injection_loss: float = 0.0, withdrawal_loss: float = 0.0, carry_cost: float = 0.0, terminal_penalty: float | None = None)",
-          "summary": "Physical + commercial parameters of a gas store (Req 22.1, 22.3).",
-          "doc": "Physical + commercial parameters of a gas store (Req 22.1, 22.3).\n\nInventory bounds are time-invariant scalars — the lightest faithful representation;\ntime-varying bounds would be a strictly heavier model with no bearing on the Task-75\nproperties and are deferred until a requirement needs them. Ratchets carry the only\nstate-dependence that matters here, as callables of the current fill level.\n\nAll consistency constraints are validated eagerly in :meth:`__post_init__` (rate-curve\nnon-negativity, which cannot be checked over all inventories for an opaque callable, is\nchecked at every grid level when a valuation runs). Inconsistent bounds raise a\n:class:`~quantvolt.exceptions.ValidationError` naming the offending fields (Req 22.3).\n\nAttributes:\n    min_inventory: Minimum working-gas inventory (volume).\n    max_inventory: Maximum working-gas inventory (volume); must be ``>= min_inventory``.\n    initial_inventory: Inventory entering the horizon; must lie in the bounds and on the\n        grid.\n    terminal_inventory: Target inventory at the horizon end; must lie in the bounds and\n        on the grid.\n    injection_rate: Ratchet ``injection_rate(inventory) -> max working-gas injected this\n        period`` (``>= 0``).\n    withdrawal_rate: Ratchet ``withdrawal_rate(inventory) -> max working-gas withdrawn\n        this period`` (``>= 0``).\n    injection_cost: Variable cost per unit working gas injected (``>= 0``).\n    withdrawal_cost: Variable cost per unit working gas withdrawn (``>= 0``).\n    injection_loss: Fuel-in-kind fraction burned on injection, in ``[0, 1)``.\n    withdrawal_loss: Fuel-in-kind fraction burned on withdrawal, in ``[0, 1)``.\n    carry_cost: Carry/financing cost per unit inventory held per period (``>= 0``).\n    terminal_penalty: If ``None`` the terminal inventory is a hard constraint; otherwise a\n        per-unit penalty (``>= 0``) on the terminal deviation from ``terminal_inventory``.",
+          "summary": "Physical + commercial parameters of a gas store.",
+          "doc": "Physical + commercial parameters of a gas store.\n\nInventory bounds are time-invariant scalars, the lightest faithful representation;\ntime-varying bounds would be a strictly heavier model and are deferred until a\ncaller needs them. Ratchets carry the only state-dependence that matters here,\nas callables of the current fill level.\n\nAll consistency constraints are validated eagerly in ``__post_init__`` (rate-curve\nnon-negativity, which cannot be checked over all inventories for an opaque callable, is\nchecked at every grid level when a valuation runs). Inconsistent bounds raise a\n``ValidationError`` naming the offending fields.\n\nAttributes:\n    min_inventory: Minimum working-gas inventory (volume).\n    max_inventory: Maximum working-gas inventory (volume); must be ``>= min_inventory``.\n    initial_inventory: Inventory entering the horizon; must lie in the bounds and on the\n        grid.\n    terminal_inventory: Target inventory at the horizon end; must lie in the bounds and\n        on the grid.\n    injection_rate: Ratchet ``injection_rate(inventory) -> max working-gas injected this\n        period`` (``>= 0``).\n    withdrawal_rate: Ratchet ``withdrawal_rate(inventory) -> max working-gas withdrawn\n        this period`` (``>= 0``).\n    injection_cost: Variable cost per unit working gas injected (``>= 0``).\n    withdrawal_cost: Variable cost per unit working gas withdrawn (``>= 0``).\n    injection_loss: Fuel-in-kind fraction burned on injection, in ``[0, 1)``.\n    withdrawal_loss: Fuel-in-kind fraction burned on withdrawal, in ``[0, 1)``.\n    carry_cost: Carry/financing cost per unit inventory held per period (``>= 0``).\n    terminal_penalty: If ``None`` the terminal inventory is a hard constraint; otherwise a\n        per-unit penalty (``>= 0``) on the terminal deviation from ``terminal_inventory``.",
           "methods": [
             {
               "name": "working_capacity",
@@ -12820,8 +12820,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.storage.StorageValueResult",
           "kind": "class",
           "signature": "StorageValueResult(total: float, intrinsic: float, extrinsic: float, standard_error: float)",
-          "summary": "Total, intrinsic and extrinsic storage value with the MC standard error (Req 22.2).",
-          "doc": "Total, intrinsic and extrinsic storage value with the MC standard error (Req 22.2).\n\n``total == intrinsic + extrinsic`` by construction (``total`` is anchored on the exact\nintrinsic value plus the control-variate extrinsic estimate). ``extrinsic`` is\ntheoretically non-negative (Property 64); it is reported honestly rather than clamped, and\n``standard_error`` — the Monte Carlo standard error of the extrinsic estimate — is the\nnatural yardstick for the ``extrinsic >= -epsilon`` tolerance floor (a few standard errors)\nwithin which a small negative sampling value is acceptable.\n\nAttributes:\n    total: The total (intrinsic + extrinsic) value; ``intrinsic + extrinsic``.\n    intrinsic: The forward-locked intrinsic value (see :func:`storage_intrinsic`).\n    extrinsic: The re-optimisation (time) value — the control-variate mean of the adaptive\n        minus fixed-schedule pathwise values; equals ``total - intrinsic``.\n    standard_error: Monte Carlo standard error of the ``extrinsic`` estimate, computed\n        by :func:`_standard_error` — pair-mean-aware when the simulated paths use\n        antithetic variates (the default), rather than the naive iid formula over\n        every path (which overstates the SE by ignoring the antithetic pairs'\n        negative within-pair correlation).",
+          "summary": "Total, intrinsic and extrinsic storage value with the MC standard error.",
+          "doc": "Total, intrinsic and extrinsic storage value with the MC standard error.\n\n``total == intrinsic + extrinsic`` by construction (``total`` is anchored on the exact\nintrinsic value plus the control-variate extrinsic estimate). ``extrinsic`` is\ntheoretically non-negative; it is reported honestly rather than clamped, and\n``standard_error`` — the Monte Carlo standard error of the extrinsic estimate — is the\nnatural yardstick for the ``extrinsic >= -epsilon`` tolerance floor (a few standard errors)\nwithin which a small negative sampling value is acceptable.\n\nAttributes:\n    total: The total (intrinsic + extrinsic) value; ``intrinsic + extrinsic``.\n    intrinsic: The forward-locked intrinsic value (see :func:`storage_intrinsic`).\n    extrinsic: The re-optimisation (time) value — the control-variate mean of the adaptive\n        minus fixed-schedule pathwise values; equals ``total - intrinsic``.\n    standard_error: Monte Carlo standard error of the ``extrinsic`` estimate, computed\n        by :func:`_standard_error` — pair-mean-aware when the simulated paths use\n        antithetic variates (the default), rather than the naive iid formula over\n        every path (which overstates the SE by ignoring the antithetic pairs'\n        negative within-pair correlation).",
           "methods": [],
           "fields": [
             {
@@ -12855,8 +12855,8 @@ window.API_DATA = {
           "qualified": "quantvolt.models.instruments.ValuationSource",
           "kind": "class",
           "signature": "ValuationSource()",
-          "summary": "Provenance tag for a valuation regime -- the single shared vocabulary a caller propagates onto a :class:`~quantvolt.portfolio.model.Position`'s ``tags`` so that downstream risk/portfolio code can tell how a number was produced.",
-          "doc": "Provenance tag for a valuation regime -- the single shared vocabulary a caller\npropagates onto a :class:`~quantvolt.portfolio.model.Position`'s ``tags`` so that\ndownstream risk/portfolio code can tell how a number was produced.\n\nDefined here (not in ``assets/long_dated.py``, which produces two of its three\nvalues) because this leaf-ish module is importable from both ``assets/long_dated.py``\n(via ``portfolio/model.py``) and from :class:`CachedAssetValuation` below without\ncreating an import cycle -- see this module's own dependency-direction note in the\n``portfolio-native-pricers`` design.\n\n- ``FORWARD`` / ``PROJECTED``: the long-dated valuation-governance regimes produced by\n  :func:`quantvolt.assets.long_dated.valuation_benchmark` (base design Req 23.1-23.2).\n- ``SIMULATED``: a precomputed LSMC/dispatch valuation cache, produced by\n  :class:`CachedAssetValuation` (portfolio-native-pricers spec, Req 19 roadmap) -- neither\n  a liquid forward quote nor a simple projected-spot-plus-premium figure, so it is tagged\n  as its own third regime rather than folded into ``PROJECTED``.",
+          "summary": "Provenance tag for a valuation regime: the shared vocabulary a caller propagates onto a ``Position``'s ``tags`` so that downstream risk/portfolio code can tell how a number was produced.",
+          "doc": "Provenance tag for a valuation regime: the shared vocabulary a caller propagates\nonto a ``Position``'s ``tags`` so that downstream risk/portfolio code can tell how a\nnumber was produced.\n\nDefined here (not in ``assets/long_dated.py``, which produces two of its three\nvalues) because this leaf-ish module is importable from both ``assets/long_dated.py``\n(via ``portfolio/model.py``) and from ``CachedAssetValuation`` below without creating\nan import cycle.\n\n- ``FORWARD`` / ``PROJECTED``: the long-dated valuation-governance regimes produced by\n  ``quantvolt.assets.long_dated.valuation_benchmark``.\n- ``SIMULATED``: a precomputed LSMC/dispatch valuation cache, produced by\n  ``CachedAssetValuation``; neither a liquid forward quote nor a simple\n  projected-spot-plus-premium figure, so it is tagged as its own third regime rather\n  than folded into ``PROJECTED``.",
           "methods": [],
           "fields": [],
           "members": [
@@ -12883,7 +12883,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "VarApplicabilityVerdict(applicable: bool, reason: str)",
           "summary": "Whether short-horizon VaR is applicable to a position, with the reason.",
-          "doc": "Whether short-horizon VaR is applicable to a position, with the reason.\n\nA frozen verdict an MC-VaR / parametric-VaR caller can consult without this module\nreaching into the risk engines. ``applicable`` is ``False`` for projected-spot\npositions (Req 23.3); ``reason`` states why in human-readable form.",
+          "doc": "Whether short-horizon VaR is applicable to a position, with the reason.\n\nA frozen verdict an MC-VaR / parametric-VaR caller can consult without this module\nreaching into the risk engines. ``applicable`` is ``False`` for projected-spot\npositions; ``reason`` states why in human-readable form.",
           "methods": [],
           "fields": [
             {
@@ -12899,7 +12899,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/assets/long_dated.py",
-          "line": 140
+          "line": 136
         },
         {
           "name": "bang_bang",
@@ -12907,8 +12907,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.dispatch_approx.bang_bang",
           "kind": "function",
           "signature": "bang_bang(plant: PlantModel, power_prices: Sequence[float], fuel_prices: Sequence[float], temperatures: Sequence[float], *, initial_online: bool=False, initial_output: float=0.0, initial_uptime: int | None=None, initial_downtime: int | None=None, output_step: float | None=None, discount_factors: Sequence[float] | None=None) -> DispatchSchedule",
-          "summary": "Bang-bang state aggregation: run at full load or off, {0, c_max} (Req 21.3).",
-          "doc": "Bang-bang state aggregation: run at full load or off, {0, c_max} (Req 21.3).\n\nCollapses the online output grid to a single full-load level so the unit is\neither off or running at ``c_max`` — the state aggregation Appendix B recommends\nfor a *sufficiently steep* heat-rate curve, where the optimal load is (almost)\nalways a corner. Implemented by solving the deterministic DP on a derived plant\nwhose ``c_min`` and ``c_max`` are both pinned to that full-load level; every\nother operating characteristic (heat-rate curve, start costs, ramp, durations)\nis unchanged. The input plant is **not** mutated — a new :class:`PlantModel` is\nderived.\n\nFull-load level. With a constant capacity the pinned level *is* ``c_max``. With a\ntemperature-dependent ``c_max(temp)`` the level is the horizon-minimum ``c_max``\n(the largest constant full-output level feasible in every period); a period\nwhose capacity falls below the plant's own ``c_min`` makes the plant infeasible\nthere and is rejected, mirroring the deterministic solver's curve check.\n\nExactness and bias. For a **linear** (constant-marginal) heat rate the per-MWh\nmargin is output-independent, so the exact optimum is a corner and bang-bang is\nexact. For a **steep** (rising-marginal) curve the exact optimum may run at an\nefficient part load that bang-bang cannot represent, so the value is a\n**downward-biased lower bound**: whenever the full-load level is reachable in one\nstep (ramp rate >= operating range) the bang-bang on/off policy set is a strict\nsubset of the exact one, and restricting the load choice can only lose value.\n\nWarning (Req 21.3). Emits :class:`BangBangHedgeWarning`: hedges (sensitivities\nand critical-dispatch surfaces) are far more sensitive than the value itself to\nthe heat-rate-curve approximation, because they read the *slope* of value\nagainst price, which the single on/off kink distorts even where the value error\nis negligible.\n\nArgs:\n    plant: The operating model; a full-load-pinned copy is derived from it.\n    power_prices: Power price ``P_t`` per period.\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period.\n    initial_online: Whether the unit is producing entering the horizon; an\n        online unit is treated as running at the full-load level.\n    initial_output: Ignored when ``initial_online`` (the unit is pinned to full\n        load); retained for signature parity with the deterministic solver.\n    initial_uptime: Producing periods already accrued (min-run).\n    initial_downtime: Offline periods already accrued (start bucket / min-down).\n    output_step: Output-grid spacing (MW); immaterial here (single online level)\n        but validated ``> 0`` by the solver; defaults to the ramp rate.\n    discount_factors: Per-period to-today discount factors (default all 1.0).\n\nReturns:\n    The bang-bang :class:`DispatchSchedule` (outputs are 0 or the full-load\n    level).\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a discount\n        factor or ``output_step`` is non-positive; if ``c_max`` falls below\n        ``c_min`` at some temperature; or if the initial condition admits no\n        feasible schedule (delegated to the deterministic solver).",
+          "summary": "Bang-bang state aggregation: run at full load or off, {0, c_max}.",
+          "doc": "Bang-bang state aggregation: run at full load or off, {0, c_max}.\n\nCollapses the online output grid to a single full-load level so the unit is\neither off or running at ``c_max``, recommended for a sufficiently steep\nheat-rate curve, where the optimal load is (almost)\nalways a corner. Implemented by solving the deterministic DP on a derived plant\nwhose ``c_min`` and ``c_max`` are both pinned to that full-load level; every\nother operating characteristic (heat-rate curve, start costs, ramp, durations)\nis unchanged. The input plant is not mutated: a new ``PlantModel`` is\nderived.\n\nFull-load level. With a constant capacity the pinned level is ``c_max``. With a\ntemperature-dependent ``c_max(temp)`` the level is the horizon-minimum ``c_max``\n(the largest constant full-output level feasible in every period); a period\nwhose capacity falls below the plant's own ``c_min`` makes the plant infeasible\nthere and is rejected, mirroring the deterministic solver's curve check.\n\nExactness and bias. For a linear (constant-marginal) heat rate the per-MWh\nmargin is output-independent, so the exact optimum is a corner and bang-bang is\nexact. For a steep (rising-marginal) curve the exact optimum may run at an\nefficient part load that bang-bang cannot represent, so the value is a\ndownward-biased lower bound: whenever the full-load level is reachable in one\nstep (ramp rate >= operating range) the bang-bang on/off policy set is a strict\nsubset of the exact one, and restricting the load choice can only lose value.\n\nWarning. Emits ``BangBangHedgeWarning``: hedges (sensitivities\nand critical-dispatch surfaces) are far more sensitive than the value itself to\nthe heat-rate-curve approximation, because they read the slope of value\nagainst price, which the single on/off kink distorts even where the value error\nis negligible.\n\nArgs:\n    plant: The operating model; a full-load-pinned copy is derived from it.\n    power_prices: Power price ``P_t`` per period.\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period.\n    initial_online: Whether the unit is producing entering the horizon; an\n        online unit is treated as running at the full-load level.\n    initial_output: Ignored when ``initial_online`` (the unit is pinned to full\n        load); retained for signature parity with the deterministic solver.\n    initial_uptime: Producing periods already accrued (min-run).\n    initial_downtime: Offline periods already accrued (start bucket / min-down).\n    output_step: Output-grid spacing (MW); immaterial here (single online level)\n        but validated ``> 0`` by the solver; defaults to the ramp rate.\n    discount_factors: Per-period to-today discount factors (default all 1.0).\n\nReturns:\n    The bang-bang :class:`DispatchSchedule` (outputs are 0 or the full-load\n    level).\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a discount\n        factor or ``output_step`` is non-positive; if ``c_max`` falls below\n        ``c_min`` at some temperature; or if the initial condition admits no\n        feasible schedule (delegated to the deterministic solver).",
           "methods": [],
           "fields": [],
           "members": [],
@@ -12922,12 +12922,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "dispatch_deterministic(plant: PlantModel, power_prices: Sequence[float], fuel_prices: Sequence[float], temperatures: Sequence[float], *, initial_online: bool=False, initial_output: float=0.0, initial_uptime: int | None=None, initial_downtime: int | None=None, output_step: float | None=None, discount_factors: Sequence[float] | None=None) -> DispatchSchedule",
           "summary": "Solve the perfect-foresight optimal dispatch of ``plant`` (eq. B.1).",
-          "doc": "Solve the perfect-foresight optimal dispatch of ``plant`` (eq. B.1).\n\nExact backward-induction DP over a discretised commitment/output state (see\nthe module docstring for the objective, the state space, the discretisation\nand its exactness, and the unit-commitment conventions). All inputs are\nvalidated before any computation and never mutated.\n\nArgs:\n    plant: The operating model (heat-rate curve, capacities, start costs,\n        ramp rate, durations).\n    power_prices: Power price ``P_t`` per period (may be negative).\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period (drives ``HR`` and\n        ``c_max``).\n    initial_online: Whether the unit is producing entering the horizon.\n    initial_output: Output entering the horizon (MW); must be on the grid\n        when ``initial_online`` (ignored otherwise).\n    initial_uptime: Producing periods already accrued (min-run); defaults to\n        \"min-run already satisfied\". Only used when ``initial_online``.\n    initial_downtime: Periods already offline (keys the first start's bucket\n        and min-down); must be ``>= 1`` (a unit \"not online\" has been offline for\n        at least one period); defaults to a long, cold, restart-ready downtime.\n        Only used when not ``initial_online``.\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    discount_factors: Per-period discount factors (default all 1.0).\n\nReturns:\n    The optimal :class:`DispatchSchedule`; ``total_value`` is the\n    perfect-foresight upper bound of Property 62.\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a\n        discount factor or ``output_step`` is non-positive; if\n        ``c_max(temp) < c_min`` or ``heat_rate(q, temp) ≤ 0`` at a supplied\n        temperature; if ``initial_output`` is off-grid while online; if\n        ``initial_downtime < 1`` while offline; or if the supplied initial\n        condition admits no feasible schedule.",
+          "doc": "Solve the perfect-foresight optimal dispatch of ``plant`` (eq. B.1).\n\nExact backward-induction DP over a discretised commitment/output state (see\nthe module docstring for the objective, the state space, the discretisation\nand its exactness, and the unit-commitment conventions). All inputs are\nvalidated before any computation and never mutated.\n\nArgs:\n    plant: The operating model (heat-rate curve, capacities, start costs,\n        ramp rate, durations).\n    power_prices: Power price ``P_t`` per period (may be negative).\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period (drives ``HR`` and\n        ``c_max``).\n    initial_online: Whether the unit is producing entering the horizon.\n    initial_output: Output entering the horizon (MW); must be on the grid\n        when ``initial_online`` (ignored otherwise).\n    initial_uptime: Producing periods already accrued (min-run); defaults to\n        \"min-run already satisfied\". Only used when ``initial_online``.\n    initial_downtime: Periods already offline (keys the first start's bucket\n        and min-down); must be ``>= 1`` (a unit \"not online\" has been offline for\n        at least one period); defaults to a long, cold, restart-ready downtime.\n        Only used when not ``initial_online``.\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    discount_factors: Per-period discount factors (default all 1.0).\n\nReturns:\n    The optimal ``DispatchSchedule``; ``total_value`` is the\n    perfect-foresight upper bound.\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a\n        discount factor or ``output_step`` is non-positive; if\n        ``c_max(temp) < c_min`` or ``heat_rate(q, temp) ≤ 0`` at a supplied\n        temperature; if ``initial_output`` is off-grid while online; if\n        ``initial_downtime < 1`` while offline; or if the supplied initial\n        condition admits no feasible schedule.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/assets/dispatch_deterministic.py",
-          "line": 298
+          "line": 296
         },
         {
           "name": "dispatch_value",
@@ -12935,8 +12935,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.dispatch_sdp.dispatch_value",
           "kind": "function",
           "signature": "dispatch_value(plant: PlantModel, factor_model: DispatchFactorModel, *, method: str='lsm', seed: int, path_count: int=4096, output_step: float | None=None, availability: Sequence[float] | None=None, discount_factors: Sequence[float] | None=None, initial_online: bool=False, initial_output: float=0.0, initial_uptime: int | None=None, initial_downtime: int | None=None, evaluation: MonteCarloEvaluation | None=None, antithetic: bool=True, regression_basis_degree: int=2) -> DispatchResult",
-          "summary": "Value ``plant`` under uncertainty by stochastic DP (eqs. B.2-B.3; Req 21.1-21.2).",
-          "doc": "Value ``plant`` under uncertainty by stochastic DP (eqs. B.2-B.3; Req 21.1-21.2).\n\nSolves the Bellman recursion over the deterministic module's commitment state\nmachine, under the risk-adjusted expectation carried by ``factor_model``\n(Req 21.5). See the module docstring for the state machine, the on-peak /\noff-peak Markov split (Req 21.6), the risk-adjusted-drift requirement, the\nforced-outage seam, and the critical-surface representation. All inputs are\nvalidated before any computation and never mutated.\n\nArgs:\n    plant: The operating model (heat-rate curve, capacities, start costs,\n        ramp rate, durations).\n    factor_model: Risk-adjusted factor dynamics and the per-period peak /\n        temperature context (also fixes the horizon ``H``).\n    method: ``\"lsm\"`` (least-squares Monte Carlo) or ``\"tree\"`` (recombining\n        lattice); selected via a dispatch table.\n    seed: Monte Carlo / lattice seed (Req 11.2 determinism); ``>= 0``.\n    path_count: Simulated paths for ``\"lsm\"`` (ignored by ``\"tree\"``); ``>= 1``.\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    availability: Optional per-period forced-outage multiplier ``M`` in\n        ``(0, 1]`` (length ``H``) derating ``c_max``; ``None`` = full\n        availability. A caller may source it from\n        :meth:`OutageDataset.forced_outage_multiplier`.\n    discount_factors: Per-period to-today discount factors (default all 1.0).\n    initial_online: Whether the unit is producing entering the horizon.\n    initial_output: Output entering the horizon (MW); on-grid when online.\n    initial_uptime: Producing periods already accrued (min-run).\n    initial_downtime: Periods already offline (start bucket / min-down); must be\n        ``>= 1`` when not ``initial_online`` (delegated to the reused\n        :func:`~quantvolt.assets.dispatch_deterministic._initial_state`).\n    evaluation: Independent LSM policy-evaluation sample. By default, the fitted\n        policy is evaluated on ``path_count`` fresh paths using ``seed + 1``.\n    antithetic: Whether ``\"lsm\"``'s simulated paths use antithetic variates\n        (default ``True``, matching prior behaviour); ignored by ``\"tree\"``\n        (the lattice has no simulation). Also selects the pair-mean-aware\n        standard-error estimator used for ``evaluation_standard_error``\n        (:class:`DispatchDiagnostics`).\n    regression_basis_degree: Degree of the polynomial regression basis used by\n        ``\"lsm\"``'s continuation-value fit (default ``2``: intercept, linears,\n        squares, pairwise cross terms -- the historical basis); ignored by\n        ``\"tree\"``. Must be ``>= 1``.\n\nReturns:\n    The :class:`DispatchResult` (value + eq. B.5 critical surfaces).\n\nRaises:\n    ValidationError: If ``method`` is unknown; if ``factor_model.drift`` is not\n        risk-adjusted (Req 21.5); if ``path_count`` / ``seed`` /\n        ``discount_factors`` / ``availability`` / ``regression_basis_degree`` are\n        out of range or mis-sized; if a plant curve is infeasible at a supplied\n        temperature; if ``initial_downtime < 1`` while offline; or if the initial\n        condition admits no feasible schedule.",
+          "summary": "Value ``plant`` under uncertainty by stochastic DP (eqs. B.2-B.3).",
+          "doc": "Value ``plant`` under uncertainty by stochastic DP (eqs. B.2-B.3).\n\nSolves the Bellman recursion over the deterministic module's commitment state\nmachine, under the risk-adjusted expectation carried by ``factor_model``.\nSee the module docstring for the state machine, the on-peak /\noff-peak Markov split, the risk-adjusted-drift requirement, the\nforced-outage seam, and the critical-surface representation. All inputs are\nvalidated before any computation and never mutated.\n\nArgs:\n    plant: The operating model (heat-rate curve, capacities, start costs,\n        ramp rate, durations).\n    factor_model: Risk-adjusted factor dynamics and the per-period peak /\n        temperature context (also fixes the horizon ``H``).\n    method: ``\"lsm\"`` (least-squares Monte Carlo) or ``\"tree\"`` (recombining\n        lattice); selected via a dispatch table.\n    seed: Monte Carlo / lattice seed (determinism); ``>= 0``.\n    path_count: Simulated paths for ``\"lsm\"`` (ignored by ``\"tree\"``); ``>= 1``.\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    availability: Optional per-period forced-outage multiplier ``M`` in\n        ``(0, 1]`` (length ``H``) derating ``c_max``; ``None`` = full\n        availability. A caller may source it from\n        :meth:`OutageDataset.forced_outage_multiplier`.\n    discount_factors: Per-period to-today discount factors (default all 1.0).\n    initial_online: Whether the unit is producing entering the horizon.\n    initial_output: Output entering the horizon (MW); on-grid when online.\n    initial_uptime: Producing periods already accrued (min-run).\n    initial_downtime: Periods already offline (start bucket / min-down); must be\n        ``>= 1`` when not ``initial_online`` (delegated to the reused\n        ``quantvolt.assets.dispatch_deterministic._initial_state``).\n    evaluation: Independent LSM policy-evaluation sample. By default, the fitted\n        policy is evaluated on ``path_count`` fresh paths using ``seed + 1``.\n    antithetic: Whether ``\"lsm\"``'s simulated paths use antithetic variates\n        (default ``True``, matching prior behaviour); ignored by ``\"tree\"``\n        (the lattice has no simulation). Also selects the pair-mean-aware\n        standard-error estimator used for ``evaluation_standard_error``\n        (:class:`DispatchDiagnostics`).\n    regression_basis_degree: Degree of the polynomial regression basis used by\n        ``\"lsm\"``'s continuation-value fit (default ``2``: intercept, linears,\n        squares, pairwise cross terms -- the historical basis); ignored by\n        ``\"tree\"``. Must be ``>= 1``.\n\nReturns:\n    The ``DispatchResult`` (value + eq. B.5 critical surfaces).\n\nRaises:\n    ValidationError: If ``method`` is unknown; if ``factor_model.drift`` is not\n        risk-adjusted; if ``path_count`` / ``seed`` /\n        ``discount_factors`` / ``availability`` / ``regression_basis_degree`` are\n        out of range or mis-sized; if a plant curve is infeasible at a supplied\n        temperature; if ``initial_downtime < 1`` while offline; or if the initial\n        condition admits no feasible schedule.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -12950,12 +12950,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "furthest_forward_lower_bound(forward_curve: ForwardCurve, period: DeliveryPeriod, *, storable: bool) -> LowerBoundResult",
           "summary": "Use the furthest visible forward as a lower bound for an illiquid later tenor.",
-          "doc": "Use the furthest visible forward as a lower bound for an illiquid later tenor.\n\nFor a **storable** commodity the cash-and-carry / no-arbitrage relationship links\na later delivery to a nearer one, so the furthest liquid forward price is a valid\nlower bound for tenors beyond the curve (Req 23.4). This helper returns that bound\nfor ``period`` (which must be strictly later than the furthest liquid forward).\n\nFor a **non-storable** commodity such as power (``storable=False``) the bound is\nrefused: non-storability breaks the carry argument, so a nearer forward does not\nbound a later illiquid tenor and the furthest forward is not a valid lower bound\n(Req 23.4). Storability is caller-declared, never inferred from the commodity.\n\nArgs:\n    forward_curve: The liquid forward curve; its furthest node supplies the bound.\n    period: The illiquid tenor to bound; must be strictly later than the furthest\n        liquid forward.\n    storable: Caller's declaration that the commodity is storable. ``False``\n        (e.g. power) refuses the bound.\n\nReturns:\n    A :class:`LowerBoundResult` carrying the bound and the period it came from.\n\nRaises:\n    ValidationError: If ``storable`` is ``False`` (non-storable / power), or if\n        ``period`` is not strictly later than the furthest liquid forward.",
+          "doc": "Use the furthest visible forward as a lower bound for an illiquid later tenor.\n\nFor a storable commodity the cash-and-carry / no-arbitrage relationship links\na later delivery to a nearer one, so the furthest liquid forward price is a valid\nlower bound for tenors beyond the curve. This helper returns that bound for\n``period`` (which must be strictly later than the furthest liquid forward).\n\nFor a non-storable commodity such as power (``storable=False``) the bound is\nrefused: non-storability breaks the carry argument, so a nearer forward does not\nbound a later illiquid tenor and the furthest forward is not a valid lower bound.\nStorability is caller-declared, never inferred from the commodity.\n\nArgs:\n    forward_curve: The liquid forward curve; its furthest node supplies the bound.\n    period: The illiquid tenor to bound; must be strictly later than the furthest\n        liquid forward.\n    storable: Caller's declaration that the commodity is storable. ``False``\n        (e.g. power) refuses the bound.\n\nReturns:\n    A ``LowerBoundResult`` carrying the bound and the period it came from.\n\nRaises:\n    ValidationError: If ``storable`` is ``False`` (non-storable / power), or if\n        ``period`` is not strictly later than the furthest liquid forward.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/assets/long_dated.py",
-          "line": 259
+          "line": 255
         },
         {
           "name": "horizon_divide",
@@ -12963,8 +12963,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.dispatch_approx.horizon_divide",
           "kind": "function",
           "signature": "horizon_divide(plant: PlantModel, power_prices: Sequence[float], fuel_prices: Sequence[float], temperatures: Sequence[float], sub_horizon: int, *, initial_online: bool=False, initial_output: float=0.0, initial_uptime: int | None=None, initial_downtime: int | None=None, output_step: float | None=None, discount_factors: Sequence[float] | None=None) -> DispatchSchedule",
-          "summary": "Horizon-division heuristic: solve independent sub-horizons and sum (Req 21.3).",
-          "doc": "Horizon-division heuristic: solve independent sub-horizons and sum (Req 21.3).\n\nThe horizon is cut into consecutive sub-horizons of length ``sub_horizon`` (the\nlast may be shorter) that are solved *independently* by the deterministic DP and\nconcatenated; ``total_value`` is the sum of the sub-values. This is the weekly /\nmonthly sub-period heuristic that keeps each solve small.\n\nBoundary-state approximation. Only the **first** sub-horizon sees the caller's\ninitial condition; every later sub-horizon restarts from a cold, restart-ready\n*offline* state. Dropping the true carried-over commitment state is exactly what\ndecouples the subproblems — and is the approximation. It is **exact** when the\nperiods decouple (zero start costs and non-binding min-run / min-down / ramp),\nbecause the dispatch is then myopic and the start-up state is immaterial. It\n**typically understates** value otherwise (each boundary can pay a spurious\nrestart cost), but it *can* overstate value when a binding min-run / min-down\nconstraint that would span a boundary in the full solve is artificially relaxed\nby the cut.\n\nArgs:\n    plant: The operating model (unchanged; passed to each sub-solve).\n    power_prices: Power price ``P_t`` per period.\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period.\n    sub_horizon: Periods per sub-horizon; must be an integer ``>= 1``.\n    initial_online: Whether the unit is producing entering the *first*\n        sub-horizon.\n    initial_output: Output entering the first sub-horizon (MW); on the grid when\n        online.\n    initial_uptime: Producing periods already accrued entering the first\n        sub-horizon (min-run).\n    initial_downtime: Offline periods already accrued entering the first\n        sub-horizon (start bucket / min-down).\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    discount_factors: Per-period to-today discount factors (default all 1.0);\n        sliced per sub-horizon.\n\nReturns:\n    The concatenated full-horizon :class:`DispatchSchedule`; ``total_value`` is\n    the sum of the sub-horizon values.\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a discount\n        factor or ``output_step`` is non-positive; if ``sub_horizon`` is not an\n        integer ``>= 1``; or if any sub-problem is infeasible (delegated to the\n        deterministic solver).",
+          "summary": "Horizon-division heuristic: solve independent sub-horizons and sum.",
+          "doc": "Horizon-division heuristic: solve independent sub-horizons and sum.\n\nThe horizon is cut into consecutive sub-horizons of length ``sub_horizon`` (the\nlast may be shorter) that are solved independently by the deterministic DP and\nconcatenated; ``total_value`` is the sum of the sub-values. This is the weekly /\nmonthly sub-period heuristic that keeps each solve small.\n\nBoundary-state approximation. Only the first sub-horizon sees the caller's\ninitial condition; every later sub-horizon restarts from a cold, restart-ready\noffline state. Dropping the true carried-over commitment state is exactly what\ndecouples the subproblems, and is the approximation. It is exact when the\nperiods decouple (zero start costs and non-binding min-run / min-down / ramp),\nbecause the dispatch is then myopic and the start-up state is immaterial. It\ntypically understates value otherwise (each boundary can pay a spurious\nrestart cost), but it can overstate value when a binding min-run / min-down\nconstraint that would span a boundary in the full solve is artificially relaxed\nby the cut.\n\nArgs:\n    plant: The operating model (unchanged; passed to each sub-solve).\n    power_prices: Power price ``P_t`` per period.\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period.\n    sub_horizon: Periods per sub-horizon; must be an integer ``>= 1``.\n    initial_online: Whether the unit is producing entering the *first*\n        sub-horizon.\n    initial_output: Output entering the first sub-horizon (MW); on the grid when\n        online.\n    initial_uptime: Producing periods already accrued entering the first\n        sub-horizon (min-run).\n    initial_downtime: Offline periods already accrued entering the first\n        sub-horizon (start bucket / min-down).\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    discount_factors: Per-period to-today discount factors (default all 1.0);\n        sliced per sub-horizon.\n\nReturns:\n    The concatenated full-horizon :class:`DispatchSchedule`; ``total_value`` is\n    the sum of the sub-horizon values.\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a discount\n        factor or ``output_step`` is non-positive; if ``sub_horizon`` is not an\n        integer ``>= 1``; or if any sub-problem is infeasible (delegated to the\n        deterministic solver).",
           "methods": [],
           "fields": [],
           "members": [],
@@ -12977,8 +12977,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.storage.storage_intrinsic",
           "kind": "function",
           "signature": "storage_intrinsic(model: StorageModel, forward_curve: ForwardCurve, *, inventory_step: float | None=None, grid_steps: int=_DEFAULT_GRID_STEPS) -> IntrinsicResult",
-          "summary": "Optimal forward-locked injection/withdrawal schedule and its value (Req 22.1).",
-          "doc": "Optimal forward-locked injection/withdrawal schedule and its value (Req 22.1).\n\nExact backward-induction dynamic program over the discretised inventory grid: with the\nforward curve's per-period prices known, it finds the injection/withdrawal schedule that\nmaximises total cash flow subject to the inventory bounds, the injection/withdrawal\nratchets and the terminal-inventory condition — all enforced at *every* step by the\nfeasible-transition set (Req 22.3). See the module docstring for the discretisation,\nthe cash-flow conventions and the exactness statement.\n\nArgs:\n    model: The storage parameters.\n    forward_curve: The forward curve whose node prices drive the schedule; nodes are taken\n        in chronological order, one delivery period per horizon step.\n    inventory_step: Inventory-grid spacing (volume); defaults to\n        ``working_capacity / grid_steps``. Must divide the distances from\n        ``min_inventory`` to ``initial_inventory`` and ``terminal_inventory``.\n    grid_steps: Number of inventory-grid intervals used to derive the default\n        ``inventory_step`` when it is not supplied (default ``50``). Ignored when\n        ``inventory_step`` is given explicitly. Must be ``>= 1``.\n\nReturns:\n    The optimal :class:`IntrinsicResult`.\n\nRaises:\n    ValidationError: If ``inventory_step`` is non-positive; if ``grid_steps < 1``; if the\n        initial/terminal inventory is off-grid; if a ratchet returns a negative rate at a\n        grid level; or if a hard terminal target is unreachable from the initial inventory\n        over the horizon.",
+          "summary": "Optimal forward-locked injection/withdrawal schedule and its value.",
+          "doc": "Optimal forward-locked injection/withdrawal schedule and its value.\n\nExact backward-induction dynamic program over the discretised inventory grid: with the\nforward curve's per-period prices known, it finds the injection/withdrawal schedule that\nmaximises total cash flow subject to the inventory bounds, the injection/withdrawal\nratchets and the terminal-inventory condition — all enforced at *every* step by the\nfeasible-transition set. See the module docstring for the discretisation,\nthe cash-flow conventions and the exactness statement.\n\nArgs:\n    model: The storage parameters.\n    forward_curve: The forward curve whose node prices drive the schedule; nodes are taken\n        in chronological order, one delivery period per horizon step.\n    inventory_step: Inventory-grid spacing (volume); defaults to\n        ``working_capacity / grid_steps``. Must divide the distances from\n        ``min_inventory`` to ``initial_inventory`` and ``terminal_inventory``.\n    grid_steps: Number of inventory-grid intervals used to derive the default\n        ``inventory_step`` when it is not supplied (default ``50``). Ignored when\n        ``inventory_step`` is given explicitly. Must be ``>= 1``.\n\nReturns:\n    The optimal :class:`IntrinsicResult`.\n\nRaises:\n    ValidationError: If ``inventory_step`` is non-positive; if ``grid_steps < 1``; if the\n        initial/terminal inventory is off-grid; if a ratchet returns a negative rate at a\n        grid level; or if a hard terminal target is unreachable from the initial inventory\n        over the horizon.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -12991,8 +12991,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.storage.storage_value",
           "kind": "function",
           "signature": "storage_value(model: StorageModel, forward_curve: ForwardCurve, factor_model: StorageFactorModel, seed: int, *, inventory_step: float | None=None, grid_steps: int=_DEFAULT_GRID_STEPS, lsm_basis_degree: int=_LSM_BASIS_DEGREE, antithetic: bool=True) -> StorageValueResult",
-          "summary": "Total (intrinsic + extrinsic) storage value via Least-Squares Monte Carlo (Req 22.2).",
-          "doc": "Total (intrinsic + extrinsic) storage value via Least-Squares Monte Carlo (Req 22.2).\n\nSimulates forward-consistent spot paths with ``factor_model`` (see\n:class:`StorageFactorModel`) and runs a backward induction over ``(time, inventory)`` that\nfinds the optimal *adaptive* injection/withdrawal policy. At each period and inventory\nlevel the decision maximises ``immediate cash flow + continuation value``, where the\ncontinuation value of each reachable next level is estimated by regressing the pathwise\nnext-period value on the polynomial basis ``[1, S, S**2]`` of the current spot ``S``\n(Longstaff-Schwartz). The regression is used only to choose the action; the value is then\naccumulated from the *realised* pathwise continuation to limit foldback bias. All the\ninventory-bound, ratchet and terminal constraints are enforced by the same\nfeasible-transition set as the intrinsic DP (Req 22.3).\n\nExtrinsic value via a control variate (Property 64)\n---------------------------------------------------\nThe extrinsic component is estimated as the mean pathwise difference between the adaptive\npolicy value and the *fixed intrinsic schedule* evaluated on the **same** simulated paths\n(common random numbers): ``extrinsic = mean_p[V_adaptive(p) - V_fixed(p)]``. Because the\nfixed forward-locked schedule is one feasible policy available to the optimal adaptive\npolicy, the difference is non-negative in expectation, and sharing the price paths cancels\nthe bulk of the sampling variance — so ``extrinsic >= 0`` holds robustly rather than being\nswamped by the (large) variance of ``total`` alone. ``total`` is anchored on the exact\nintrinsic value as ``intrinsic + extrinsic``, and ``extrinsic`` is reported honestly with\nits standard error rather than clamped (a small negative value within a few standard errors\nis Monte Carlo noise, per the Property-64 tolerance floor).\n\nArgs:\n    model: The storage parameters.\n    forward_curve: The forward curve (its node prices are the per-period forward means).\n    factor_model: The single-factor spot model and MC controls.\n    seed: RNG seed; identical inputs and seed give identical results (Req 11.2).\n    inventory_step: Inventory-grid spacing, shared with :func:`storage_intrinsic`.\n    grid_steps: Number of inventory-grid intervals used to derive the default\n        ``inventory_step`` when it is not supplied, shared with :func:`storage_intrinsic`\n        (default ``50``). Must be ``>= 1``.\n    lsm_basis_degree: Degree of the polynomial regression basis\n        ``[1, S, ..., S**lsm_basis_degree]`` used for the LSM continuation value (default\n        ``2``, i.e. ``[1, S, S**2]``). Must be ``>= 1``.\n    antithetic: Whether the simulated spot paths use antithetic variates (default\n        ``True``, matching prior behaviour). Also selects the pair-mean-aware\n        standard-error estimator used for ``standard_error`` (see\n        :func:`_standard_error`).\n\nReturns:\n    The :class:`StorageValueResult` with ``total``, ``intrinsic``, ``extrinsic`` and the\n    Monte Carlo ``standard_error`` of ``total``.\n\nRaises:\n    ValidationError: For the same grid/ratchet/terminal violations as\n        :func:`storage_intrinsic`, if ``seed`` is negative, or if ``lsm_basis_degree < 1``.",
+          "summary": "Total (intrinsic + extrinsic) storage value via Least-Squares Monte Carlo.",
+          "doc": "Total (intrinsic + extrinsic) storage value via Least-Squares Monte Carlo.\n\nSimulates forward-consistent spot paths with ``factor_model`` (see\n:class:`StorageFactorModel`) and runs a backward induction over ``(time, inventory)`` that\nfinds the optimal *adaptive* injection/withdrawal policy. At each period and inventory\nlevel the decision maximises ``immediate cash flow + continuation value``, where the\ncontinuation value of each reachable next level is estimated by regressing the pathwise\nnext-period value on the polynomial basis ``[1, S, S**2]`` of the current spot ``S``\n(Longstaff-Schwartz). The regression is used only to choose the action; the value is then\naccumulated from the *realised* pathwise continuation to limit foldback bias. All the\ninventory-bound, ratchet and terminal constraints are enforced by the same\nfeasible-transition set as the intrinsic DP.\n\nExtrinsic value via a control variate\n---------------------------------------------------\nThe extrinsic component is estimated as the mean pathwise difference between the adaptive\npolicy value and the *fixed intrinsic schedule* evaluated on the **same** simulated paths\n(common random numbers): ``extrinsic = mean_p[V_adaptive(p) - V_fixed(p)]``. Because the\nfixed forward-locked schedule is one feasible policy available to the optimal adaptive\npolicy, the difference is non-negative in expectation, and sharing the price paths cancels\nthe bulk of the sampling variance — so ``extrinsic >= 0`` holds robustly rather than being\nswamped by the (large) variance of ``total`` alone. ``total`` is anchored on the exact\nintrinsic value as ``intrinsic + extrinsic``, and ``extrinsic`` is reported honestly with\nits standard error rather than clamped (a small negative value within a few standard errors\nis Monte Carlo noise, per the Property-64 tolerance floor).\n\nArgs:\n    model: The storage parameters.\n    forward_curve: The forward curve (its node prices are the per-period forward means).\n    factor_model: The single-factor spot model and MC controls.\n    seed: RNG seed; identical inputs and seed give identical results.\n    inventory_step: Inventory-grid spacing, shared with :func:`storage_intrinsic`.\n    grid_steps: Number of inventory-grid intervals used to derive the default\n        ``inventory_step`` when it is not supplied, shared with :func:`storage_intrinsic`\n        (default ``50``). Must be ``>= 1``.\n    lsm_basis_degree: Degree of the polynomial regression basis\n        ``[1, S, ..., S**lsm_basis_degree]`` used for the LSM continuation value (default\n        ``2``, i.e. ``[1, S, S**2]``). Must be ``>= 1``.\n    antithetic: Whether the simulated spot paths use antithetic variates (default\n        ``True``, matching prior behaviour). Also selects the pair-mean-aware\n        standard-error estimator used for ``standard_error`` (see\n        :func:`_standard_error`).\n\nReturns:\n    The :class:`StorageValueResult` with ``total``, ``intrinsic``, ``extrinsic`` and the\n    Monte Carlo ``standard_error`` of ``total``.\n\nRaises:\n    ValidationError: For the same grid/ratchet/terminal violations as\n        :func:`storage_intrinsic`, if ``seed`` is negative, or if ``lsm_basis_degree < 1``.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -13005,8 +13005,8 @@ window.API_DATA = {
           "qualified": "quantvolt.assets.dispatch_approx.time_aggregate",
           "kind": "function",
           "signature": "time_aggregate(plant: PlantModel, power_prices: Sequence[float], fuel_prices: Sequence[float], temperatures: Sequence[float], block_hours: int, *, initial_online: bool=False, initial_output: float=0.0, initial_uptime: int | None=None, initial_downtime: int | None=None, output_step: float | None=None, discount_factors: Sequence[float] | None=None) -> DispatchSchedule",
-          "summary": "Time-aggregation heuristic: solve on ``block_hours``-hour blocks, rescale (Req 21.3).",
-          "doc": "Time-aggregation heuristic: solve on ``block_hours``-hour blocks, rescale (Req 21.3).\n\nEach consecutive run of ``block_hours`` periods is averaged into one coarse\nperiod (power, fuel, temperature, and — if supplied — discount factor), the\ndeterministic dispatch is solved on the coarse series, and the coarse per-period\nresult is expanded back to the original resolution with each block's cash flow\nrecurring ``block_hours`` times (the rescaling). The returned\n:class:`DispatchSchedule` therefore has the original horizon's length and a\n``total_value`` equal to ``block_hours`` times the coarse value.\n\nExactness and bias. On **block-constant** prices (each series constant within\nevery block) the block average is lossless and, for a unit that incurs no start\nwithin the horizon, the rescaled value equals the full-resolution optimum\nexactly. When a start *is* incurred inside a block, the once-per-block start\ncost is replicated across the block's sub-periods, understating the value — a\ndocumented downward bias that shrinks with fewer/cheaper starts. Sub-block ramp\nand commitment freedom (and any intra-block discount-factor variation) are the\nother, generally small, sources of error. Duration/timer arguments are counted\nin *coarse* periods (blocks) inside the coarse solve; pass them accordingly.\n\nArgs:\n    plant: The operating model (unchanged; passed to the coarse solve).\n    power_prices: Power price ``P_t`` per (fine) period.\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period.\n    block_hours: Periods per aggregation block; must be an integer ``>= 1`` that\n        divides the horizon evenly.\n    initial_online: Whether the unit is producing entering the horizon.\n    initial_output: Output entering the horizon (MW); on the coarse grid when\n        online.\n    initial_uptime: Producing (coarse) periods already accrued (min-run).\n    initial_downtime: Offline (coarse) periods already accrued (start bucket /\n        min-down).\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    discount_factors: Per-period to-today discount factors (default all 1.0);\n        block-averaged before the coarse solve.\n\nReturns:\n    A full-resolution :class:`DispatchSchedule`; ``total_value`` is the rescaled\n    coarse value.\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a discount\n        factor or ``output_step`` is non-positive; if ``block_hours`` is not an\n        integer ``>= 1`` or does not divide the horizon; or if the coarse problem\n        is itself infeasible (delegated to the deterministic solver).",
+          "summary": "Time-aggregation heuristic: solve on ``block_hours``-hour blocks, rescale.",
+          "doc": "Time-aggregation heuristic: solve on ``block_hours``-hour blocks, rescale.\n\nEach consecutive run of ``block_hours`` periods is averaged into one coarse\nperiod (power, fuel, temperature, and — if supplied — discount factor), the\ndeterministic dispatch is solved on the coarse series, and the coarse per-period\nresult is expanded back to the original resolution with each block's cash flow\nrecurring ``block_hours`` times (the rescaling). The returned\n:class:`DispatchSchedule` therefore has the original horizon's length and a\n``total_value`` equal to ``block_hours`` times the coarse value.\n\nExactness and bias. On **block-constant** prices (each series constant within\nevery block) the block average is lossless and, for a unit that incurs no start\nwithin the horizon, the rescaled value equals the full-resolution optimum\nexactly. When a start *is* incurred inside a block, the once-per-block start\ncost is replicated across the block's sub-periods, understating the value — a\ndocumented downward bias that shrinks with fewer/cheaper starts. Sub-block ramp\nand commitment freedom (and any intra-block discount-factor variation) are the\nother, generally small, sources of error. Duration/timer arguments are counted\nin *coarse* periods (blocks) inside the coarse solve; pass them accordingly.\n\nArgs:\n    plant: The operating model (unchanged; passed to the coarse solve).\n    power_prices: Power price ``P_t`` per (fine) period.\n    fuel_prices: Fuel price ``G_t`` per period.\n    temperatures: Ambient temperature ``S_t`` per period.\n    block_hours: Periods per aggregation block; must be an integer ``>= 1`` that\n        divides the horizon evenly.\n    initial_online: Whether the unit is producing entering the horizon.\n    initial_output: Output entering the horizon (MW); on the coarse grid when\n        online.\n    initial_uptime: Producing (coarse) periods already accrued (min-run).\n    initial_downtime: Offline (coarse) periods already accrued (start bucket /\n        min-down).\n    output_step: Output-grid spacing (MW); defaults to the ramp rate.\n    discount_factors: Per-period to-today discount factors (default all 1.0);\n        block-averaged before the coarse solve.\n\nReturns:\n    A full-resolution :class:`DispatchSchedule`; ``total_value`` is the rescaled\n    coarse value.\n\nRaises:\n    ValidationError: If the series are empty or of unequal length; if a discount\n        factor or ``output_step`` is non-positive; if ``block_hours`` is not an\n        integer ``>= 1`` or does not divide the horizon; or if the coarse problem\n        is itself infeasible (delegated to the deterministic solver).",
           "methods": [],
           "fields": [],
           "members": [],
@@ -13020,12 +13020,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "valuation_benchmark(period: DeliveryPeriod, forward_curve: ForwardCurve, spot_model: SpotModel, corporate_premium: CorporatePremium) -> BenchmarkResult",
           "summary": "Value ``period`` off the forward curve where liquid, else off projected spot.",
-          "doc": "Value ``period`` off the forward curve where liquid, else off projected spot.\n\nWhere the liquid ``forward_curve`` covers ``period``, the forward price is the\nvaluation benchmark and no projected-spot value is substituted (Req 23.1). A\nperiod present on the curve counts as forward-based whether its node is\n``observed`` or ``interpolated`` — both lie within the liquid forward span. Where\nthe curve does not cover ``period``, the value is projected as\n``spot_model(period) + corporate_premium.premium`` and tagged\n:attr:`ValuationSource.PROJECTED` (Req 23.2).\n\n``corporate_premium`` is validated eagerly (before the liquidity branch) so a\nmarket-tagged or untagged premium is rejected regardless of this period's\nliquidity — the corporate risk premium is never applied silently (Req 19.3).\n\nArgs:\n    period: The delivery period to value.\n    forward_curve: The liquid forward curve; membership of ``period`` decides the\n        regime.\n    spot_model: Pure callable ``DeliveryPeriod -> float`` giving the model spot\n        expectation used when no liquid forward exists. Never mutated.\n    corporate_premium: The additive corporate risk premium, explicitly tagged\n        :attr:`~quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE`.\n\nReturns:\n    A :class:`BenchmarkResult` whose ``source`` tags the regime prominently.\n\nRaises:\n    ValidationError: If ``corporate_premium`` is not an explicitly corporate-tagged\n        :class:`CorporatePremium`.",
+          "doc": "Value ``period`` off the forward curve where liquid, else off projected spot.\n\nWhere the liquid ``forward_curve`` covers ``period``, the forward price is the\nvaluation benchmark and no projected-spot value is substituted. A period\npresent on the curve counts as forward-based whether its node is ``observed``\nor ``interpolated``; both lie within the liquid forward span. Where the curve\ndoes not cover ``period``, the value is projected as\n``spot_model(period) + corporate_premium.premium`` and tagged\n``ValuationSource.PROJECTED``.\n\n``corporate_premium`` is validated eagerly (before the liquidity branch) so a\nmarket-tagged or untagged premium is rejected regardless of this period's\nliquidity; the corporate risk premium is never applied silently.\n\nArgs:\n    period: The delivery period to value.\n    forward_curve: The liquid forward curve; membership of ``period`` decides the\n        regime.\n    spot_model: Pure callable ``DeliveryPeriod -> float`` giving the model spot\n        expectation used when no liquid forward exists. Never mutated.\n    corporate_premium: The additive corporate risk premium, explicitly tagged\n        ``quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE``.\n\nReturns:\n    A ``BenchmarkResult`` whose ``source`` tags the regime prominently.\n\nRaises:\n    ValidationError: If ``corporate_premium`` is not an explicitly corporate-tagged\n        ``CorporatePremium``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/assets/long_dated.py",
-          "line": 168
+          "line": 164
         },
         {
           "name": "var_applicability_guard",
@@ -13034,12 +13034,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "var_applicability_guard(position: PricedPosition, *, strict: bool=False) -> VarApplicabilityVerdict",
           "summary": "Flag short-horizon VaR as inapplicable for a projected-spot-valued position.",
-          "doc": "Flag short-horizon VaR as inapplicable for a projected-spot-valued position.\n\nReads the position's provenance from ``position.position.tags``: a position\ncarrying the :attr:`ValuationSource.PROJECTED` tag was valued off projected spot,\nfor which short-horizon VaR is not meaningful — VaR is meaningful only in liquid\nmarkets (Chapter-10 caveat, Req 23.3). Absence of that tag is treated as\nforward-based / liquid and therefore VaR-applicable.\n\nDesigned to be *consulted* by MC-VaR / parametric-VaR callers: they inspect the\nreturned verdict and exclude the position (or switch to CFaR / scenario analysis)\nwithout this module modifying ``risk/``. With ``strict=True`` the guard instead\nraises for an inapplicable position, for callers that prefer to hard-fail.\n\nArgs:\n    position: The priced position to judge, as consumed by the risk engines.\n    strict: When ``True``, raise :class:`ValidationError` for a projected-spot\n        position instead of returning an ``applicable=False`` verdict.\n\nReturns:\n    A :class:`VarApplicabilityVerdict` with ``applicable`` and a ``reason``.\n\nRaises:\n    ValidationError: If ``strict`` is ``True`` and the position is projected-valued.",
+          "doc": "Flag short-horizon VaR as inapplicable for a projected-spot-valued position.\n\nReads the position's provenance from ``position.position.tags``: a position\ncarrying the ``ValuationSource.PROJECTED`` tag was valued off projected spot,\nfor which short-horizon VaR is not meaningful, since VaR is meaningful only in\nliquid markets. Absence of that tag is treated as forward-based / liquid and\ntherefore VaR-applicable.\n\nDesigned to be consulted by MC-VaR / parametric-VaR callers: they inspect the\nreturned verdict and exclude the position (or switch to CFaR / scenario analysis)\nwithout this module modifying ``risk/``. With ``strict=True`` the guard instead\nraises for an inapplicable position, for callers that prefer to hard-fail.\n\nArgs:\n    position: The priced position to judge, as consumed by the risk engines.\n    strict: When ``True``, raise ``ValidationError`` for a projected-spot\n        position instead of returning an ``applicable=False`` verdict.\n\nReturns:\n    A ``VarApplicabilityVerdict`` with ``applicable`` and a ``reason``.\n\nRaises:\n    ValidationError: If ``strict`` is ``True`` and the position is projected-valued.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/assets/long_dated.py",
-          "line": 212
+          "line": 208
         }
       ]
     },
@@ -13054,8 +13054,8 @@ window.API_DATA = {
           "qualified": "quantvolt.curvemodels.schwartz_smith.CalibrationDiagnostics",
           "kind": "class",
           "signature": "CalibrationDiagnostics(converged: bool, optimizer_message: str, n_iterations: int, log_likelihood: float, gradient_norm: float, hessian_condition_number: float, param_std_errors: dict[str, float], measurement_sigma: float, filtered_initial_state: tuple[float, float], residual_rmse: float, initial_curve_max_abs_mismatch: float, fits_initial_curve: bool, lognormal_power_caveat: str)",
-          "summary": "Fit diagnostics returned alongside calibrated :class:`SchwartzSmithParams` (Req 25.6).",
-          "doc": "Fit diagnostics returned alongside calibrated :class:`SchwartzSmithParams` (Req 25.6).\n\n* ``converged`` / ``optimizer_message`` / ``n_iterations`` — MLE termination status.\n  ``n_iterations`` is ``result.nit`` when the chosen ``optimizer_method`` reports it;\n  methods that don't (e.g. COBYLA has no ``nit`` attribute at all) fall back to\n  ``result.nfev`` (the function-evaluation count) as the nearest available proxy for\n  how much optimizer work occurred before termination.\n* ``log_likelihood`` — maximised Gaussian log-likelihood (prediction-error decomposition).\n* ``gradient_norm`` — ``||grad NLL||`` at the optimum (near 0 at a good stationary point).\n* ``hessian_condition_number`` — condition number of the observed information; large values\n  warn of weakly identified parameters (typically the drift/risk-premium terms).\n* ``param_std_errors`` — asymptotic MLE standard errors keyed by parameter name (``nan``\n  where the information matrix is singular, i.e. the parameter is not identified).\n* ``measurement_sigma`` — fitted per-tenor log-price measurement-noise standard deviation.\n* ``filtered_initial_state`` — filtered ``(chi_0, xi_0)`` at the first observation date.\n* ``residual_rmse`` — RMSE of the log-price measurement residuals (filtered fit).\n* ``initial_curve_max_abs_mismatch`` — max ``|model - observed|`` log-forward at the first\n  date (Req 25.5 flag); ``fits_initial_curve`` is ``True`` only if it is within tolerance.\n* ``lognormal_power_caveat`` — the §31.3 suitability warning (Req 25.5).",
+          "summary": "Fit diagnostics returned alongside calibrated :class:`SchwartzSmithParams`.",
+          "doc": "Fit diagnostics returned alongside calibrated :class:`SchwartzSmithParams`.\n\n* ``converged`` / ``optimizer_message`` / ``n_iterations`` — MLE termination status.\n  ``n_iterations`` is ``result.nit`` when the chosen ``optimizer_method`` reports it;\n  methods that don't (e.g. COBYLA has no ``nit`` attribute at all) fall back to\n  ``result.nfev`` (the function-evaluation count) as the nearest available proxy for\n  how much optimizer work occurred before termination.\n* ``log_likelihood`` — maximised Gaussian log-likelihood (prediction-error decomposition).\n* ``gradient_norm`` — ``||grad NLL||`` at the optimum (near 0 at a good stationary point).\n* ``hessian_condition_number`` — condition number of the observed information; large values\n  warn of weakly identified parameters (typically the drift/risk-premium terms).\n* ``param_std_errors`` — asymptotic MLE standard errors keyed by parameter name (``nan``\n  where the information matrix is singular, i.e. the parameter is not identified).\n* ``measurement_sigma`` — fitted per-tenor log-price measurement-noise standard deviation.\n* ``filtered_initial_state`` — filtered ``(chi_0, xi_0)`` at the first observation date.\n* ``residual_rmse`` — RMSE of the log-price measurement residuals (filtered fit).\n* ``initial_curve_max_abs_mismatch`` — max ``|model - observed|`` log-forward at the first\n  date; ``fits_initial_curve`` is ``True`` only if it is within tolerance.\n* ``lognormal_power_caveat`` — the lognormal-vs-spiky-power suitability warning.",
           "methods": [],
           "fields": [
             {
@@ -13126,7 +13126,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/curvemodels/schwartz_smith.py",
-          "line": 307
+          "line": 305
         },
         {
           "name": "LognormalPowerWarning",
@@ -13134,8 +13134,8 @@ window.API_DATA = {
           "qualified": "quantvolt.curvemodels.multifactor.LognormalPowerWarning",
           "kind": "class",
           "signature": "LognormalPowerWarning()",
-          "summary": "Advisory that a lognormal (``dF/F``) forward model is being used on power (Req 25.5).",
-          "doc": "Advisory that a lognormal (``dF/F``) forward model is being used on power (Req 25.5).\n\nLognormal forward dynamics keep forwards strictly positive and impose Gaussian\nlog-returns; they cannot reproduce the price spikes, negative prices, and heavy tails\nof spot power. The model is not *rejected* -- it may be appropriate for smooth,\nfar-dated power forwards -- but callers are warned so the choice is deliberate.",
+          "summary": "Advisory that a lognormal (``dF/F``) forward model is being used on power.",
+          "doc": "Advisory that a lognormal (``dF/F``) forward model is being used on power.\n\nLognormal forward dynamics keep forwards strictly positive and impose Gaussian\nlog-returns; they cannot reproduce the price spikes, negative prices, and heavy tails\nof spot power. The model is not *rejected* -- it may be appropriate for smooth,\nfar-dated power forwards -- but callers are warned so the choice is deliberate.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -13149,7 +13149,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "MultifactorForwardModel(loadings: npt.NDArray[np.float64], dt: float = 1.0 / 12.0)",
           "summary": "Frozen config over factor loadings ``sigma_k(t, T)`` for the §32-33 forward model.",
-          "doc": "Frozen config over factor loadings ``sigma_k(t, T)`` for the §32-33 forward model.\n\nAttributes:\n    loadings: ``(n_steps, n_factors, n_tenors)`` ``float64`` array; ``loadings[b, k, j]``\n        is ``sigma_k(t_b, T_j)``, the instantaneous loading of factor ``k`` on tenor\n        (or ``(commodity, month)``) ``j`` over time bucket ``b`` of width ``dt``. Copied\n        and made read-only at construction so the config is genuinely immutable.\n    dt: Uniform time-step ``Delta t`` in years over which each bucket's loadings hold.\n        Defaults to ``1/12`` (monthly, §33). Must be ``> 0``.\n\nThe initial curve ``F(0, T)`` is *not* stored: it is supplied to :func:`simulate_forwards`\nand matched by construction (the dynamics are a driftless-in-``F`` martingale from any\npositive ``F(0, T)``; Property 71). Validation is eager (Req 11.5): 3-D shape with every\naxis non-empty, all-finite loadings, and ``dt > 0``.",
+          "doc": "Frozen config over factor loadings ``sigma_k(t, T)`` for the §32-33 forward model.\n\nAttributes:\n    loadings: ``(n_steps, n_factors, n_tenors)`` ``float64`` array; ``loadings[b, k, j]``\n        is ``sigma_k(t_b, T_j)``, the instantaneous loading of factor ``k`` on tenor\n        (or ``(commodity, month)``) ``j`` over time bucket ``b`` of width ``dt``. Copied\n        and made read-only at construction so the config is genuinely immutable.\n    dt: Uniform time-step ``Delta t`` in years over which each bucket's loadings hold.\n        Defaults to ``1/12`` (monthly, §33). Must be ``> 0``.\n\nThe initial curve ``F(0, T)`` is not stored: it is supplied to ``simulate_forwards``\nand matched by construction (the dynamics are a driftless-in-``F`` martingale from any\npositive ``F(0, T)``). Validation is eager: 3-D shape with every\naxis non-empty, all-finite loadings, and ``dt > 0``.",
           "methods": [
             {
               "name": "n_steps",
@@ -13194,8 +13194,8 @@ window.API_DATA = {
           "qualified": "quantvolt.curvemodels.schwartz_smith.SchwartzSmithParams",
           "kind": "class",
           "signature": "SchwartzSmithParams(kappa: float, sigma_chi: float, sigma_xi: float, mu_xi: float, rho: float, lambda_chi: float, lambda_xi: float)",
-          "summary": "Risk-neutral parameters of the two-factor Schwartz-Smith model (§31.1).",
-          "doc": "Risk-neutral parameters of the two-factor Schwartz-Smith model (§31.1).\n\nFields match Req 25.1 / design ``SchwartzSmithParams``:\n\n* ``kappa`` — short-factor mean-reversion speed (``> 0``).\n* ``sigma_chi`` — short-factor volatility (``> 0``).\n* ``sigma_xi`` — long-factor volatility (``> 0``).\n* ``mu_xi`` — physical long-term drift of ``xi`` (unconstrained).\n* ``rho`` — instantaneous correlation of the two Brownian factors, ``in (-1, 1)``.\n* ``lambda_chi`` — short-factor risk premium (unconstrained).\n* ``lambda_xi`` — long-factor risk premium (unconstrained).\n\n:attr:`mu_xi_star` = ``mu_xi - lambda_xi`` is the risk-neutral long-term drift that\nenters the forward curve (§31.2).",
+          "summary": "Risk-neutral parameters of the two-factor Schwartz-Smith model.",
+          "doc": "Risk-neutral parameters of the two-factor Schwartz-Smith model.\n\n* ``kappa`` — short-factor mean-reversion speed (``> 0``).\n* ``sigma_chi`` — short-factor volatility (``> 0``).\n* ``sigma_xi`` — long-factor volatility (``> 0``).\n* ``mu_xi`` — physical long-term drift of ``xi`` (unconstrained).\n* ``rho`` — instantaneous correlation of the two Brownian factors, ``in (-1, 1)``.\n* ``lambda_chi`` — short-factor risk premium (unconstrained).\n* ``lambda_xi`` — long-factor risk premium (unconstrained).\n\n``mu_xi_star`` = ``mu_xi - lambda_xi`` is the risk-neutral long-term drift that\nenters the forward curve.",
           "methods": [
             {
               "name": "mu_xi_star",
@@ -13250,13 +13250,13 @@ window.API_DATA = {
           "qualified": "quantvolt.curvemodels.schwartz_smith.calibrate",
           "kind": "function",
           "signature": "calibrate(observed_forwards: npt.ArrayLike, time_to_maturity: npt.ArrayLike, dt: float, *, max_iter: int=500, initial_curve_tol: float=_INITIAL_CURVE_TOL, diffuse_prior_var: float=_DIFFUSE_VAR, optimizer_method: str='L-BFGS-B') -> tuple[SchwartzSmithParams, CalibrationDiagnostics]",
-          "summary": "Calibrate the model from a history of observed forward curves (Req 25.2, 25.5, 25.6).",
-          "doc": "Calibrate the model from a history of observed forward curves (Req 25.2, 25.5, 25.6).\n\nA linear-Gaussian Kalman filter (see :func:`_kalman_filter`) treats the latent\n``(chi, xi)`` as the state and the log-forward cross-sections as measurements, and its\nprediction-error decomposition is maximised by :func:`scipy.optimize.minimize`\n(``optimizer_method``, default L-BFGS-B, over an unconstrained transform of the\nparameters).\n\nArgs:\n    observed_forwards: History of observed forward **prices**, shape\n        ``(n_obs, n_tenors)`` — one row per observation date (chronological), one column\n        per constant time-to-maturity. Must be strictly positive (logs are taken).\n    time_to_maturity: 1-D array of the constant times-to-maturity ``tau`` (years) for the\n        columns; the same ``tau`` applies to every observation date (a constant-maturity\n        \"rolling\" curve history), so the measurement matrix is time-invariant.\n    dt: Time between consecutive observation dates (years, ``> 0``).\n    max_iter: Maximum optimiser iterations.\n    initial_curve_tol: Log-price tolerance below which the filtered initial\n        curve is deemed an exact match (``fits_initial_curve``), positive\n        (default ``1e-6``).\n    diffuse_prior_var: Diffuse prior variance for the non-stationary\n        long-term factor ``xi`` in the Kalman filter, positive (default\n        ``10.0``).\n    optimizer_method: :func:`scipy.optimize.minimize` method name, a\n        non-empty string (default ``\"L-BFGS-B\"``).\n\nReturns:\n    ``(params, diagnostics)`` — the fitted :class:`SchwartzSmithParams` and a\n    :class:`CalibrationDiagnostics`. The diagnostics flag any initial-curve mismatch\n    (Req 25.5) and report identifiability via standard errors / Hessian conditioning\n    (Req 25.6).\n\nRaises:\n    ValidationError: if ``dt <= 0``, ``initial_curve_tol <= 0``,\n        ``diffuse_prior_var <= 0``, ``optimizer_method`` is empty, shapes are\n        inconsistent, any ``tau`` is negative, any observed forward is\n        non-positive, or the MLE fails to converge.\n    InsufficientDataError: if fewer than three observation dates are supplied (the\n        transition dynamics cannot be identified from fewer).",
+          "summary": "Calibrate the model from a history of observed forward curves.",
+          "doc": "Calibrate the model from a history of observed forward curves.\n\nA linear-Gaussian Kalman filter (see :func:`_kalman_filter`) treats the latent\n``(chi, xi)`` as the state and the log-forward cross-sections as measurements, and its\nprediction-error decomposition is maximised by :func:`scipy.optimize.minimize`\n(``optimizer_method``, default L-BFGS-B, over an unconstrained transform of the\nparameters).\n\nArgs:\n    observed_forwards: History of observed forward **prices**, shape\n        ``(n_obs, n_tenors)`` — one row per observation date (chronological), one column\n        per constant time-to-maturity. Must be strictly positive (logs are taken).\n    time_to_maturity: 1-D array of the constant times-to-maturity ``tau`` (years) for the\n        columns; the same ``tau`` applies to every observation date (a constant-maturity\n        \"rolling\" curve history), so the measurement matrix is time-invariant.\n    dt: Time between consecutive observation dates (years, ``> 0``).\n    max_iter: Maximum optimiser iterations.\n    initial_curve_tol: Log-price tolerance below which the filtered initial\n        curve is deemed an exact match (``fits_initial_curve``), positive\n        (default ``1e-6``).\n    diffuse_prior_var: Diffuse prior variance for the non-stationary\n        long-term factor ``xi`` in the Kalman filter, positive (default\n        ``10.0``).\n    optimizer_method: :func:`scipy.optimize.minimize` method name, a\n        non-empty string (default ``\"L-BFGS-B\"``).\n\nReturns:\n    ``(params, diagnostics)`` — the fitted :class:`SchwartzSmithParams` and a\n    :class:`CalibrationDiagnostics`. The diagnostics flag any initial-curve mismatch\n    and report identifiability via standard errors / Hessian conditioning.\n\nRaises:\n    ValidationError: if ``dt <= 0``, ``initial_curve_tol <= 0``,\n        ``diffuse_prior_var <= 0``, ``optimizer_method`` is empty, shapes are\n        inconsistent, any ``tau`` is negative, any observed forward is\n        non-positive, or the MLE fails to converge.\n    InsufficientDataError: if fewer than three observation dates are supplied (the\n        transition dynamics cannot be identified from fewer).",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/curvemodels/schwartz_smith.py",
-          "line": 547
+          "line": 545
         },
         {
           "name": "cumulative_covariance",
@@ -13265,7 +13265,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "cumulative_covariance(model: MultifactorForwardModel, upto_step: int | None=None) -> npt.NDArray[np.float64]",
           "summary": "Cumulative covariance ``Gamma`` over ``[0, T*]`` (§33 cumulative multi-commodity covariance).",
-          "doc": "Cumulative covariance ``Gamma`` over ``[0, T*]`` (§33 cumulative multi-commodity covariance).\n\nReturns ``Gamma[i, j] = sum_{b < n} sum_k sigma_k(t_b, T_i)·sigma_k(t_b, T_j)·dt`` -- the\nRiemann sum of the induced covariance rate over the first ``n`` buckets, i.e. the discrete\n``integral_0^{T*} sum_k sigma_k(s, T_i) sigma_k(s, T_j) ds`` with ``T* = n·dt``. With\n``upto_step is None`` the whole horizon (all ``n_steps`` buckets) is used. As a sum of\nGram matrices scaled by ``dt > 0``, ``Gamma`` is symmetric and positive semidefinite by\nconstruction (Property 72).",
+          "doc": "Cumulative covariance ``Gamma`` over ``[0, T*]`` (§33 cumulative multi-commodity covariance).\n\nReturns ``Gamma[i, j] = sum_{b < n} sum_k sigma_k(t_b, T_i)·sigma_k(t_b, T_j)·dt`` -- the\nRiemann sum of the induced covariance rate over the first ``n`` buckets, i.e. the discrete\n``integral_0^{T*} sum_k sigma_k(s, T_i) sigma_k(s, T_j) ds`` with ``T* = n·dt``. With\n``upto_step is None`` the whole horizon (all ``n_steps`` buckets) is used. As a sum of\nGram matrices scaled by ``dt > 0``, ``Gamma`` is symmetric and positive semidefinite by\nconstruction.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -13278,13 +13278,13 @@ window.API_DATA = {
           "qualified": "quantvolt.curvemodels.schwartz_smith.forward_curve",
           "kind": "function",
           "signature": "forward_curve(params: SchwartzSmithParams, chi: float, xi: float, t: float, tenors: npt.ArrayLike) -> npt.NDArray[np.float64]",
-          "summary": "Closed-form forward curve ``F(t, T) = exp[e^(-kappa*tau)*chi + xi + A(tau)]`` (§31.2).",
-          "doc": "Closed-form forward curve ``F(t, T) = exp[e^(-kappa*tau)*chi + xi + A(tau)]`` (§31.2).\n\nThe lightest faithful surface (tasks.md wording): a ``float64`` array of forward prices\n``F(t, T)`` aligned with ``tenors``. No :class:`~quantvolt.models.ForwardCurve` is built\nbecause this signature carries no commodity/delivery-period context; the caller wraps the\nresult if a full curve object is wanted.\n\nSee :func:`log_forward_curve` for argument semantics (``tenors`` are maturities ``T``).",
+          "summary": "Closed-form forward curve ``F(t, T) = exp[e^(-kappa*tau)*chi + xi + A(tau)]``.",
+          "doc": "Closed-form forward curve ``F(t, T) = exp[e^(-kappa*tau)*chi + xi + A(tau)]``.\n\nThe lightest faithful surface: a ``float64`` array of forward prices\n``F(t, T)`` aligned with ``tenors``. No ``quantvolt.models.ForwardCurve`` is built\nbecause this signature carries no commodity/delivery-period context; the caller wraps the\nresult if a full curve object is wanted.\n\nSee :func:`log_forward_curve` for argument semantics (``tenors`` are maturities ``T``).",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/curvemodels/schwartz_smith.py",
-          "line": 201
+          "line": 198
         },
         {
           "name": "forward_matching_residual",
@@ -13307,7 +13307,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "induced_correlation(model: MultifactorForwardModel, step: int) -> npt.NDArray[np.float64]",
           "summary": "Instantaneous induced correlation matrix at bucket ``step`` (§32.2, §33.4).",
-          "doc": "Instantaneous induced correlation matrix at bucket ``step`` (§32.2, §33.4).\n\nNormalises :func:`induced_covariance` to correlations\n``rho[i, j] = Sigma[i, j] / (sqrt(Sigma[i, i])·sqrt(Sigma[j, j]))`` (\"Induced Forward\nCorrelation\", §32.2). By Cauchy-Schwarz on the Gram matrix ``rho in [-1, 1]`` with\n``rho[i, i] = 1`` for every tenor of non-zero variance; the result is clipped to\n``[-1, 1]`` to absorb float round-off, so the bound holds exactly (Property 72). A tenor\nwith zero instantaneous variance (expired, eq A.5) has an undefined off-diagonal\ncorrelation with every other tenor, so those entries are set to ``0``; its OWN diagonal\nentry, however, is set to ``1`` (a unit-diagonal convention, not a claim of unit\nvariance) rather than ``0``. This matters because ``sigma_i = 0`` already zeroes that\nrow/column of the *covariance* ``C = diag(sigma)·R·diag(sigma)`` regardless of\n``R[i, i]`` (:func:`~quantvolt.numerics.monte_carlo.build_covariance`, which the\nsimulator uses to hold expired tenors fixed) -- so a ``0`` diagonal here would only\nfail that function's own unit-diagonal validation without changing the covariance at\nall. Consumers other than :func:`mc_inputs`/:func:`simulate_forwards` should treat a\nzero-variance tenor's diagonal entry as \"undefined, not a correlation of 1\" and check\n:func:`induced_covariance`'s diagonal (or the model's per-tenor ``sigma``) directly if\nthey need to detect expiry.",
+          "doc": "Instantaneous induced correlation matrix at bucket ``step`` (§32.2, §33.4).\n\nNormalises :func:`induced_covariance` to correlations\n``rho[i, j] = Sigma[i, j] / (sqrt(Sigma[i, i])·sqrt(Sigma[j, j]))`` (\"Induced Forward\nCorrelation\", §32.2). By Cauchy-Schwarz on the Gram matrix ``rho in [-1, 1]`` with\n``rho[i, i] = 1`` for every tenor of non-zero variance; the result is clipped to\n``[-1, 1]`` to absorb float round-off, so the bound holds exactly. A tenor\nwith zero instantaneous variance (expired, eq A.5) has an undefined off-diagonal\ncorrelation with every other tenor, so those entries are set to ``0``; its OWN diagonal\nentry, however, is set to ``1`` (a unit-diagonal convention, not a claim of unit\nvariance) rather than ``0``. This matters because ``sigma_i = 0`` already zeroes that\nrow/column of the *covariance* ``C = diag(sigma)·R·diag(sigma)`` regardless of\n``R[i, i]`` (:func:`~quantvolt.numerics.monte_carlo.build_covariance`, which the\nsimulator uses to hold expired tenors fixed) -- so a ``0`` diagonal here would only\nfail that function's own unit-diagonal validation without changing the covariance at\nall. Consumers other than :func:`mc_inputs`/:func:`simulate_forwards` should treat a\nzero-variance tenor's diagonal entry as \"undefined, not a correlation of 1\" and check\n:func:`induced_covariance`'s diagonal (or the model's per-tenor ``sigma``) directly if\nthey need to detect expiry.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -13335,12 +13335,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "log_forward_curve(params: SchwartzSmithParams, chi: float, xi: float, t: float, tenors: npt.ArrayLike) -> npt.NDArray[np.float64]",
           "summary": "Log-forward curve ``ln F(t, T) = e^(-kappa*tau)*chi + xi + A(tau)``, ``tau = T - t``.",
-          "doc": "Log-forward curve ``ln F(t, T) = e^(-kappa*tau)*chi + xi + A(tau)``, ``tau = T - t``.\n\nThis is the measurement space of the model (linear in the latent factors), so the\nshort-factor loading ``e^(-kappa*tau)`` is exposed directly: as ``kappa*tau -> inf`` it\ndecays to 0 and the long-dated log-forward depends only on ``xi`` and ``A(tau)``\n(Property 70).\n\nArgs:\n    params: Risk-neutral model parameters.\n    chi: Short-term factor value ``chi_t`` at valuation time ``t``.\n    xi: Long-term factor value ``xi_t`` at valuation time ``t``.\n    t: Valuation time in years.\n    tenors: 1-D array of **maturities ``T``** (absolute times in years); ``tau = T - t``\n        must be non-negative for every entry.\n\nReturns:\n    A ``float64`` array of log-forward prices aligned with ``tenors``.",
+          "doc": "Log-forward curve ``ln F(t, T) = e^(-kappa*tau)*chi + xi + A(tau)``, ``tau = T - t``.\n\nThis is the measurement space of the model (linear in the latent factors), so the\nshort-factor loading ``e^(-kappa*tau)`` is exposed directly: as ``kappa*tau -> inf`` it\ndecays to 0 and the long-dated log-forward depends only on ``xi`` and ``A(tau)``.\n\nArgs:\n    params: Risk-neutral model parameters.\n    chi: Short-term factor value ``chi_t`` at valuation time ``t``.\n    xi: Long-term factor value ``xi_t`` at valuation time ``t``.\n    t: Valuation time in years.\n    tenors: 1-D array of **maturities ``T``** (absolute times in years); ``tau = T - t``\n        must be non-negative for every entry.\n\nReturns:\n    A ``float64`` array of log-forward prices aligned with ``tenors``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/curvemodels/schwartz_smith.py",
-          "line": 169
+          "line": 167
         },
         {
           "name": "matches_initial_curve",
@@ -13376,8 +13376,8 @@ window.API_DATA = {
           "qualified": "quantvolt.curvemodels.multifactor.mc_inputs",
           "kind": "function",
           "signature": "mc_inputs(model: MultifactorForwardModel, step: int) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]",
-          "summary": "Produce the ``(sigma, corr)`` structure for the correlated MC engine (§2.20, Task 62).",
-          "doc": "Produce the ``(sigma, corr)`` structure for the correlated MC engine (§2.20, Task 62).\n\nDecomposes the bucket-``step`` induced covariance rate into the per-index instantaneous\nvolatility ``sigma_i = sqrt(Sigma[i, i])`` and the induced correlation ``R`` so the caller\ncan assemble the one-step covariance with\n``numerics.monte_carlo.build_covariance(sigma, corr, model.dt)`` -- which reproduces\n``induced_covariance(model, step)·dt`` exactly. ``sigma`` is non-negative and ``corr`` is\nsymmetric, unit-diagonal, and PSD, so it passes ``build_covariance``'s validation and the\nengine's Property-61 PSD gate. Expired tenors surface as ``sigma_i = 0`` (eq A.5).",
+          "summary": "Produce the ``(sigma, corr)`` structure for the correlated MC engine.",
+          "doc": "Produce the ``(sigma, corr)`` structure for the correlated MC engine.\n\nDecomposes the bucket-``step`` induced covariance rate into the per-index instantaneous\nvolatility ``sigma_i = sqrt(Sigma[i, i])`` and the induced correlation ``R`` so the caller\ncan assemble the one-step covariance with\n``numerics.monte_carlo.build_covariance(sigma, corr, model.dt)`` -- which reproduces\n``induced_covariance(model, step)·dt`` exactly. ``sigma`` is non-negative and ``corr`` is\nsymmetric, unit-diagonal, and PSD, so it passes ``build_covariance``'s validation and the\nengine's PSD gate. Expired tenors surface as ``sigma_i = 0`` (eq A.5).",
           "methods": [],
           "fields": [],
           "members": [],
@@ -13405,7 +13405,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "risk_neutral_drift(cov: npt.ArrayLike) -> npt.NDArray[np.float64]",
           "summary": "Per-step risk-neutral log-drift ``mu = -1/2 · diag(C)`` (Q-measure, §32 integrated form).",
-          "doc": "Per-step risk-neutral log-drift ``mu = -1/2 · diag(C)`` (Q-measure, §32 integrated form).\n\nThe integrated multifactor solution carries the Ito correction ``-1/2 integral sum_k\nsigma_k^2 ds`` in log space, so under ``Q`` the per-step drift of ``ln F`` is\n``-1/2·diag(C)`` where ``C`` is the one-step covariance. This drift makes the simulated\n``F = exp(Z)`` a martingale, ``E^Q[F(t, T)] = F(0, T)`` (Property 71). Feed it as the\n``drift`` argument of ``simulate_correlated_forwards``.",
+          "doc": "Per-step risk-neutral log-drift ``mu = -1/2 · diag(C)`` (Q-measure, §32 integrated form).\n\nThe integrated multifactor solution carries the Ito correction ``-1/2 integral sum_k\nsigma_k^2 ds`` in log space, so under ``Q`` the per-step drift of ``ln F`` is\n``-1/2·diag(C)`` where ``C`` is the one-step covariance. This drift makes the simulated\n``F = exp(Z)`` a martingale, ``E^Q[F(t, T)] = F(0, T)``. Feed it as the\n``drift`` argument of ``simulate_correlated_forwards``.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -13419,12 +13419,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "simulate(params: SchwartzSmithParams, chi0: float, xi0: float, dt: float, steps: int, path_count: int, seed: int) -> npt.NDArray[np.float64]",
           "summary": "Simulate the joint (chi, xi) factor paths under Q by exact discretisation.",
-          "doc": "Simulate the joint (chi, xi) factor paths under Q by exact discretisation.\n\nThe short factor is an Ornstein-Uhlenbeck process and the long factor an arithmetic\nBrownian motion; the **exact** joint transition over a step ``dt`` is::\n\n    chi_{n+1} = e^(-kappa*dt)*chi_n - (lambda_chi/kappa)*(1 - e^(-kappa*dt)) + eps_chi\n    xi_{n+1}  = xi_n + (mu_xi - lambda_xi)*dt + eps_xi\n    (eps_chi, eps_xi) ~ N(0, Q)     # Q from `_transition_covariance`\n\n**Why not the Task-62 correlated engine.** ``numerics.monte_carlo.simulate_correlated_\nforwards`` advances an additive random walk ``Z <- Z + mu + L*eps`` with a *constant*\nper-step drift and no dependence on the current state. That is exact for ``xi`` but not\nfor ``chi``: the OU exact step multiplies the *state* by ``e^(-kappa*dt)``, which the\nadditive kernel cannot represent, and the ``rho`` correlation couples the two factors so\nthey must be drawn jointly. A direct exact scheme is therefore used — it is unconditionally\nexact (no discretisation bias for any ``dt``) and stays deterministic under ``seed`` via\n:func:`numpy.random.default_rng` (Req 25.6, 11.2).\n\nArgs:\n    params: Risk-neutral model parameters.\n    chi0: Initial short-term factor value.\n    xi0: Initial long-term factor value.\n    dt: Step length in years (``> 0``).\n    steps: Number of steps (``>= 1``).\n    path_count: Number of paths (``>= 1``).\n    seed: Non-negative RNG seed; identical inputs give bit-identical paths.\n\nReturns:\n    A ``float64`` array of shape ``(path_count, steps + 1, 2)`` (matching the Task-62\n    convention). ``[:, :, 0]`` is ``chi``, ``[:, :, 1]`` is ``xi``; record 0 of every\n    path is ``(chi0, xi0)``.",
+          "doc": "Simulate the joint (chi, xi) factor paths under Q by exact discretisation.\n\nThe short factor is an Ornstein-Uhlenbeck process and the long factor an arithmetic\nBrownian motion; the **exact** joint transition over a step ``dt`` is::\n\n    chi_{n+1} = e^(-kappa*dt)*chi_n - (lambda_chi/kappa)*(1 - e^(-kappa*dt)) + eps_chi\n    xi_{n+1}  = xi_n + (mu_xi - lambda_xi)*dt + eps_xi\n    (eps_chi, eps_xi) ~ N(0, Q)     # Q from `_transition_covariance`\n\n**Why not the Task-62 correlated engine.** ``numerics.monte_carlo.simulate_correlated_\nforwards`` advances an additive random walk ``Z <- Z + mu + L*eps`` with a *constant*\nper-step drift and no dependence on the current state. That is exact for ``xi`` but not\nfor ``chi``: the OU exact step multiplies the *state* by ``e^(-kappa*dt)``, which the\nadditive kernel cannot represent, and the ``rho`` correlation couples the two factors so\nthey must be drawn jointly. A direct exact scheme is therefore used — it is unconditionally\nexact (no discretisation bias for any ``dt``) and stays deterministic under ``seed`` via\n:func:`numpy.random.default_rng`.\n\nArgs:\n    params: Risk-neutral model parameters.\n    chi0: Initial short-term factor value.\n    xi0: Initial long-term factor value.\n    dt: Step length in years (``> 0``).\n    steps: Number of steps (``>= 1``).\n    path_count: Number of paths (``>= 1``).\n    seed: Non-negative RNG seed. Repeated calls with the same inputs, seed,\n        QuantVolt version, architecture and native build give identical paths.\n\nReturns:\n    A ``float64`` array of shape ``(path_count, steps + 1, 2)`` (matching the Task-62\n    convention). ``[:, :, 0]`` is ``chi``, ``[:, :, 1]`` is ``xi``; record 0 of every\n    path is ``(chi0, xi0)``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/curvemodels/schwartz_smith.py",
-          "line": 237
+          "line": 234
         },
         {
           "name": "simulate_forwards",
@@ -13446,8 +13446,8 @@ window.API_DATA = {
           "qualified": "quantvolt.curvemodels.multifactor.warn_if_power_like",
           "kind": "function",
           "signature": "warn_if_power_like(commodity_ids: Sequence[str]) -> tuple[str, ...]",
-          "summary": "Emit the lognormal-not-for-power advisory for any power-like id (Req 25.5).",
-          "doc": "Emit the lognormal-not-for-power advisory for any power-like id (Req 25.5).\n\nA lognormal ``dF/F`` forward model is *not automatically appropriate for spiky power\nprices*. This scans ``commodity_ids`` (against the built-in power ids and power-market\nsubstrings such as ``EPEX``/``PHELIX``/``POWER``) and, if any match, issues a\n:class:`LognormalPowerWarning` naming them. Returns the tuple of matched ids (possibly\nempty) so callers can branch or assert on the outcome.",
+          "summary": "Emit the lognormal-not-for-power advisory for any power-like id.",
+          "doc": "Emit the lognormal-not-for-power advisory for any power-like id.\n\nA lognormal ``dF/F`` forward model is *not automatically appropriate for spiky power\nprices*. This scans ``commodity_ids`` (against the built-in power ids and power-market\nsubstrings such as ``EPEX``/``PHELIX``/``POWER``) and, if any match, issues a\n:class:`LognormalPowerWarning` naming them. Returns the tuple of matched ids (possibly\nempty) so callers can branch or assert on the outcome.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -13512,7 +13512,7 @@ window.API_DATA = {
           "qualified": "quantvolt.stats.mean_reversion.MeanReversionParams",
           "kind": "class",
           "signature": "MeanReversionParams(long_run_mean: float, reversion_speed: float, volatility: float, half_life: float)",
-          "summary": "Estimated Ornstein–Uhlenbeck parameters: mean-reversion speed, long-run level, diffusion volatility and derived half-life..",
+          "summary": "Estimated Ornstein–Uhlenbeck parameters: mean-reversion speed, long-run level, diffusion volatility and derived half-life.",
           "doc": "Estimated Ornstein–Uhlenbeck parameters: mean-reversion speed, long-run level, diffusion volatility and derived half-life.",
           "methods": [],
           "fields": [
@@ -13547,7 +13547,7 @@ window.API_DATA = {
           "qualified": "quantvolt.stats.normality.NormalityTestResult",
           "kind": "class",
           "signature": "NormalityTestResult(test_type: NormalityTestType, statistic: float, p_value: float, is_normal: bool, acceptance_level: float)",
-          "summary": "Result of one normality test, including test identity, statistic, p-value, sample size and reject/do-not-reject conclusion..",
+          "summary": "Result of one normality test, including test identity, statistic, p-value, sample size and reject/do-not-reject conclusion.",
           "doc": "Result of one normality test, including test identity, statistic, p-value, sample size and reject/do-not-reject conclusion.",
           "methods": [],
           "fields": [
@@ -13587,7 +13587,7 @@ window.API_DATA = {
           "qualified": "quantvolt.stats.normality.NormalityTestType",
           "kind": "class",
           "signature": "NormalityTestType()",
-          "summary": "Enumeration of supported normality-test procedures and their serialized identifiers..",
+          "summary": "Enumeration of supported normality-test procedures and their serialized identifiers.",
           "doc": "Enumeration of supported normality-test procedures and their serialized identifiers.",
           "methods": [],
           "fields": [],
@@ -13618,7 +13618,7 @@ window.API_DATA = {
           "qualified": "quantvolt.stats.stationarity.StationarityResult",
           "kind": "class",
           "signature": "StationarityResult(adf_statistic: float, adf_p_value: float, kpss_statistic: float, kpss_p_value: float, is_stationary: bool, samuelson_effect_detected: bool)",
-          "summary": "Stationarity-test output containing procedure, statistic, p-value, critical values, sample size and interpreted stationarity conclusion..",
+          "summary": "Stationarity-test output containing procedure, statistic, p-value, critical values, sample size and interpreted stationarity conclusion.",
           "doc": "Stationarity-test output containing procedure, statistic, p-value, critical values, sample size and interpreted stationarity conclusion.",
           "methods": [],
           "fields": [
@@ -13706,7 +13706,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "moments(data: pl.Series, order: int=4) -> dict[int, float]",
           "summary": "Compute central moments about the mean up to ``order``.",
-          "doc": "Compute central moments about the mean up to ``order``.\n\nReturns central moments with the population (``1/n``) normalisation:\n``m_k = (1/n) * sum_i (x_i - mean)**k`` for ``k`` in ``1..order``. The first\ncentral moment is ~0 by construction and the second is the population variance.\nNulls are dropped first; the input series is left unchanged.\n\nArgs:\n    data: A Polars Series of observations.\n    order: Highest moment order to compute (default 4, i.e. up to kurtosis).\n\nReturns:\n    A dict mapping each order ``k`` (``1..order``, in ascending order) to its central\n    moment. The dict has exactly ``order`` entries.\n\nRaises:\n    ValidationError: If ``order`` is not >= 1, or if ``data`` is empty.\n    InsufficientDataError: If fewer than two non-null observations remain after\n        dropping nulls (mirroring :func:`descriptive_stats`'s ``n >= 2`` guard) — a\n        single observation gives a well-defined mean but every central moment\n        about it is trivially zero, which would silently look like a real result\n        rather than the near-absence of data it is.",
+          "doc": "Compute central moments about the mean up to ``order``.\n\nReturns central moments with the population (``1/n``) normalisation:\n``m_k = (1/n) * sum_i (x_i - mean)**k`` for ``k`` from 1 to ``order``. The first\ncentral moment is ~0 by construction and the second is the population variance.\nNulls are dropped first; the input series is left unchanged.\n\nArgs:\n    data: A Polars Series of observations.\n    order: Highest moment order to compute (default 4, i.e. up to kurtosis).\n\nReturns:\n    A dict mapping each order ``k`` (1 to ``order``, ascending) to its central\n    moment. The dict has exactly ``order`` entries.\n\nRaises:\n    ValidationError: If ``order`` is not >= 1, or if ``data`` is empty.\n    InsufficientDataError: If fewer than two non-null observations remain after\n        dropping nulls (mirroring :func:`descriptive_stats`'s ``n >= 2`` guard) — a\n        single observation gives a well-defined mean but every central moment\n        about it is trivially zero, which would silently look like a real result\n        rather than the near-absence of data it is.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -13720,7 +13720,7 @@ window.API_DATA = {
           "kind": "function",
           "signature": "rolling_correlation(series_a: pl.Series, series_b: pl.Series, window: int=252) -> pl.Series",
           "summary": "Rolling Pearson correlation of two equal-length series over ``window``.",
-          "doc": "Rolling Pearson correlation of two equal-length series over ``window``.\n\nThe window ending at row ``i`` spans rows ``i - window + 1 .. i`` inclusive, so\nthe leading ``window - 1`` entries are null. Returns a series named\n``\"rolling_correlation\"`` of the same length as the inputs. Neither input is\nmutated.\n\nRaises:\n    ValidationError: if the series differ in length, or ``window`` is < 2 or\n        greater than the series length.",
+          "doc": "Rolling Pearson correlation of two equal-length series over ``window``.\n\nThe window ending at row ``i`` spans rows ``i - window + 1`` through ``i`` inclusive, so\nthe leading ``window - 1`` entries are null. Returns a series named\n``\"rolling_correlation\"`` of the same length as the inputs. Neither input is\nmutated.\n\nRaises:\n    ValidationError: if the series differ in length, or ``window`` is < 2 or\n        greater than the series length.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -13768,8 +13768,8 @@ window.API_DATA = {
           "qualified": "quantvolt.market.outages.OutageDataset",
           "kind": "class",
           "signature": "OutageDataset(records: tuple[OutageRecord, ...])",
-          "summary": "An immutable, iterable collection of :class:`OutageRecord` (§22, Req 26.1).",
-          "doc": "An immutable, iterable collection of :class:`OutageRecord` (§22, Req 26.1).\n\nRecords are snapshot into a tuple at construction, so the dataset is immutable even\nif the caller passes a list and later mutates it. Each record self-validates, so a\nconstructed dataset holds only valid records. An empty dataset is valid: it denotes a\nperiod with no outages (fully available).\n\nKPI functions treat the dataset as a single reliability context — one unit, or an\naggregate the caller has already scoped to a common ``installed_capacity_mw`` and\n``period_hours``. Records are assumed non-overlapping in time; the factor KPIs clamp\nto ``[0, 1]`` so overlapping or over-period inputs still satisfy Property 73.",
+          "summary": "An immutable, iterable collection of ``OutageRecord``.",
+          "doc": "An immutable, iterable collection of ``OutageRecord``.\n\nRecords are snapshot into a tuple at construction, so the dataset is immutable even\nif the caller passes a list and later mutates it. Each record self-validates, so a\nconstructed dataset holds only valid records. An empty dataset is valid: it denotes a\nperiod with no outages (fully available).\n\nKPI functions treat the dataset as a single reliability context: one unit, or an\naggregate the caller has already scoped to a common ``installed_capacity_mw`` and\n``period_hours``. Records are assumed non-overlapping in time; the factor KPIs clamp\nto ``[0, 1]`` so overlapping or over-period inputs still stay well formed.",
           "methods": [
             {
               "name": "forced_outage_multiplier",
@@ -13786,7 +13786,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/market/outages.py",
-          "line": 196
+          "line": 194
         },
         {
           "name": "OutageRecord",
@@ -13794,8 +13794,8 @@ window.API_DATA = {
           "qualified": "quantvolt.market.outages.OutageRecord",
           "kind": "class",
           "signature": "OutageRecord(asset_id: str, unit_id: str, technology: str, market_zone: str, outage_id: str, outage_type: OutageType, status: OutageStatus, announcement_time: datetime, start_time: datetime, expected_end_time: datetime, installed_capacity_mw: float, unavailable_capacity_mw: float, available_capacity_mw: float, source: str, revision_number: int, actual_end_time: datetime | None = None, reason_code: str | None = None, reason_text: str | None = None)",
-          "summary": "A single outage event — the §22.2 / Req 26.1 schema as an immutable value object.",
-          "doc": "A single outage event — the §22.2 / Req 26.1 schema as an immutable value object.\n\nCapacity invariant (Req 26.2, Property 74), validated at construction:\n\n- ``0 <= unavailable_capacity_mw <= installed_capacity_mw``;\n- ``available_capacity_mw == installed_capacity_mw - unavailable_capacity_mw`` within\n  :data:`_CAPACITY_TOL`.\n\nViolations raise :class:`~quantvolt.exceptions.ValidationError` naming the offending\nfield. ``installed_capacity_mw`` must be strictly positive (a generating unit has\ncapacity; this also keeps the per-record derating fraction ``unavailable/installed``\nwell defined). End times must not precede ``start_time`` so :attr:`duration_hours`\nis non-negative.\n\n``is_partial`` and ``is_forced`` from the schema are exposed as derived properties\n(Tell-Don't-Ask) so they can never contradict the stored capacities/type.",
+          "summary": "A single outage event, as an immutable value object.",
+          "doc": "A single outage event, as an immutable value object.\n\nCapacity invariant, validated at construction:\n\n- ``0 <= unavailable_capacity_mw <= installed_capacity_mw``;\n- ``available_capacity_mw == installed_capacity_mw - unavailable_capacity_mw`` within\n  ``_CAPACITY_TOL``.\n\nViolations raise ``ValidationError`` naming the offending field.\n``installed_capacity_mw`` must be strictly positive (a generating unit has\ncapacity; this also keeps the per-record derating fraction ``unavailable/installed``\nwell defined). End times must not precede ``start_time`` so ``duration_hours``\nis non-negative.\n\n``is_partial`` and ``is_forced`` are exposed as derived properties so they can\nnever contradict the stored capacities/type.",
           "methods": [
             {
               "name": "effective_end_time",
@@ -13815,12 +13815,12 @@ window.API_DATA = {
             {
               "name": "is_partial",
               "signature": "is_partial(self) -> bool",
-              "summary": "True for a derating — some but not all capacity unavailable (§22.2 ``is_partial``)."
+              "summary": "True for a derating: some but not all capacity unavailable."
             },
             {
               "name": "is_forced",
               "signature": "is_forced(self) -> bool",
-              "summary": "True iff this is a ``FORCED`` outage (§22.2 ``is_forced``); other categories (unplanned, planned, maintenance, service) are kept distinct."
+              "summary": "True iff this is a ``FORCED`` outage; other categories (unplanned, planned, maintenance, service) are kept distinct."
             }
           ],
           "fields": [
@@ -13917,7 +13917,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/market/outages.py",
-          "line": 95
+          "line": 93
         },
         {
           "name": "OutageStatus",
@@ -13925,8 +13925,8 @@ window.API_DATA = {
           "qualified": "quantvolt.market.outages.OutageStatus",
           "kind": "class",
           "signature": "OutageStatus()",
-          "summary": "Outage lifecycle status (§22.2).",
-          "doc": "Outage lifecycle status (§22.2).",
+          "summary": "Outage lifecycle status.",
+          "doc": "Outage lifecycle status.",
           "methods": [],
           "fields": [],
           "members": [
@@ -13952,7 +13952,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/market/outages.py",
-          "line": 84
+          "line": 82
         },
         {
           "name": "OutageType",
@@ -13960,8 +13960,8 @@ window.API_DATA = {
           "qualified": "quantvolt.market.outages.OutageType",
           "kind": "class",
           "signature": "OutageType()",
-          "summary": "Outage category (§22.2). Planned, forced, unplanned, and service events stay distinct and are never silently merged (Req 26.2).",
-          "doc": "Outage category (§22.2). Planned, forced, unplanned, and service events stay\ndistinct and are never silently merged (Req 26.2).",
+          "summary": "Outage category. Planned, forced, unplanned, and service events stay distinct and are never silently merged.",
+          "doc": "Outage category. Planned, forced, unplanned, and service events stay\ndistinct and are never silently merged.",
           "methods": [],
           "fields": [],
           "members": [
@@ -13987,7 +13987,7 @@ window.API_DATA = {
             }
           ],
           "source": "src/quantvolt/market/outages.py",
-          "line": 73
+          "line": 71
         },
         {
           "name": "Pipeline",
@@ -13995,7 +13995,7 @@ window.API_DATA = {
           "qualified": "quantvolt.market.transmission.Pipeline",
           "kind": "class",
           "signature": "Pipeline(distance: float, tariff: float)",
-          "summary": "Gas pipeline description used by transmission utilities, including route identity and capacity assumptions..",
+          "summary": "Gas pipeline description used by transmission utilities, including route identity and capacity assumptions.",
           "doc": "Gas pipeline description used by transmission utilities, including route identity and capacity assumptions.",
           "methods": [],
           "fields": [
@@ -14071,13 +14071,13 @@ window.API_DATA = {
           "qualified": "quantvolt.market.outages.availability_factor",
           "kind": "function",
           "signature": "availability_factor(dataset: OutageDataset, period_hours: float) -> float",
-          "summary": "Availability Factor ``AF = available_hours / period_hours`` (§22.3, Req 26.3) ∈ ``[0, 1]``.",
-          "doc": "Availability Factor ``AF = available_hours / period_hours`` (§22.3, Req 26.3) ∈ ``[0, 1]``.\n\n``available_hours = period_hours - full_outage_hours``, where ``full_outage_hours`` sums\nthe duration of every full outage (any type). Partial deratings leave the unit available\nand so do not reduce ``AF`` — the equivalent (capacity-weighted) loss is captured by\n:func:`equivalent_availability_factor`. Clamped to ``[0, 1]`` (Property 73). ``CANCELLED``\nrecords are excluded (§22.2 lifecycle: a cancelled outage never happened).\n\nRaises:\n    ValidationError: If ``period_hours <= 0``.",
+          "summary": "Availability Factor ``AF = available_hours / period_hours`` ∈ ``[0, 1]``.",
+          "doc": "Availability Factor ``AF = available_hours / period_hours`` ∈ ``[0, 1]``.\n\n``available_hours = period_hours - full_outage_hours``, where ``full_outage_hours`` sums\nthe duration of every full outage (any type). Partial deratings leave the unit available\nand so do not reduce ``AF``; the equivalent (capacity-weighted) loss is captured by\n``equivalent_availability_factor``. Clamped to ``[0, 1]``. ``CANCELLED``\nrecords are excluded (a cancelled outage never happened).\n\nRaises:\n    ValidationError: If ``period_hours <= 0``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/market/outages.py",
-          "line": 313
+          "line": 311
         },
         {
           "name": "degree_days",
@@ -14099,13 +14099,13 @@ window.API_DATA = {
           "qualified": "quantvolt.market.outages.efor",
           "kind": "function",
           "signature": "efor(dataset: OutageDataset) -> float",
-          "summary": "Equivalent Forced Outage Rate ∈ ``[0, 1]`` (IEEE 762; Req 26.4).",
-          "doc": "Equivalent Forced Outage Rate ∈ ``[0, 1]`` (IEEE 762; Req 26.4).\n\nThe capacity-equivalent analog of :func:`forced_outage_rate`: full forced-outage hours\nare replaced by *equivalent* forced-outage hours (each forced event weighted by its\nunavailable fraction ``unavailable/installed``), so a partial (derated) forced outage\ncounts pro-rata rather than at full duration:\n\n    ``EFOR = forced_equiv_hours / (forced_equiv_hours + service_hours)``.\n\nBecause ``forced_equiv_hours <= forced_hours``, ``EFOR <= FOR``; it reduces to ``FOR``\nwhen every forced outage is a full outage. ``SERVICE`` events supply the denominator's\nservice hours (Req 26.3's convention), keeping categories distinct. ``CANCELLED`` records\nare excluded from both terms (§22.2 lifecycle). Returns ``0.0`` for the ``0/0`` case (no\nequivalent-forced and no service exposure).",
+          "summary": "Equivalent Forced Outage Rate ∈ ``[0, 1]`` (IEEE 762).",
+          "doc": "Equivalent Forced Outage Rate ∈ ``[0, 1]`` (IEEE 762).\n\nThe capacity-equivalent analog of ``forced_outage_rate``: full forced-outage hours\nare replaced by equivalent forced-outage hours (each forced event weighted by its\nunavailable fraction ``unavailable/installed``), so a partial (derated) forced outage\ncounts pro-rata rather than at full duration:\n\n    ``EFOR = forced_equiv_hours / (forced_equiv_hours + service_hours)``.\n\nBecause ``forced_equiv_hours <= forced_hours``, ``EFOR <= FOR``; it reduces to ``FOR``\nwhen every forced outage is a full outage. ``SERVICE`` events supply the denominator's\nservice hours, keeping categories distinct. ``CANCELLED`` records\nare excluded from both terms. Returns ``0.0`` for the ``0/0`` case (no\nequivalent-forced and no service exposure).",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/market/outages.py",
-          "line": 367
+          "line": 364
         },
         {
           "name": "equivalent_availability_factor",
@@ -14113,13 +14113,13 @@ window.API_DATA = {
           "qualified": "quantvolt.market.outages.equivalent_availability_factor",
           "kind": "function",
           "signature": "equivalent_availability_factor(dataset: OutageDataset, period_hours: float, installed_capacity_mw: float) -> float",
-          "summary": "Equivalent Availability Factor (§22.3, Req 26.3) ∈ ``[0, 1]``.",
-          "doc": "Equivalent Availability Factor (§22.3, Req 26.3) ∈ ``[0, 1]``.\n\n``EAF = 1 - equivalent_unavailable_capacity_hours / (installed_capacity * period_hours)``,\nwhere ``equivalent_unavailable_capacity_hours`` is :func:`unavailable_energy` (MWh). Unlike\n:func:`availability_factor` this credits partial deratings capacity-for-capacity. Clamped\nto ``[0, 1]`` (Property 73). ``CANCELLED`` records are excluded via :func:`unavailable_energy`\n(§22.2 lifecycle).\n\nRaises:\n    ValidationError: If ``period_hours <= 0`` or ``installed_capacity_mw <= 0``.",
+          "summary": "Equivalent Availability Factor ∈ ``[0, 1]``.",
+          "doc": "Equivalent Availability Factor ∈ ``[0, 1]``.\n\n``EAF = 1 - equivalent_unavailable_capacity_hours / (installed_capacity * period_hours)``,\nwhere ``equivalent_unavailable_capacity_hours`` is ``unavailable_energy`` (MWh). Unlike\n``availability_factor`` this credits partial deratings capacity-for-capacity. Clamped\nto ``[0, 1]``. ``CANCELLED`` records are excluded via ``unavailable_energy``.\n\nRaises:\n    ValidationError: If ``period_hours <= 0`` or ``installed_capacity_mw <= 0``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/market/outages.py",
-          "line": 329
+          "line": 327
         },
         {
           "name": "forced_outage_rate",
@@ -14128,12 +14128,12 @@ window.API_DATA = {
           "kind": "function",
           "signature": "forced_outage_rate(dataset: OutageDataset) -> float",
           "summary": "Forced Outage Rate ``FOR = forced_hours / (forced_hours + service_hours)`` ∈ ``[0, 1]``.",
-          "doc": "Forced Outage Rate ``FOR = forced_hours / (forced_hours + service_hours)`` ∈ ``[0, 1]``.\n\n§22.3 / Req 26.3 / Property 73. ``forced_hours`` sums the duration of ``FORCED`` outages;\n``service_hours`` sums the duration of ``SERVICE`` outages. Categories stay distinct: a\nplanned, unplanned, or maintenance outage never enters this KPI. ``CANCELLED`` records are\nexcluded from both sums (§22.2 lifecycle: a cancelled outage never happened). Returns\n``0.0`` when there is neither forced nor service exposure (documented convention for the\n``0/0`` case).",
+          "doc": "Forced Outage Rate ``FOR = forced_hours / (forced_hours + service_hours)`` ∈ ``[0, 1]``.\n\n``forced_hours`` sums the duration of ``FORCED`` outages;\n``service_hours`` sums the duration of ``SERVICE`` outages. Categories stay distinct: a\nplanned, unplanned, or maintenance outage never enters this KPI. ``CANCELLED`` records are\nexcluded from both sums (a cancelled outage never happened). Returns\n``0.0`` when there is neither forced nor service exposure (documented convention for the\n``0/0`` case).",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/market/outages.py",
-          "line": 349
+          "line": 346
         },
         {
           "name": "mtbf",
@@ -14141,13 +14141,13 @@ window.API_DATA = {
           "qualified": "quantvolt.market.outages.mtbf",
           "kind": "function",
           "signature": "mtbf(dataset: OutageDataset, period_hours: float) -> float",
-          "summary": "Mean Time Between Failures, in hours (IEEE 762; Req 26.4).",
-          "doc": "Mean Time Between Failures, in hours (IEEE 762; Req 26.4).\n\n``MTBF = period_hours / number_of_forced_outages`` — the reciprocal of the forced-outage\n(failure) rate ``λ``, i.e. the mean observation time per forced outage. ``CANCELLED``\nrecords never count as a forced outage (§22.2 lifecycle). Returns ``float('inf')`` when\nthere are no (non-cancelled) forced outages (infinitely long expected time between\nfailures). Consistent with :func:`outage_frequency`: ``outage_frequency = HOURS_PER_YEAR\n/ MTBF``.\n\nRaises:\n    ValidationError: If ``period_hours <= 0``.",
+          "summary": "Mean Time Between Failures, in hours (IEEE 762).",
+          "doc": "Mean Time Between Failures, in hours (IEEE 762).\n\n``MTBF = period_hours / number_of_forced_outages``: the reciprocal of the forced-outage\n(failure) rate ``λ``, i.e. the mean observation time per forced outage. ``CANCELLED``\nrecords never count as a forced outage. Returns ``float('inf')`` when\nthere are no (non-cancelled) forced outages (infinitely long expected time between\nfailures). Consistent with ``outage_frequency``: ``outage_frequency = HOURS_PER_YEAR\n/ MTBF``.\n\nRaises:\n    ValidationError: If ``period_hours <= 0``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/market/outages.py",
-          "line": 405
+          "line": 402
         },
         {
           "name": "mttr",
@@ -14155,13 +14155,13 @@ window.API_DATA = {
           "qualified": "quantvolt.market.outages.mttr",
           "kind": "function",
           "signature": "mttr(dataset: OutageDataset) -> float",
-          "summary": "Mean Time To Repair, in hours (IEEE 762; Req 26.4).",
-          "doc": "Mean Time To Repair, in hours (IEEE 762; Req 26.4).\n\n``MTTR = forced_outage_hours / number_of_forced_outages`` — the average length of a\nforced outage. ``CANCELLED`` records are excluded from both the hours and the count\n(§22.2 lifecycle: a cancelled outage never happened). Returns ``0.0`` when there are no\n(non-cancelled) forced outages (no repair burden; documented convention).",
+          "summary": "Mean Time To Repair, in hours (IEEE 762).",
+          "doc": "Mean Time To Repair, in hours (IEEE 762).\n\n``MTTR = forced_outage_hours / number_of_forced_outages``: the average length of a\nforced outage. ``CANCELLED`` records are excluded from both the hours and the count\n(a cancelled outage never happened). Returns ``0.0`` when there are no\n(non-cancelled) forced outages (no repair burden; documented convention).",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/market/outages.py",
-          "line": 391
+          "line": 388
         },
         {
           "name": "outage_frequency",
@@ -14169,13 +14169,13 @@ window.API_DATA = {
           "qualified": "quantvolt.market.outages.outage_frequency",
           "kind": "function",
           "signature": "outage_frequency(dataset: OutageDataset, period_hours: float, *, hours_per_year: float=HOURS_PER_YEAR) -> float",
-          "summary": "Forced-outage frequency, annualized to events per year (IEEE 762; Req 26.4).",
-          "doc": "Forced-outage frequency, annualized to events per year (IEEE 762; Req 26.4).\n\n``f = number_of_forced_outages * hours_per_year / period_hours`` — the failure rate ``λ``\nexpressed per year. ``CANCELLED`` records never count as a forced outage (§22.2\nlifecycle). Zero when there are no (non-cancelled) forced outages. Consistent with\n:func:`mtbf`: ``f = hours_per_year / MTBF``.\n\nArgs:\n    dataset: The outage dataset.\n    period_hours: Length of the observation period in hours. Must be ``> 0``.\n    hours_per_year: Reference hours used to annualize the frequency (default\n        :data:`HOURS_PER_YEAR`, ``8760.0``, a non-leap year). Must be ``> 0``.\n\nRaises:\n    ValidationError: If ``period_hours <= 0`` or ``hours_per_year <= 0``.",
+          "summary": "Forced-outage frequency, annualized to events per year (IEEE 762).",
+          "doc": "Forced-outage frequency, annualized to events per year (IEEE 762).\n\n``f = number_of_forced_outages * hours_per_year / period_hours``: the failure rate ``λ``\nexpressed per year. ``CANCELLED`` records never count as a forced outage. Zero\nwhen there are no (non-cancelled) forced outages. Consistent with\n``mtbf``: ``f = hours_per_year / MTBF``.\n\nArgs:\n    dataset: The outage dataset.\n    period_hours: Length of the observation period in hours. Must be ``> 0``.\n    hours_per_year: Reference hours used to annualize the frequency (default\n        ``HOURS_PER_YEAR``, ``8760.0``, a non-leap year). Must be ``> 0``.\n\nRaises:\n    ValidationError: If ``period_hours <= 0`` or ``hours_per_year <= 0``.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/market/outages.py",
-          "line": 425
+          "line": 422
         },
         {
           "name": "transmission_cost",
@@ -14183,8 +14183,8 @@ window.API_DATA = {
           "qualified": "quantvolt.market.transmission.transmission_cost",
           "kind": "function",
           "signature": "transmission_cost(pipeline: Pipeline, volume: float) -> float",
-          "summary": "Total transmission cost = tariff * volume (Property 38: deterministic, non-negative).",
-          "doc": "Total transmission cost = tariff * volume (Property 38: deterministic, non-negative).\n\nArgs:\n    pipeline: The pipeline whose tariff applies (validated at construction).\n    volume: Volume transported, in the tariff's volume unit (e.g. MWh).\n\nReturns:\n    The total cost, ``pipeline.tariff * volume``. Non-negative by construction.\n\nRaises:\n    ValidationError: If ``volume`` is negative.",
+          "summary": "Total transmission cost = tariff * volume (deterministic, non-negative).",
+          "doc": "Total transmission cost = tariff * volume (deterministic, non-negative).\n\nArgs:\n    pipeline: The pipeline whose tariff applies (validated at construction).\n    volume: Volume transported, in the tariff's volume unit (e.g. MWh).\n\nReturns:\n    The total cost, ``pipeline.tariff * volume``. Non-negative by construction.\n\nRaises:\n    ValidationError: If ``volume`` is negative.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -14197,13 +14197,13 @@ window.API_DATA = {
           "qualified": "quantvolt.market.outages.unavailable_energy",
           "kind": "function",
           "signature": "unavailable_energy(dataset: OutageDataset) -> float",
-          "summary": "Unavailable energy in MWh (IEEE 762 equivalent unavailable capacity-hours; Req 26.4).",
-          "doc": "Unavailable energy in MWh (IEEE 762 equivalent unavailable capacity-hours; Req 26.4).\n\n``Σ unavailable_capacity_mw * duration_hours`` over every non-``CANCELLED`` record\n(partial and full; §22.2 lifecycle — a cancelled outage never happened). This is the\n``equivalent_unavailable_capacity_hours`` term used by\n:func:`equivalent_availability_factor`. Non-negative.",
+          "summary": "Unavailable energy in MWh (IEEE 762 equivalent unavailable capacity-hours).",
+          "doc": "Unavailable energy in MWh (IEEE 762 equivalent unavailable capacity-hours).\n\n``Σ unavailable_capacity_mw * duration_hours`` over every non-``CANCELLED`` record\n(partial and full; a cancelled outage never happened). This is the\n``equivalent_unavailable_capacity_hours`` term used by\n``equivalent_availability_factor``. Non-negative.",
           "methods": [],
           "fields": [],
           "members": [],
           "source": "src/quantvolt/market/outages.py",
-          "line": 449
+          "line": 446
         }
       ]
     },
@@ -14235,7 +14235,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/workflow/modeling.py",
-          "line": 134
+          "line": 133
         },
         {
           "name": "DataSufficiencyReport",
@@ -14265,7 +14265,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/workflow/modeling.py",
-          "line": 125
+          "line": 124
         },
         {
           "name": "ModelingWorkflow",
@@ -14273,8 +14273,8 @@ window.API_DATA = {
           "qualified": "quantvolt.workflow.modeling.ModelingWorkflow",
           "kind": "class",
           "signature": "ModelingWorkflow()",
-          "summary": "Steps run 1 -> 2 -> 3 -> 4 -> 5 -> (6 -> 3 loop) -> 7 (Property 40).",
-          "doc": "Steps run 1 -> 2 -> 3 -> 4 -> 5 -> (6 -> 3 loop) -> 7 (Property 40).",
+          "summary": "Steps run 1 -> 2 -> 3 -> 4 -> 5 -> (6 -> 3 loop) -> 7.",
+          "doc": "Steps run 1 -> 2 -> 3 -> 4 -> 5 -> (6 -> 3 loop) -> 7.",
           "methods": [
             {
               "name": "run",
@@ -14285,7 +14285,7 @@ window.API_DATA = {
           "fields": [],
           "members": [],
           "source": "src/quantvolt/workflow/modeling.py",
-          "line": 293
+          "line": 292
         },
         {
           "name": "ModelSelectionCriteria",
@@ -14294,7 +14294,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "ModelSelectionCriteria(min_observations: int = 252, max_missing_pct: float = 0.05, min_r_squared: float = 0.7, max_rmse_pct: float = 0.1, max_parameter_drift: float = 0.2, require_risk_factor_separation: bool = True)",
           "summary": "Thresholds the 7-step modeling workflow applies when accepting a residual model.",
-          "doc": "Thresholds the 7-step modeling workflow applies when accepting a residual model.\n\nAttributes:\n    min_observations: Minimum history length (observations) a residual model must be\n        fitted on. Must be >= 1.\n    max_missing_pct: Maximum tolerated fraction of missing data, in [0, 1].\n    min_r_squared: Minimum acceptable model fit (R-squared), in [0, 1].\n    max_rmse_pct: Maximum acceptable RMSE as a fraction of price level, in [0, 1].\n    max_parameter_drift: Maximum tolerated parameter change over a rolling window,\n        as a fraction, in [0, 1].\n    require_risk_factor_separation: When True, ``ModelingWorkflow.run`` fails loudly\n        if any model-independent risk factor is left without a static hedge\n        (Property 41); when False the result merely records the failure.",
+          "doc": "Thresholds the 7-step modeling workflow applies when accepting a residual model.\n\nAttributes:\n    min_observations: Minimum history length (observations) a residual model must be\n        fitted on. Must be >= 1.\n    max_missing_pct: Maximum tolerated fraction of missing data, in [0, 1].\n    min_r_squared: Minimum acceptable model fit (R-squared), in [0, 1].\n    max_rmse_pct: Maximum acceptable RMSE as a fraction of price level, in [0, 1].\n    max_parameter_drift: Maximum tolerated parameter change over a rolling window,\n        as a fraction, in [0, 1].\n    require_risk_factor_separation: When True, ``ModelingWorkflow.run`` fails loudly\n        if any model-independent risk factor is left without a static hedge;\n        when False the result merely records the failure.",
           "methods": [],
           "fields": [
             {
@@ -14355,7 +14355,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/workflow/modeling.py",
-          "line": 78
+          "line": 77
         },
         {
           "name": "ResidualAnalysis",
@@ -14380,7 +14380,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/workflow/modeling.py",
-          "line": 101
+          "line": 100
         },
         {
           "name": "ResidualModel",
@@ -14410,7 +14410,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/workflow/modeling.py",
-          "line": 112
+          "line": 111
         },
         {
           "name": "StaticHedge",
@@ -14440,7 +14440,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/workflow/modeling.py",
-          "line": 86
+          "line": 85
         },
         {
           "name": "StructuredProduct",
@@ -14470,7 +14470,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/workflow/modeling.py",
-          "line": 64
+          "line": 63
         },
         {
           "name": "WorkflowResult",
@@ -14479,7 +14479,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "WorkflowResult(price: float | None, hedges: tuple[StaticHedge, ...], residual_model: ResidualModel | None, data_report: DataSufficiencyReport, steps_executed: tuple[int, ...], risk_factor_separation_achieved: bool)",
           "summary": "Final output of :meth:`ModelingWorkflow.run`.",
-          "doc": "Final output of :meth:`ModelingWorkflow.run`.\n\n``price`` and ``residual_model`` are None when step 5 reported insufficient data:\nthe workflow still completes with the static hedges in place, and the unmodelled\nresidual is left for trader judgment (Property 41).",
+          "doc": "Final output of :meth:`ModelingWorkflow.run`.\n\n``price`` and ``residual_model`` are None when step 5 reported insufficient data:\nthe workflow still completes with the static hedges in place, and the unmodelled\nresidual is left for trader judgment.",
           "methods": [],
           "fields": [
             {
@@ -14515,7 +14515,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/workflow/modeling.py",
-          "line": 145
+          "line": 144
         },
         {
           "name": "WorkflowSteps",
@@ -14565,7 +14565,7 @@ window.API_DATA = {
           ],
           "members": [],
           "source": "src/quantvolt/workflow/modeling.py",
-          "line": 274
+          "line": 273
         },
         {
           "name": "DEFAULT_STEPS",
@@ -14573,7 +14573,7 @@ window.API_DATA = {
           "qualified": "quantvolt.workflow.modeling.DEFAULT_STEPS",
           "kind": "constant",
           "signature": "DEFAULT_STEPS",
-          "summary": "Ordered seven-step model-selection workflow used when ModelingWorkflow is constructed without caller overrides..",
+          "summary": "Ordered seven-step model-selection workflow used when ModelingWorkflow is constructed without caller overrides.",
           "doc": "Ordered seven-step model-selection workflow used when ModelingWorkflow is constructed without caller overrides.",
           "methods": [],
           "fields": [],
@@ -14609,7 +14609,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "Credentials(token: str | None = None, api_key: str | None = None)",
           "summary": "Caller-owned API keys. Never persisted or logged; redacted in repr.",
-          "doc": "Caller-owned API keys. Never persisted or logged; redacted in repr.\n\nResolution order (Req 12.3): an explicitly constructed ``Credentials`` object always wins;\n:meth:`from_env` is the documented environment-variable fallback. Credentials are read\nfrom nowhere else.",
+          "doc": "Caller-owned API keys. Never persisted or logged; redacted in repr.\n\nResolution order: an explicitly constructed ``Credentials`` object always wins;\n:meth:`from_env` is the documented environment-variable fallback. Credentials are read\nfrom nowhere else.",
           "methods": [
             {
               "name": "from_env",
@@ -14705,7 +14705,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "DataSource()",
           "summary": "An adapter implements only the methods its provider actually supports.",
-          "doc": "An adapter implements only the methods its provider actually supports.\n\nFree adapters (ENTSO-E, ENTSOG, Open-Meteo) provide spot/day-ahead prices, fundamentals,\nand weather; ``forward_curve`` is implemented **only** by commercial adapters or replaced\nby caller-supplied curves (Req 12.8).",
+          "doc": "An adapter implements only the methods its provider actually supports.\n\nFree adapters (ENTSO-E, ENTSOG, Open-Meteo) provide spot/day-ahead prices, fundamentals,\nand weather; ``forward_curve`` is implemented **only** by commercial adapters or replaced\nby caller-supplied curves.",
           "methods": [
             {
               "name": "forward_curve",
@@ -14777,7 +14777,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "EntsoeSource(credentials: Credentials | None=None, transport: httpx.BaseTransport | None=None, *, base_url: str=_BASE_URL, timeout_seconds: float=_TIMEOUT_SECONDS, max_retries: int=0, backoff_seconds: float=1.0, bidding_zone_overrides: Mapping[str, str] | None=None, timezone_overrides: Mapping[str, str] | None=None)",
           "summary": "Free-token ENTSO-E adapter: day-ahead prices, load, and generation as ``pl.Series``.",
-          "doc": "Free-token ENTSO-E adapter: day-ahead prices, load, and generation as ``pl.Series``.\n\nNo ``forward_curve`` method — free sources are never forward-curve sources (Req 12.8).",
+          "doc": "Free-token ENTSO-E adapter: day-ahead prices, load, and generation as ``pl.Series``.\n\nNo ``forward_curve`` method — free sources are never forward-curve sources.",
           "methods": [
             {
               "name": "price_series",
@@ -14822,7 +14822,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "EntsogSource(credentials: Credentials | None=None, transport: httpx.BaseTransport | None=None, *, base_url: str=_BASE_URL, timeout_seconds: float=_TIMEOUT_SECONDS, max_retries: int=0, backoff_seconds: float=1.0)",
           "summary": "Keyless ENTSOG adapter: daily physical gas flows as a ``pl.DataFrame``.",
-          "doc": "Keyless ENTSOG adapter: daily physical gas flows as a ``pl.DataFrame``.\n\nNo ``forward_curve`` method — free sources are never forward-curve sources (Req 12.8).",
+          "doc": "Keyless ENTSOG adapter: daily physical gas flows as a ``pl.DataFrame``.\n\nNo ``forward_curve`` method — free sources are never forward-curve sources.",
           "methods": [
             {
               "name": "flows",
@@ -14833,7 +14833,7 @@ window.API_DATA = {
           "fields": [],
           "members": [],
           "source": "src/quantvolt/data/entsog.py",
-          "line": 37
+          "line": 36
         },
         {
           "name": "EpexSource",
@@ -14954,7 +14954,7 @@ window.API_DATA = {
           "kind": "class",
           "signature": "OpenMeteoSource(credentials: Credentials | None=None, transport: httpx.BaseTransport | None=None, *, base_url: str=_BASE_URL, timeout_seconds: float=_TIMEOUT_SECONDS, max_retries: int=0, backoff_seconds: float=1.0, daily_variable: str='temperature_2m_mean', timezone: str='UTC')",
           "summary": "Keyless Open-Meteo adapter: daily mean temperatures as a ``pl.DataFrame``.",
-          "doc": "Keyless Open-Meteo adapter: daily mean temperatures as a ``pl.DataFrame``.\n\nNo ``forward_curve`` method — free sources are never forward-curve sources (Req 12.8).",
+          "doc": "Keyless Open-Meteo adapter: daily mean temperatures as a ``pl.DataFrame``.\n\nNo ``forward_curve`` method — free sources are never forward-curve sources.",
           "methods": [
             {
               "name": "temperatures",
@@ -15139,8 +15139,8 @@ window.API_DATA = {
           "qualified": "quantvolt.data.base.restore",
           "kind": "function",
           "signature": "restore(data: dict[str, Any]) -> ForwardCurve",
-          "summary": "Rebuild a :class:`ForwardCurve` from a :func:`snapshot` dict (Req 12.7).",
-          "doc": "Rebuild a :class:`ForwardCurve` from a :func:`snapshot` dict (Req 12.7).\n\n``restore(snapshot(curve)) == curve``, so re-running analytics from a stored snapshot\nreproduces identical results.",
+          "summary": "Rebuild a :class:`ForwardCurve` from a :func:`snapshot` dict.",
+          "doc": "Rebuild a :class:`ForwardCurve` from a :func:`snapshot` dict.\n\n``restore(snapshot(curve)) == curve``, so re-running analytics from a stored snapshot\nreproduces identical results.",
           "methods": [],
           "fields": [],
           "members": [],
@@ -15153,8 +15153,8 @@ window.API_DATA = {
           "qualified": "quantvolt.data.base.snapshot",
           "kind": "function",
           "signature": "snapshot(obj: _SupportsToDict) -> dict[str, Any]",
-          "summary": "Serialise a fetched value object to a JSON-friendly snapshot (Req 12.7).",
-          "doc": "Serialise a fetched value object to a JSON-friendly snapshot (Req 12.7).\n\nThe fetch itself is non-deterministic (live data), but a persisted snapshot makes every\ndownstream analytic reproducible: :func:`restore` rebuilds an equal value object, and the\ncore's determinism (Req 11.2) guarantees identical results from identical inputs.\nSnapshots contain only market data — never credentials.",
+          "summary": "Serialise a fetched value object to a JSON-friendly snapshot.",
+          "doc": "Serialise a fetched value object to a JSON-friendly snapshot.\n\nThe fetch itself is non-deterministic (live data), but a persisted snapshot makes every\ndownstream analytic reproducible: :func:`restore` rebuilds an equal value object, and the\ncore's determinism guarantees identical results from identical inputs.\nSnapshots contain only market data — never credentials.",
           "methods": [],
           "fields": [],
           "members": [],

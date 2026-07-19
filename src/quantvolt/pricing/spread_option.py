@@ -1,11 +1,11 @@
-"""Spread options — Margrabe / Kirk (Task 30; Req 7.1-7.4).
+"""Spread options — Margrabe / Kirk.
 
 Thin pricer over the pure kernels in :mod:`quantvolt.numerics.spread_models`
 (coding-style: validate -> kernel -> package). Model selection by strike is a
-Simple Factory (Property 18): ``strike == 0.0`` selects Margrabe's exact
+Simple Factory: ``strike == 0.0`` selects Margrabe's exact
 exchange-option formula, any other strike selects Kirk's approximation.
 
-Sensitivities (Req 7.2) are central finite differences of the selected kernel
+Sensitivities are central finite differences of the selected kernel
 premium — the kernels return the premium only — each scaled by ``notional``:
 
 - ``delta1`` / ``delta2``: relative forward bumps of ``1e-4 x forward``;
@@ -13,7 +13,7 @@ premium — the kernels return the premium only — each scaled by ``notional``:
 - ``correlation_sensitivity``: absolute bump of ``1e-4``, clamped so that
   ``correlation +/- bump`` stays strictly inside ``(-1, 1)``.
 
-A spark spread (Req 7.3) is the option on ``F_power - heat_rate * F_gas - K``,
+A spark spread is the option on ``F_power - heat_rate * F_gas - K``,
 i.e. the gas-leg notional is ``notional_power x heat_rate``. This is realised
 by pricing a transformed request with ``forward2 * heat_rate`` and ``sigma2``
 unchanged — scaling a lognormal forward by a constant leaves its lognormal
@@ -45,7 +45,7 @@ _SpreadKernel = Callable[[float, float, float, float, float, float, float, float
 
 @dataclass(frozen=True, slots=True)
 class SpreadOptionRequest:
-    """Inputs for a call on ``forward1 - forward2 - strike`` (Req 7.1)."""
+    """Inputs for a call on ``forward1 - forward2 - strike``."""
 
     forward1: float
     forward2: float
@@ -60,7 +60,7 @@ class SpreadOptionRequest:
 
 @dataclass(frozen=True, slots=True)
 class SpreadOptionResult:
-    """Premium plus finite-difference sensitivities, all scaled by notional (Req 7.2).
+    """Premium plus finite-difference sensitivities, all scaled by notional.
 
     ``delta1``/``delta2`` are sensitivities to ``forward1``/``forward2`` exactly as
     passed to :func:`price_spread_option`. :func:`price_spark_spread_option` is the
@@ -99,12 +99,12 @@ def _margrabe_kernel(
 
 
 def _select_kernel(strike: float) -> _SpreadKernel:
-    """Simple Factory (Property 18): ``strike == 0.0`` -> Margrabe exact, else Kirk."""
+    """Simple Factory: ``strike == 0.0`` -> Margrabe exact, else Kirk."""
     return _margrabe_kernel if strike == 0.0 else kirk
 
 
 def _validate_request(request: SpreadOptionRequest) -> None:
-    """Eager boundary validation before any computation (Req 7.1, 7.4; Property 19)."""
+    """Eager boundary validation before any computation."""
     require_correlation("correlation", request.correlation)
     require_positive("forward1", request.forward1)
     require_positive("forward2", request.forward2)
@@ -123,10 +123,10 @@ def price_spread_option(
     vol_bump: float = _VOL_BUMP,
     correlation_bump: float = _CORRELATION_BUMP,
 ) -> SpreadOptionResult:
-    """Price a spread call and its sensitivities (Req 7.1, 7.2).
+    """Price a spread call and its sensitivities.
 
     ``strike == 0.0`` prices via Margrabe's exact formula, any other strike via
-    Kirk's approximation (Property 18). The premium is the kernel premium
+    Kirk's approximation. The premium is the kernel premium
     scaled by ``request.notional``; the five sensitivities are central finite
     differences of the same kernel, likewise notional-scaled (module docstring
     lists the bump sizes).
@@ -143,7 +143,7 @@ def price_spread_option(
             so ``correlation +/- bump`` stays strictly inside ``(-1, 1)``.
 
     Raises:
-        ValidationError: If ``correlation`` is outside ``(-1, 1)`` (Req 7.4),
+        ValidationError: If ``correlation`` is outside ``(-1, 1)``,
             any of ``forward1``, ``forward2``, ``sigma1``, ``sigma2``,
             ``time_to_expiry``, ``notional`` is not > 0, ``strike`` < 0,
             ``discount_factor`` is outside ``(0, 1]``, or
@@ -206,7 +206,7 @@ def price_spark_spread_option(
     vol_bump: float = _VOL_BUMP,
     correlation_bump: float = _CORRELATION_BUMP,
 ) -> SpreadOptionResult:
-    """Price a spark spread: a call on ``F_power - heat_rate * F_gas - strike`` (Req 7.3).
+    """Price a spark spread: a call on ``F_power - heat_rate * F_gas - strike``.
 
     ``request.forward1`` is the power forward and ``request.forward2`` the RAW gas
     forward. The gas-leg notional is ``notional_power x heat_rate``, realised by
@@ -215,7 +215,7 @@ def price_spark_spread_option(
     and delegating to :func:`price_spread_option`. ``forward_bump_fraction``/
     ``vol_bump``/``correlation_bump`` are passed through unchanged.
 
-    ``delta2`` convention (Req 7.2): the transformed request's ``delta2`` is the
+    ``delta2`` convention: the transformed request's ``delta2`` is the
     sensitivity to the SCALED gas forward (``heat_rate x F_gas``); this function
     chain-rules it back onto the raw ``F_gas`` the caller passed
     (``delta2_raw = delta2_transformed x heat_rate``), so ``delta2`` always means

@@ -1,4 +1,4 @@
-"""ENTSOG Transparency Platform (free, keyless) — gas flows (Task 55).
+"""ENTSOG Transparency Platform (free, keyless) — gas flows.
 
 The ENTSOG TP API is **keyless**: no token is required and none is ever transmitted. A
 ``Credentials`` object is still accepted (and ``QUANTVOLT_ENTSOG_TOKEN`` read) purely for
@@ -6,11 +6,10 @@ constructor uniformity with the other adapters — it is optional and unused.
 
 The adapter queries the documented ``operationalData`` endpoint (JSON) for daily physical
 flows at a network point and returns a ``pl.DataFrame`` with columns
-``[point, direction, date, value, unit]``, ready for the core's fundamentals analysis
-(Req 12.2, 12.6).
+``[point, direction, date, value, unit]``, ready for the core's fundamentals analysis.
 
-ENTSOG is a fundamentals source: this adapter exposes **no** ``forward_curve`` method
-(Req 12.8). Tests use ``httpx.MockTransport`` — no live calls in CI.
+ENTSOG is a fundamentals source: this adapter exposes no ``forward_curve`` method.
+Tests use ``httpx.MockTransport`` — no live calls in CI.
 """
 
 from __future__ import annotations
@@ -37,7 +36,7 @@ _TIMEOUT_SECONDS = 30.0
 class EntsogSource:
     """Keyless ENTSOG adapter: daily physical gas flows as a ``pl.DataFrame``.
 
-    No ``forward_curve`` method — free sources are never forward-curve sources (Req 12.8).
+    No ``forward_curve`` method — free sources are never forward-curve sources.
     """
 
     provider = "entsog"

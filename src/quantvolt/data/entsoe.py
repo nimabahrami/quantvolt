@@ -1,8 +1,8 @@
-"""ENTSO-E Transparency (free token) — day-ahead power, load, generation (Task 54).
+"""ENTSO-E Transparency (free token) — day-ahead power, load, generation.
 
 Free-token provider: request a personal token from the ENTSO-E Transparency Platform and
-supply it as ``Credentials(token=...)`` or via ``QUANTVOLT_ENTSOE_TOKEN`` (explicit wins,
-Req 12.3). The token is sent only to ENTSO-E, only over HTTPS, as the ``securityToken``
+supply it as ``Credentials(token=...)`` or via ``QUANTVOLT_ENTSOE_TOKEN`` (explicit wins).
+The token is sent only to ENTSO-E, only over HTTPS, as the ``securityToken``
 query parameter.
 
 The adapter parses a deliberately **minimal, documented subset** of the ENTSO-E XML:
@@ -26,7 +26,7 @@ calendar days. Local midnight is converted to UTC before being sent as the ``per
 (see ``_AREA_TIMEZONE``, overridable via ``timezone_overrides``).
 
 ENTSO-E is a spot/fundamentals source: this adapter exposes **no** ``forward_curve`` method.
-Forward/futures curves come only from commercial providers or caller-supplied data (Req 12.8).
+Forward/futures curves come only from commercial providers or caller-supplied data.
 
 Tests use ``httpx.MockTransport`` with recorded-style payloads — no live calls in CI.
 """
@@ -100,8 +100,8 @@ def _area_timezone(timezones: Mapping[str, str], commodity: CommodityConfig) -> 
 def _period_stamp(day: date, zone: ZoneInfo) -> str:
     """UTC ``yyyyMMddHHmm`` stamp for local midnight of delivery day ``day`` in ``zone``.
 
-    ``day`` is a calendar delivery day in the bidding zone's local time (Req 12.2-style
-    market convention: "the day-ahead auction for 1 January" means CET/CEST midnight in
+    ``day`` is a calendar delivery day in the bidding zone's local time (market
+    convention: "the day-ahead auction for 1 January" means CET/CEST midnight in
     Germany, not UTC midnight). The Transparency Platform's ``periodStart``/``periodEnd``
     parameters are UTC timestamps, so local midnight must be converted to UTC before
     formatting — a naive local-clock stamp silently shifts every CET/CEST query window by
@@ -290,7 +290,7 @@ def _parse_points(provider: str, xml_text: str, value_tag: str) -> list[float]:
 class EntsoeSource:
     """Free-token ENTSO-E adapter: day-ahead prices, load, and generation as ``pl.Series``.
 
-    No ``forward_curve`` method — free sources are never forward-curve sources (Req 12.8).
+    No ``forward_curve`` method — free sources are never forward-curve sources.
     """
 
     provider = "entsoe"
@@ -321,11 +321,11 @@ class EntsoeSource:
                 retries, ``backoff_seconds * 2**attempt`` (default ``1.0``); must be
                 ``>= 0``.
             bidding_zone_overrides: Additional or overriding ``hub_id -> EIC`` entries
-                merged over the built-in bidding-zone map (Req 1.6-style caller
-                extension), so a caller can add a hub this adapter doesn't yet know.
+                merged over the built-in bidding-zone map, so a caller can add a hub
+                this adapter doesn't yet know.
             timezone_overrides: Additional or overriding ``hub_id -> IANA timezone`` entries
                 (e.g. ``"Europe/Berlin"``) merged over the built-in map, mirroring
-                ``bidding_zone_overrides`` (Req 1.6-style caller extension). Needed for any
+                ``bidding_zone_overrides``. Needed for any
                 hub added via ``bidding_zone_overrides`` so its local delivery day can be
                 converted to UTC (see module docstring).
         """
@@ -343,7 +343,7 @@ class EntsoeSource:
         """Day-ahead prices (document ``A44``) for ``[start, end)`` as a float series.
 
         The series is named after ``commodity.commodity_id`` so it is directly usable
-        wherever the core accepts a caller-supplied price series (Req 12.2).
+        wherever the core accepts a caller-supplied price series.
         """
         frame = self.price_frame(commodity, start, end)
         return frame["value"].rename(commodity.commodity_id)

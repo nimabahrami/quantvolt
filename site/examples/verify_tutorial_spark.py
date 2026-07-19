@@ -56,7 +56,7 @@ def main() -> None:
     print("clean spark spread option premium:", round(option.premium, 2), "EUR")
     print("model: Kirk (approximation; strike != 0)")
 
-    # 3. The SAME economics as a native portfolio instrument: a TollingAgreement.
+    # 3. The same underlying exposure as a richer tolling structure: a TollingAgreement.
     plant = qv.PlantConfig(
         heat_rate=heat_rate,
         variable_om_cost=variable_cost,

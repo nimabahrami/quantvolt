@@ -263,7 +263,7 @@ def describe_symbol(public_module: str, name: str, qualified: str) -> dict[str, 
             ]
     if not item["doc"] and name in AUTHORED_DOCS:
         item["doc"] = AUTHORED_DOCS[name]
-        item["summary"] = AUTHORED_DOCS[name].split(". ", 1)[0] + "."
+        item["summary"] = AUTHORED_DOCS[name].split(". ", 1)[0].rstrip(".") + "."
     item["source"] = path.relative_to(ROOT).as_posix()
     return item
 

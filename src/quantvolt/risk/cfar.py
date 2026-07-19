@@ -1,4 +1,4 @@
-"""Cash Flow at Risk (CFaR) over multi-period horizons (Task 67, Req 16).
+"""Cash Flow at Risk (CFaR) over multi-period horizons.
 
 CFaR is a long-horizon earnings/liquidity risk measure, not a mark-to-market VaR.
 It asks: over the next ``horizon`` periods, how far below its *expected* level could
@@ -18,16 +18,16 @@ Request surface
   factor scenario set. Each scenario maps a factor *name* to its realised value, so
   operational factors (e.g. ``"generation_growth"``, ``"demand"``, ``"availability"``)
   sit alongside market factors (e.g. ``"power_price"``, ``"gas_price"``) in the same
-  mapping (Req 16.2). The set is treated as **exhaustive** — every scenario is
+  mapping. The set is treated as **exhaustive** — every scenario is
   evaluated — so no sampling occurs here and determinism is structural.
 * ``horizon: int`` — number of periods, must be >= 1.
-* ``seed: int`` — recorded on the result for reproducibility (Req 16.3). Because the
+* ``seed: int`` — recorded on the result for reproducibility. Because the
   scenario set is exhaustive there is no internal sampling to seed; the seed is still
   accepted and carried so a caller that generates ``scenarios`` from the same seed has
   one place recording it. Were sampling ever introduced here it would use
   ``numpy.random.default_rng(seed)``.
 * ``consistency: Mapping[str, str] | None`` — caller-supplied consistency metadata
-  linking operational and market factors (Req 16.2). It is carried through to the
+  linking operational and market factors. It is carried through to the
   result verbatim (as an equal copy) rather than silently ignored; this function does
   not interpret it.
 
@@ -92,7 +92,7 @@ CashFlowModel = Callable[[Scenario], npt.NDArray[np.float64]]
 
 @dataclass(frozen=True, slots=True)
 class CFaRResult:
-    """Outcome of a :func:`cash_flow_at_risk` computation (Req 16.1).
+    """Outcome of a :func:`cash_flow_at_risk` computation.
 
     ``cfar_95`` is the shortfall below the expected aggregate cash flow at the
     caller's ``confidence_level`` (95% by default; see the module docstring for the
@@ -126,7 +126,7 @@ def cash_flow_at_risk(
     *,
     confidence_level: float = 0.95,
 ) -> CFaRResult:
-    """Compute CFaR plus summary statistics over a factor scenario set (Req 16).
+    """Compute CFaR plus summary statistics over a factor scenario set.
 
     For every scenario the pure ``cashflow_model`` is called exactly once, its returned
     per-period vector is validated to have length ``horizon`` and aggregated (summed)
@@ -143,9 +143,9 @@ def cash_flow_at_risk(
         scenarios: Non-empty exhaustive factor scenario set (market + operational
             factors keyed by name).
         horizon: Number of periods, ``>= 1``.
-        seed: Reproducibility seed, echoed on the result (Req 16.3).
+        seed: Reproducibility seed, echoed on the result.
         consistency: Optional market/operational consistency metadata, carried through
-            to the result verbatim (Req 16.2).
+            to the result verbatim.
         confidence_level: Confidence level for the ``cfar_95`` / ``p5`` shortfall
             measure; defaults to ``0.95``, reproducing the 5th-percentile shortfall
             documented in the module docstring. Must be in ``[0, 1]``. ``p50`` / ``p95``
@@ -158,7 +158,7 @@ def cash_flow_at_risk(
         ValidationError: If ``horizon < 1``; if ``scenarios`` is empty; if
             ``confidence_level`` is outside ``[0, 1]``; or if the model returns, for
             any scenario, a vector whose shape is not ``(horizon,)`` — the message
-            names the returned shape, the horizon, and the scenario index (Req 16.4).
+            names the returned shape, the horizon, and the scenario index.
     """
     require_positive("horizon", horizon)
     require_non_empty("scenarios", scenarios)

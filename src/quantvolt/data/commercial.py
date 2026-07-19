@@ -1,7 +1,7 @@
-"""Commercial-provider stubs (Task 57): forward/futures curves, EUA, settlement prices.
+"""Commercial-provider stubs: forward/futures curves, EUA, settlement prices.
 
 Forward and futures curves are available **only** from commercial providers or from
-caller-supplied data (Req 12.8); the free adapters (ENTSO-E, ENTSOG, Open-Meteo) never expose
+caller-supplied data; the free adapters (ENTSO-E, ENTSOG, Open-Meteo) never expose
 a ``forward_curve`` method. Each stub below documents the paid credential it will use and
 raises a clear :class:`~quantvolt.exceptions.DataSourceError` until a commercial licence is
 configured and the adapter implemented. EUA carbon allowances flow through the same methods
@@ -46,7 +46,7 @@ class _CommercialSource:
         )
 
     def forward_curve(self, commodity: CommodityConfig, market_date: date) -> ForwardCurve:
-        """Forward/futures curve as of ``market_date`` — commercial data (Req 12.8).
+        """Forward/futures curve as of ``market_date`` — commercial data.
 
         Raises:
             DataSourceError: Always, until a commercial licence is configured; the message

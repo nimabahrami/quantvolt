@@ -1,0 +1,16 @@
+# Reviewed false-positive allowlist for scripts/ci/check_docs.py.
+#
+# One substring per line. A violation is suppressed if a ~160-character window centred on
+# the flagged text (80 characters either side, not the whole source line) *contains* the
+# substring given here -- so entries should be specific enough to be unambiguous (e.g. a
+# whole clause or sentence fragment), and narrow enough that they do not also silence a
+# different violation that happens to sit on the same line.
+#
+# Blank lines and lines starting with "#" are ignored.
+#
+# This file is for genuine, reviewed false positives only (e.g. a user testimonial that
+# legitimately contains the word "seamlessly", or a code sample where ".." is a valid
+# slice/range operator) -- never for silencing a real documentation-quality issue that
+# should instead be fixed at the source. Every entry should be reviewable on its own: a
+# maintainer reading this file should be able to tell, from the substring alone, why it
+# is safe to ignore.

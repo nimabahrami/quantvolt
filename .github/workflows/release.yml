@@ -5,7 +5,7 @@ name: Release
 #
 # Dry run:  Actions → Release → "Run workflow" (workflow_dispatch). Builds and
 #           uploads every artifact but does NOT publish (publish is tag-gated).
-# Release:  push a version tag, e.g.  git tag v0.2.0 && git push origin v0.2.0
+# Release:  push a version tag, e.g.  git tag v0.2.1 && git push origin v0.2.1
 #           The tag must match the version in pyproject.toml.
 
 on:

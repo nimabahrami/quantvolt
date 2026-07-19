@@ -1,4 +1,4 @@
-"""Shipped test utility (Req 11.4): assert a library function does not mutate its inputs.
+"""Shipped test utility: assert a library function does not mutate its inputs.
 
 Public, importable as ``from quantvolt.testing import assert_input_unchanged``. Callers
 wrap any pure library function to prove it leaves its arguments untouched (immutability

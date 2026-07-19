@@ -1,65 +1,62 @@
-"""Parametric (variance-covariance) VaR — delta and delta-gamma (Task 65, Req 14).
+"""Parametric (variance-covariance) VaR: delta and delta-gamma.
 
 Analytical VaR for large, mildly non-linear books: no full revaluation, so a portfolio
-mapped onto ~2000 risk factors is priced well inside the 2 s budget (Req 14.5). Two
-surfaces, result co-located here:
+mapped onto ~2000 risk factors is priced well inside a tight time budget. Two surfaces,
+result co-located here:
 
-* :func:`parametric_var` — first-order (delta) VaR ``VaR_c = z_c·√(δᵀΣδ)`` (eq. 10.11,
-  U13.3; Property 47).
-* :func:`delta_gamma_var` — second-order (delta-gamma) VaR from a Cornish-Fisher moment
-  match on the quadratic P&L ``ΔP ≈ δᵀΔf + ½·Δfᵀ Γ Δf`` (eqs. U13.1-U13.2; Property 48).
+* ``parametric_var``: first-order (delta) VaR ``VaR_c = z_c*sqrt(deltaT Sigma delta)``.
+* ``delta_gamma_var``: second-order (delta-gamma) VaR from a Cornish-Fisher moment
+  match on the quadratic P&L ``dP ~= delta.df + 0.5*dfT Gamma df``.
 
 Risk specification
 ------------------
 * ``risk_measure_id``: ``parametric-delta-var`` / ``parametric-delta-gamma-var``.
 * ``confidence_level``: caller-supplied; the documented defaults are 95% and 99%.
-* ``holding_period``: **implicit** in the caller's inputs. ``deltas`` and ``Σ`` must be
+* ``holding_period``: implicit in the caller's inputs. ``deltas`` and ``Sigma`` must be
   expressed over the same horizon (e.g. one-day deltas with a one-day covariance); this
   function performs no time scaling.
-* ``distribution_method``: analytical. Risk factors ``Δf`` are assumed jointly
-  ``N(0, Σ)`` (zero mean over the horizon).
+* ``distribution_method``: analytical. Risk factors ``df`` are assumed jointly
+  ``N(0, Sigma)`` (zero mean over the horizon).
 * ``probability_measure``: physical (the covariance is a real-world forecast).
-* ``revaluation_method``: ``delta`` (:func:`parametric_var`) / ``delta-gamma``
-  (:func:`delta_gamma_var`) — no full revaluation.
+* ``revaluation_method``: ``delta`` (``parametric_var``) / ``delta-gamma``
+  (``delta_gamma_var``); no full revaluation.
 * ``outputs``: per-confidence VaR plus the P&L distribution's first moments
-  (:class:`ParametricVaRResult`).
+  (``ParametricVaRResult``).
 
 Sign convention
 ---------------
-Loss is ``L = -ΔP`` and VaR at confidence ``c`` is the ``c``-quantile of ``L`` — a
+Loss is ``L = -dP`` and VaR at confidence ``c`` is the ``c``-quantile of ``L``, a
 non-negative currency amount for the ordinary delta case. For the delta case
-``ΔP = δᵀΔf ~ N(0, δᵀΣδ)`` is symmetric and zero-mean, so ``VaR_c = z_c·√(δᵀΣδ)``.
-For the delta-gamma case the loss quantile is obtained from the Cornish-Fisher expansion
-of the quadratic-form distribution (see :func:`delta_gamma_var`); it can, for a strongly
-long-gamma / low-variance book, be negative — an expected gain even in the tail — which
-is reported as-is rather than floored.
+``dP = delta.df ~ N(0, deltaT Sigma delta)`` is symmetric and zero-mean, so
+``VaR_c = z_c*sqrt(deltaT Sigma delta)``. For the delta-gamma case the loss quantile is
+obtained from the Cornish-Fisher expansion of the quadratic-form distribution (see
+``delta_gamma_var``); it can, for a strongly long-gamma / low-variance book, be negative,
+an expected gain even in the tail, which is reported as-is rather than floored.
 
 z-scores
 --------
-Per Req 14.1 / Property 47 the two canonical levels use the design's mandated rounded
-constants exactly: ``z₀.₉₅ = 1.645`` and ``z₀.₉₉ = 2.326``. Any other confidence uses
-``scipy.stats.norm.ppf``. A confidence of exactly ``0.95`` therefore yields ``1.645``,
-marginally different from ``norm.ppf(0.95) = 1.6449`` — this is intentional, so the
-formula matches the specification's stated constants.
+The two canonical levels use fixed, rounded constants exactly: ``z_0.95 = 1.645`` and
+``z_0.99 = 2.326``. Any other confidence uses ``scipy.stats.norm.ppf``. A confidence of
+exactly ``0.95`` therefore yields ``1.645``, marginally different from
+``norm.ppf(0.95) = 1.6449``; this is intentional, so the formula matches the documented
+constants.
 
 Covariance validation
 ----------------------
-``Σ`` is validated square, symmetric, and positive semidefinite (within a ``1e-8``
-absolute tolerance) *before* any VaR arithmetic (Req 14.4). To keep the 2000-factor path
-inside 2 s the PSD test is a Cholesky factorisation of ``Σ + 1e-8·I`` (fast, ~0.7 s at
-n = 2000) rather than a full eigendecomposition (~6 s): ``Σ + tol·I`` is positive
-definite iff ``λ_min(Σ) > -tol``, an exact restatement of the covariance module's
-``λ_min ≥ -tol`` convention (:func:`quantvolt.risk.covariance._require_psd`). Only when
-that Cholesky fails is the (slow) exact smallest eigenvalue computed, purely to name it
-in the ``ValidationError``. This module keeps its own private PSD guard rather than
-importing the covariance module's private one, mirroring the pattern covariance.py itself
-adopts toward ``numerics/monte_carlo.py``.
+``Sigma`` is validated square, symmetric, and positive semidefinite (within a ``1e-8``
+absolute tolerance) before any VaR arithmetic. To keep the 2000-factor path fast the PSD
+test is a Cholesky factorisation of ``Sigma + 1e-8*I`` rather than a full
+eigendecomposition: ``Sigma + tol*I`` is positive definite iff
+``lambda_min(Sigma) > -tol``, an exact restatement of ``quantvolt.risk.covariance``'s
+PSD convention. Only when that Cholesky fails is the (slow) exact smallest eigenvalue
+computed, purely to name it in the ``ValidationError``. This module keeps its own
+private PSD guard rather than importing the covariance module's private one.
 
 Limitations
 -----------
-* Normality of ``Δf`` understates tail risk for fat-tailed energy factors.
+* Normality of ``df`` understates tail risk for fat-tailed energy factors.
 * The delta / delta-gamma approximations are local; for materially non-linear physical
-  assets prefer full-revaluation Monte Carlo VaR (Req 15).
+  assets prefer full-revaluation Monte Carlo VaR.
 * The third-order Cornish-Fisher expansion is reliable only for moderate skewness; for
   large third moments the mapping from confidence to quantile can lose monotonicity.
 """
@@ -82,7 +79,7 @@ _PSD_TOL = 1e-8
 #: Relative tolerance (against the matrix scale) for the symmetry check.
 _SYMMETRY_RTOL = 1e-8
 
-#: Design-mandated rounded z-scores for the two canonical levels (Req 14.1, Property 47).
+#: Fixed rounded z-scores for the two canonical confidence levels.
 _CANONICAL_Z: dict[float, float] = {0.95: 1.645, 0.99: 2.326}
 
 #: Documented default confidence levels for both surfaces.
@@ -91,14 +88,14 @@ DEFAULT_CONFIDENCES: tuple[float, ...] = (0.95, 0.99)
 
 @dataclass(frozen=True, slots=True)
 class ParametricVaRResult:
-    """Outcome of a parametric-VaR computation (Req 14.1/14.2).
+    """Outcome of a parametric-VaR computation.
 
     ``confidences`` and ``var_values`` are parallel tuples in the caller's request order;
     ``var_values[i]`` is the VaR (a loss, in the currency units of ``deltas``) at
-    ``confidences[i]`` — use :meth:`var_at` for a keyed lookup. ``method`` records the
-    quantile method (``"delta"`` for :func:`parametric_var`; the delta-gamma method name,
-    e.g. ``"cornish_fisher"``, for :func:`delta_gamma_var`) so the reported figure is
-    self-documenting (Req 14.2).
+    ``confidences[i]``; use ``var_at`` for a keyed lookup. ``method`` records the
+    quantile method (``"delta"`` for ``parametric_var``; the delta-gamma method name,
+    e.g. ``"cornish_fisher"``, for ``delta_gamma_var``) so the reported figure is
+    self-documenting.
 
     ``pnl_mean`` / ``pnl_variance`` / ``pnl_skewness`` are the first three moments of the
     P&L (``ΔP``, not the loss) distribution under the model: for the linear case they are
@@ -164,9 +161,9 @@ def _require_square_symmetric(
     """Coerce and validate a square, symmetric, conformable matrix; return the symmetrised copy.
 
     Validates (in order): 2-D and finite; square; dimension equal to ``n`` (the delta
-    length, Req 14.4, naming both dimensions); symmetric within ``symmetry_rtol`` (naming
-    the offending entry, Req 14.1). PSD is *not* asserted here — ``Σ`` adds a Cholesky test
-    in :func:`_require_psd_cov`, whereas ``Γ`` may legitimately be indefinite.
+    length, naming both dimensions); symmetric within ``symmetry_rtol`` (naming the
+    offending entry). PSD is not asserted here: ``Σ`` adds a Cholesky test in
+    ``_require_psd_cov``, whereas ``Γ`` may legitimately be indefinite.
     """
     data = np.asarray(matrix, dtype=np.float64)
     if data.ndim != 2:
@@ -201,9 +198,9 @@ def _require_psd_cov(
     """Validate ``cov`` square/symmetric/conformable/PSD; return the symmetrised copy.
 
     The PSD test is a Cholesky factorisation of ``symmetric + psd_tol·I`` — positive
-    definite iff ``λ_min > -psd_tol`` — chosen so a 2000-factor covariance clears the
-    2 s budget (Req 14.5). Only on failure is the exact smallest eigenvalue computed, to
-    name it in the raised error (Req 14.1/14.4).
+    definite iff ``λ_min > -psd_tol`` — chosen so a 2000-factor covariance stays fast.
+    Only on failure is the exact smallest eigenvalue computed, to name it in the raised
+    error.
     """
     symmetric = _require_square_symmetric(cov, name="cov", n=n, symmetry_rtol=symmetry_rtol)
     try:
@@ -240,10 +237,10 @@ def parametric_var(
     psd_tol: float = _PSD_TOL,
     symmetry_rtol: float = _SYMMETRY_RTOL,
 ) -> ParametricVaRResult:
-    """First-order (delta) parametric VaR ``VaR_c = z_c·√(δᵀΣδ)`` (Req 14.1, Property 47).
+    """First-order (delta) parametric VaR ``VaR_c = z_c·√(δᵀΣδ)``.
 
-    Validates all inputs before any arithmetic (Req 14.4): ``deltas`` is a finite 1-D
-    vector; ``cov`` is square, symmetric (within ``symmetry_rtol``), conformable with
+    Validates all inputs before any arithmetic: ``deltas`` is a finite 1-D vector;
+    ``cov`` is square, symmetric (within ``symmetry_rtol``), conformable with
     ``deltas`` (a mismatch names both dimensions), and positive semidefinite within
     ``psd_tol`` (a violation names the offending smallest eigenvalue). See the module
     docstring for the sign convention, the z-score policy, and the fast PSD test.
@@ -251,16 +248,16 @@ def parametric_var(
     Args:
         deltas: Portfolio delta by risk factor, a 1-D vector of length ``n``.
         cov: The ``n x n`` factor covariance forecast ``Σ`` over the loss horizon
-            (e.g. from :mod:`quantvolt.risk.covariance`).
+            (e.g. from ``quantvolt.risk.covariance``).
         confidences: Confidence levels; defaults to ``(0.95, 0.99)``. Each must be in
-            ``(0, 1)``; ``0.95`` / ``0.99`` use the mandated constants ``1.645`` / ``2.326``.
+            ``(0, 1)``; ``0.95`` / ``0.99`` use the fixed constants ``1.645`` / ``2.326``.
         psd_tol: Absolute tolerance on the smallest eigenvalue of ``Σ`` used by the PSD
-            check; defaults to ``1e-8`` (the design's documented tolerance, Req 14.4).
+            check; defaults to ``1e-8``.
         symmetry_rtol: Relative tolerance (against the matrix scale) for the symmetry
             check on ``Σ``; defaults to ``1e-8``.
 
     Returns:
-        A :class:`ParametricVaRResult` with ``method="delta"`` and a zero-mean,
+        A ``ParametricVaRResult`` with ``method="delta"`` and a zero-mean,
         zero-skew P&L description (``pnl_variance = δᵀΣδ``).
 
     Raises:
@@ -299,7 +296,7 @@ def delta_gamma_var(
     psd_tol: float = _PSD_TOL,
     symmetry_rtol: float = _SYMMETRY_RTOL,
 ) -> ParametricVaRResult:
-    """Second-order (delta-gamma) parametric VaR via moment matching (Req 14.2, Property 48).
+    """Second-order (delta-gamma) parametric VaR via moment matching.
 
     The quadratic P&L ``ΔP = δᵀΔf + ½·Δfᵀ Γ Δf`` with ``Δf ~ N(0, Σ)`` has, writing
     ``Θ = Γ Σ``, the standard delta-gamma-normal cumulants (Britten-Jones & Schaefer,
@@ -313,8 +310,8 @@ def delta_gamma_var(
     The loss ``L = -ΔP`` has mean ``-κ₁``, standard deviation ``√κ₂`` and skewness
     ``-κ₃/κ₂^1.5``; its ``c``-quantile is ``VaR_c = -κ₁ + √κ₂ · w(z_c, -γ₁)`` where ``w``
     is the third-order Cornish-Fisher map ``w = z + (z²-1)/6·γ₁`` (dispatched by
-    ``method``). With ``Γ = 0`` all higher cumulants vanish and this collapses **exactly**
-    to :func:`parametric_var` (Property 48).
+    ``method``). With ``Γ = 0`` all higher cumulants vanish and this collapses exactly
+    to ``parametric_var``.
 
     Sign sanity: a long-gamma book (``Γ`` positive definite) has ``κ₁ > 0`` (the quadratic
     term only ever adds to P&L) and positive P&L skewness, so both the mean shift and the
@@ -336,7 +333,7 @@ def delta_gamma_var(
             checks on ``Σ`` and ``Γ``; defaults to ``1e-8``.
 
     Returns:
-        A :class:`ParametricVaRResult` carrying ``method`` and the P&L cumulant moments
+        A ``ParametricVaRResult`` carrying ``method`` and the P&L cumulant moments
         ``(κ₁, κ₂, κ₃/κ₂^1.5)``.
 
     Raises:

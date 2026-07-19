@@ -1,4 +1,4 @@
-"""Correlation analysis (Task 23).
+"""Correlation analysis.
 
 Cross-commodity dependence for power/energy markets: a full pairwise correlation
 matrix (Pearson / Spearman / Kendall) and a rolling Pearson correlation for
@@ -129,7 +129,7 @@ def rolling_correlation(
 ) -> pl.Series:
     """Rolling Pearson correlation of two equal-length series over ``window``.
 
-    The window ending at row ``i`` spans rows ``i - window + 1 .. i`` inclusive, so
+    The window ending at row ``i`` spans rows ``i - window + 1`` through ``i`` inclusive, so
     the leading ``window - 1`` entries are null. Returns a series named
     ``"rolling_correlation"`` of the same length as the inputs. Neither input is
     mutated.

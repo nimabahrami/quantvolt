@@ -1,4 +1,4 @@
-"""Weather / degree days (Task 43). Pure computation — caller supplies temperature data."""
+"""Weather / degree days. Pure computation — caller supplies temperature data."""
 
 from __future__ import annotations
 

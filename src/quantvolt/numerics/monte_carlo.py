@@ -4,7 +4,7 @@ Task 59 exposed the single-asset Asian pricer (`asian_monte_carlo`). Task 62 add
 correlated multi-commodity forward engine (Appendix A): `build_covariance` assembles
 ``C = diag(sigma)·R·diag(sigma)·Δt`` (eq A.8) and `simulate_correlated_forwards` drives the
 Rust kernel that draws ``ΔZ = μ + L·ε`` with ``L = chol(C)`` (eqs A.9-A.13). The
-positive-semidefiniteness gate (Property 61) and the opt-in nearest-PSD repair live
+positive-semidefiniteness gate and the opt-in nearest-PSD repair live
 here at the Python boundary so a non-PSD covariance raises a clear ``ValidationError``
 *before* any Cholesky runs — the Rust factor is never asked to go complex.
 
@@ -79,8 +79,8 @@ class CorrelatedSimulationRequest:
     coordinate is held fixed during that step. If omitted, positive step variance defines
     activity. Arrays are copied at the public boundary before entering the native kernel.
 
-    ``symmetry_tol`` and ``psd_tol`` gate the per-step covariance validation (Property 61
-    / Req 20.3); defaults match the module's standard tolerances.
+    ``symmetry_tol`` and ``psd_tol`` gate the per-step covariance validation; defaults
+    match the module's standard tolerances.
 
     ``eq=False`` disables the auto-generated field-tuple ``__eq__`` (Fix 9): dataclass
     equality by default compares fields with plain ``==``, and NumPy arrays make that
@@ -203,7 +203,7 @@ def simulate_ou_paths(
 
     Euler recursion ``x_{t+dt} = x_t + kappa*(mu - x_t)*dt + sigma*sqrt(dt)*z``. Returns a
     ``float64`` array of shape ``(path_count, steps + 1)`` with ``x0`` in column 0.
-    Deterministic per ``seed`` (Req 11.2) — seeded-Rust-RNG reproducible, not
+    Deterministic per ``seed`` — seeded-Rust-RNG reproducible, not
     NumPy-matching. Complements the OU *fit* in ``stats/mean_reversion.py`` (this is the
     forward simulation). Raises ``NativeExtensionError`` if ``_core`` is not built and
     ``ValidationError`` for non-finite params, ``dt <= 0``, or ``steps``/``path_count`` < 1.
@@ -240,8 +240,8 @@ def build_covariance(
     ``C[a, b] = sigma_a · R[a, b] · sigma_b · Δt``.
 
     A per-index ``sigma = 0`` marks an **expired tenor** (eq A.5): it zeroes that row and
-    column of ``C``, and the simulator then holds that state fixed. Validation is eager
-    (Req 11.5): ``dt > 0``; ``sigma`` finite and non-negative; ``corr`` square, finite,
+    column of ``C``, and the simulator then holds that state fixed. Validation is eager:
+    ``dt > 0``; ``sigma`` finite and non-negative; ``corr`` square, finite,
     symmetric (within ``symmetry_tol``), unit-diagonal (within ``unit_diagonal_tol``),
     entries in ``[-1, 1]``. The assembled matrix is *not* PSD-checked here — that gate
     lives in :func:`simulate_correlated_forwards`, which consumes it.
@@ -388,13 +388,14 @@ def simulate_correlated_forwards(
       step — drift and noise both suppressed.
     * **Antithetic variates (default on).** Paths are drawn in ``(+ε, -ε)`` pairs; each
       pair counts as 2 toward ``path_count`` and an odd ``path_count`` rounds up.
-    * **Determinism (Req 11.2).** Identical inputs and ``seed`` give bit-identical paths;
-      the Rust RNG stream does not match NumPy's.
+    * **Determinism.** Identical inputs and ``seed`` give bit-identical paths across
+      runs of the same native-extension build; the Rust RNG stream does not match
+      NumPy's.
 
-    PSD gate (Property 61 / Req 20.3): a non-symmetric or non-PSD ``cov`` raises
-    ``ValidationError`` naming the violated property; ``repair=True`` opts into a
-    nearest-PSD (Higham eigenvalue-clipping) projection instead. ``symmetry_tol`` and
-    ``psd_tol`` gate that check (defaults match the module's standard tolerances).
+    PSD gate: a non-symmetric or non-PSD ``cov`` raises ``ValidationError`` naming the
+    violated constraint; ``repair=True`` opts into a nearest-PSD (Higham
+    eigenvalue-clipping) projection instead. ``symmetry_tol`` and ``psd_tol`` gate that
+    check (defaults match the module's standard tolerances).
     """
     if not _HAVE_CORE:
         raise NativeExtensionError("quantvolt._core not built; run `maturin develop` (Task 62).")

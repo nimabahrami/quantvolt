@@ -1,11 +1,10 @@
-"""CurveBuilder — holds the commodity registry; builds forward curves (Task 19).
+"""CurveBuilder — holds the commodity registry; builds forward curves.
 
-The builder is a thin orchestrator (``coding-style.md``): validate eagerly at the
+The builder is a thin orchestrator: validate eagerly at the
 boundary, gap-fill via the selected ``numerics.interpolation`` kernel, check
-arbitrage, then package. The interpolation *math* lives in ``numerics/`` and the
-method is selected through the :data:`INTERPOLATION_METHODS` dispatch dict (Strategy
-as functions, no ``if/elif``). ``CurveBuildResult`` is co-located here (Req 1.1/1.3/
-1.5/1.6/1.8; Properties 1, 2, 4).
+arbitrage, then package. The interpolation math lives in ``numerics/`` and the
+method is selected through the ``INTERPOLATION_METHODS`` dispatch dict, no
+``if/elif`` chain. ``CurveBuildResult`` is co-located here.
 """
 
 from __future__ import annotations
@@ -44,7 +43,7 @@ class CurveBuildResult:
 
 
 def _monthly_grid(start: DeliveryPeriod, end: DeliveryPeriod) -> list[DeliveryPeriod]:
-    """Every calendar month from ``start`` to ``end`` inclusive, in order (Req 1.3)."""
+    """Every calendar month from ``start`` to ``end`` inclusive, in order."""
     start_index = start.year * 12 + (start.month - 1)
     end_index = end.year * 12 + (end.month - 1)
     return [
@@ -74,8 +73,8 @@ class CurveBuilder:
         """Build a gap-filled forward curve from observed instrument prices.
 
         Validation is eager and strictly ordered *before* any construction (fail
-        loudly): interpolation method known -> minimum instrument count (Req 1.8)
-        -> commodity supported (Req 1.6) -> tolerance in [0.001, 1.0] (Req 1.1) ->
+        loudly): interpolation method known -> minimum instrument count
+        -> commodity supported -> tolerance in [0.001, 1.0] ->
         every instrument's commodity matches -> no two instruments repeat a
         delivery period (conflicting/duplicate quotes are a caller error, not a
         silent last-price-wins resolution). The minimum-count gate (>= 1 for all
@@ -83,7 +82,7 @@ class CurveBuilder:
         duplicates first guarantees the number of *unique* delivery periods can
         never silently fall below the interpolation method's minimum either.
         AFTER construction, every input instrument must reprice within
-        ``tolerance`` (Req 1.1); a :class:`ValidationError` naming every offending
+        ``tolerance``; a :class:`ValidationError` naming every offending
         instrument and its residual is raised rather than returning a curve that
         silently fails this guarantee.
         """
@@ -170,7 +169,7 @@ class CurveBuilder:
         instruments: list[InstrumentPriceRecord],
         interpolation: str,
     ) -> ForwardCurve:
-        """Gap-fill the monthly grid and annotate observed vs interpolated (Req 1.3)."""
+        """Gap-fill the monthly grid and annotate observed vs interpolated."""
         observed: dict[DeliveryPeriod, float] = {
             instrument.delivery_period: instrument.price for instrument in instruments
         }

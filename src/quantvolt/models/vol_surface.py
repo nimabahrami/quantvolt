@@ -1,4 +1,4 @@
-"""Volatility surface value objects and moneyness (Task 7).
+"""Volatility surface value objects and moneyness.
 
 Pure, immutable domain vocabulary (Tell-Don't-Ask): a :class:`VolatilitySurface`
 answers queries about *its own* implied-vol term structure via

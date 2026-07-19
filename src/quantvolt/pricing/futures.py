@@ -1,4 +1,4 @@
-"""Futures and forward pricing (Task 25).
+"""Futures and forward pricing.
 
 Thin orchestration over the value objects (design §2.5): validate at the boundary,
 look up the forward price and discount factor, apply the NPV formula
@@ -46,7 +46,7 @@ def _forward_price_and_discount_factor(
     unaffected by ``settlement_lag_days``, which only shifts the discount-factor
     lookup date). A forward curve without the contract's period or a discount curve
     not covering the settlement date raises
-    :class:`~quantvolt.exceptions.MissingTenorError`, which propagates (Req 3.4).
+    :class:`~quantvolt.exceptions.MissingTenorError`, which propagates.
     """
     require_non_negative("settlement_lag_days", settlement_lag_days)
     delivery_end = contract.delivery_period.last_day
@@ -70,7 +70,7 @@ def price_futures(
     *,
     settlement_lag_days: int = 0,
 ) -> FuturesPricingResult:
-    """Price a futures or forward contract against a forward curve (Req 3.1, 3.2).
+    """Price a futures or forward contract against a forward curve.
 
     ``NPV = discount_factor(settlement_date) * (forward_price - contract_price) * notional``
     with a positive notional meaning long; ``delta`` is :func:`futures_delta` at the
@@ -89,9 +89,9 @@ def price_futures(
     Raises:
         ValidationError: If ``settlement_lag_days`` is negative.
         ExpiredContractError: If the delivery period ended strictly before
-            ``valuation_date`` (Req 3.3).
+            ``valuation_date``.
         MissingTenorError: If ``forward_curve`` has no node for the delivery period
-            or ``discount_curve`` does not cover the settlement date (Req 3.4).
+            or ``discount_curve`` does not cover the settlement date.
     """
     forward_price, discount_factor = _forward_price_and_discount_factor(
         contract, forward_curve, valuation_date, discount_curve, settlement_lag_days
@@ -139,9 +139,9 @@ def futures_delta(
         ValidationError: If ``bump`` is not strictly positive, or
             ``settlement_lag_days`` is negative.
         ExpiredContractError: If the delivery period ended strictly before
-            ``valuation_date`` (Req 3.3).
+            ``valuation_date``.
         MissingTenorError: If ``forward_curve`` has no node for the delivery period
-            or ``discount_curve`` does not cover the settlement date (Req 3.4).
+            or ``discount_curve`` does not cover the settlement date.
     """
     require_positive("bump", bump)
     _, discount_factor = _forward_price_and_discount_factor(

@@ -1,8 +1,8 @@
 """quantvolt.data — OPTIONAL imperative shell (`quantvolt[data]`) — provider API adapters.
 
-The analytics core never imports this package (Req 12.1); install the extra
+The analytics core never imports this package; install the extra
 (``pip install quantvolt[data]``) to pull ``httpx``. Adapters return the same value objects
-the core consumes, so fetched and caller-supplied data are interchangeable (Req 12.2).
+the core consumes, so fetched and caller-supplied data are interchangeable.
 """
 
 from __future__ import annotations

@@ -11,7 +11,7 @@ eagerly at the boundary, invert the premium via Brent, and package typed results
   is raised here as :class:`~quantvolt.exceptions.ValidationError` naming
   ``market_premium`` and the bounds, because this is the public orchestration layer
   (Req 5.3; ``coding-style.md`` §7).
-- :func:`classify_moneyness` classifies from the *call* perspective (Property 32).
+- :func:`classify_moneyness` classifies from the *call* perspective.
 - :func:`build_volatility_surface` builds the seasonal vol term structure; the
   interpolation method is selected via a dispatch dict (Strategy as functions).
 """
@@ -70,8 +70,7 @@ class ImpliedVolResult:
     endpoints itself before delegating to ``brentq`` (which evaluates them again
     internally), a redundant pre-check that previously double-counted them and
     inflated this value by exactly 2. ``converged`` is ``True`` whenever a result is
-    returned; non-convergence raises instead of returning a partial result (fail
-    loudly, ``coding-style.md`` §7).
+    returned; non-convergence raises instead of returning a partial result.
     """
 
     implied_vol: float
@@ -94,9 +93,9 @@ def implied_vol(
     sigma_upper: float = _SIGMA_UPPER,
     tolerance_pct: float = 2.0,
 ) -> ImpliedVolResult:
-    """Recover the Black-76 volatility implied by a market premium (Property 31).
+    """Recover the Black-76 volatility implied by a market premium.
 
-    Round-trip contract (Property 31): ``implied_vol`` applied to
+    Round-trip contract: ``implied_vol`` applied to
     ``black76_price(sigma0, ...)`` recovers ``sigma0`` within ``tol``. Inversion uses
     Brent over ``[sigma_lower, sigma_upper]`` (default ``[1e-9, 10.0]``) — a bracketing
     solver, so it cannot diverge near zero vega the way Newton-Raphson would (design
@@ -106,7 +105,7 @@ def implied_vol(
     :attr:`ImpliedVolResult.iteration_count` can be reported — the kernel does not
     expose its iteration count. Both use the same bracket, objective, and tolerance.
 
-    No-arbitrage precondition (Req 5.3), checked before inversion:
+    No-arbitrage precondition, checked before inversion:
 
     - call: ``DF*max(F-K, 0) < market_premium < DF*F``
     - put:  ``DF*max(K-F, 0) < market_premium < DF*K``
@@ -195,7 +194,7 @@ def implied_vol(
 
 
 def classify_moneyness(strike: float, forward: float, tolerance_pct: float = 2.0) -> Moneyness:
-    """Classify option moneyness relative to the forward price (Property 32).
+    """Classify option moneyness relative to the forward price.
 
     Classification is from the **call perspective**: a strike above the forward has
     no intrinsic value for a call (OTM); a strike below the forward is ITM. The put
@@ -313,7 +312,7 @@ def build_volatility_surface(
     *,
     commodity: CommodityConfig,
 ) -> VolatilitySurface:
-    """Build an implied-volatility surface from option quotes (Task 36).
+    """Build an implied-volatility surface from option quotes.
 
     Every quote is inverted through :func:`implied_vol` (so every quote is fully
     validated — a bad quote fails loudly rather than being dropped). Because

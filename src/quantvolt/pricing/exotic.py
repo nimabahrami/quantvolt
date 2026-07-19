@@ -1,37 +1,35 @@
-"""Exotic options — Asian, barrier, lookback (Tasks 28-29).
+"""Exotic options: Asian, barrier, lookback.
 
-Option *type* is an attribute of the request; closed-form kernels live in
+Option type is an attribute of the request; closed-form kernels live in
 ``numerics.exotic``, Monte Carlo in ``numerics.monte_carlo``. This module is thin
-orchestration on the pricing skeleton *validate -> kernel -> package*: every public
-entry point validates its request eagerly — before any computation, each error naming
-the offending parameter and the violated constraint (Req 6.4, Task 29) — then hands
-off to a pure numeric kernel and packages an :class:`ExoticOptionResult`.
+orchestration: validate, then hand off to a pure numeric kernel and package an
+``ExoticOptionResult``. Every public entry point validates its request eagerly,
+before any computation, each error naming the offending parameter and the violated
+constraint.
 
-Method selection is dispatch dicts / Simple Factories, never conditional chains
-(coding-style.md §4, Switch Statements):
+Method selection is table-driven, never conditional chains:
 
-- Asian (Req 6.1): ``turnbull_wakeman`` by default for arithmetic averaging,
-  ``kemna_vorst`` by default for geometric, ``monte_carlo`` only on explicit request —
-  and then only with an explicit ``seed`` (determinism) and ``path_count >= 1000``.
-- Lookback (Req 6.3): floating strike -> Goldman-Sosin-Gatto, fixed strike ->
-  Conze-Viswanathan.
+- Asian: ``turnbull_wakeman`` by default for arithmetic averaging, ``kemna_vorst``
+  by default for geometric, ``monte_carlo`` only on explicit request, and then only
+  with an explicit ``seed`` (determinism) and ``path_count >= 1000``.
+- Lookback: floating strike -> Goldman-Sosin-Gatto, fixed strike -> Conze-Viswanathan.
 
-Greeks for the closed forms are central finite differences of the *selected* kernel
-(:func:`~quantvolt.numerics.rootfind.finite_difference_bump`), under the Black-76 sign
-conventions of :func:`~quantvolt.numerics.black76.black76_greeks`:
+Greeks for the closed forms are central finite differences of the selected kernel
+(``quantvolt.numerics.rootfind.finite_difference_bump``), under the Black-76 sign
+conventions of ``quantvolt.numerics.black76.black76_greeks``:
 
 - ``delta``/``gamma``: forward bumped by ``1e-4 * forward``;
 - ``vega``: sigma bumped by ``1e-4`` (capped at ``sigma / 2`` so the bumped vol stays
   positive);
 - ``theta = -d(price)/dT`` with ``T`` bumped by ``1e-6`` (capped at ``T / 2``) at a
-  fixed short rate ``r = -ln(DF)/T`` — the discount factor is rebuilt as
+  fixed short rate ``r = -ln(DF)/T``; the discount factor is rebuilt as
   ``exp(-r * T')`` under the bump, matching the ``black76_greeks`` theta convention;
 - ``rho = -T * premium`` exactly: every kernel premium here is proportional to ``DF``,
-  so ``d(price)/dr`` at a fixed forward with ``DF = e^{-rT}`` is ``-T * price`` — the
+  so ``d(price)/dr`` at a fixed forward with ``DF = e^{-rT}`` is ``-T * price``, the
   same convention as ``black76_greeks``.
 
 The Monte Carlo path returns ``standard_error`` from the native kernel and
-``Greeks.zero()``: pathwise MC Greeks arrive with the Rust engine (Task 59).
+``Greeks.zero()``: this pricer does not compute pathwise Monte Carlo Greeks.
 """
 
 from __future__ import annotations
@@ -137,7 +135,7 @@ _CLOSED_FORM_AVERAGING: Final[dict[_AsianMethod, _Averaging]] = {
 def _validate_market_domains(
     forward: float, sigma: float, time_to_expiry: float, discount_factor: float
 ) -> None:
-    """Domain checks shared by all three exotics (Req 6.4), before any computation."""
+    """Domain checks shared by all three exotics, before any computation."""
     require_positive("forward", forward)
     require_positive("sigma", sigma)
     require_positive("time_to_expiry", time_to_expiry)
@@ -258,10 +256,10 @@ def _price_asian_monte_carlo(
 ) -> ExoticOptionResult:
     """MC path: validate the MC-only preconditions, then call the native kernel.
 
-    ``seed`` and ``path_count`` are checked here — still before any computation — so
+    ``seed`` and ``path_count`` are checked here, still before any computation, so
     the requirements bind exactly when ``method="monte_carlo"`` is selected. Greeks are
-    ``Greeks.zero()`` until the Rust engine lands (Task 59, which also unblocks
-    ``asian_monte_carlo`` itself); ``standard_error`` comes from the kernel tuple.
+    ``Greeks.zero()``: this pricer does not compute pathwise Monte Carlo Greeks;
+    ``standard_error`` comes from the kernel tuple.
     """
     del forward_bump_fraction, vol_bump, time_bump  # MC returns Greeks.zero(), no FD bumps used
     if request.seed is None:
@@ -306,22 +304,22 @@ def price_asian(
     time_bump: float = _TIME_BUMP,
     averaging_points: int = _MC_AVERAGING_POINTS,
 ) -> ExoticOptionResult:
-    """Price an average-price Asian option on a forward (Req 6.1).
+    """Price an average-price Asian option on a forward.
 
-    Method dispatch (Simple Factory): ``request.method`` if given, otherwise the
-    averaging-type default — Turnbull-Wakeman for ``"arithmetic"``, Kemna-Vorst for
-    ``"geometric"``. Each closed form prices exactly one averaging type, so an explicit
-    method that contradicts ``request.averaging`` is rejected rather than silently
-    repriced (fail loudly, coding-style.md §7). ``"monte_carlo"`` must be requested
-    explicitly and additionally requires ``seed`` and ``path_count >= 1000``.
+    Method dispatch: ``request.method`` if given, otherwise the averaging-type
+    default: Turnbull-Wakeman for ``"arithmetic"``, Kemna-Vorst for ``"geometric"``.
+    Each closed form prices exactly one averaging type, so an explicit method that
+    contradicts ``request.averaging`` is rejected rather than silently repriced.
+    ``"monte_carlo"`` must be requested explicitly and additionally requires ``seed``
+    and ``path_count >= 1000``.
 
     Closed forms return central finite-difference Greeks of the selected kernel; the
-    Monte Carlo path returns ``Greeks.zero()`` (MC Greeks arrive with the Rust engine,
-    Task 59) plus the kernel's ``standard_error``.
+    Monte Carlo path returns ``Greeks.zero()`` (this pricer does not compute pathwise
+    Monte Carlo Greeks) plus the kernel's ``standard_error``.
 
     Args:
         request: Fully specified Asian option; validated eagerly before any
-            computation (Req 6.4).
+            computation.
         forward_bump_fraction: Relative forward bump used for the closed-form
             delta/gamma finite differences, positive (default ``1e-4``). Unused
             for ``method="monte_carlo"``.
@@ -366,7 +364,7 @@ def price_asian(
     )
 
 
-# --- Barrier (Reqs 6.2, 6.4; Property 17) ------------------------------------
+# --- Barrier --------------------------------------------------------------
 
 
 def price_barrier(
@@ -376,17 +374,17 @@ def price_barrier(
     vol_bump: float = _VOL_BUMP,
     time_bump: float = _TIME_BUMP,
 ) -> ExoticOptionResult:
-    """Price a single-barrier option via the Reiner-Rubinstein closed form (Req 6.2).
+    """Price a single-barrier option via the Reiner-Rubinstein closed form.
 
-    Barrier-vs-forward consistency (Property 17): an *up* barrier must sit strictly
-    above the forward and a *down* barrier strictly below — a barrier on the wrong
-    side (or exactly at the forward) is already breached at inception and is rejected
+    Barrier-vs-forward consistency: an up barrier must sit strictly above the
+    forward and a down barrier strictly below; a barrier on the wrong side (or
+    exactly at the forward) is already breached at inception and is rejected
     before any computation. Greeks are central finite differences of the barrier
     kernel.
 
     Args:
         request: Fully specified barrier option; validated eagerly before any
-            computation (Req 6.4).
+            computation.
         forward_bump_fraction: Relative forward bump for delta/gamma, positive
             (default ``1e-4``).
         vol_bump: Absolute vol bump for vega, positive (default ``1e-4``).
@@ -447,7 +445,7 @@ def price_barrier(
     )
 
 
-# --- Lookback (Reqs 6.3, 6.4) -------------------------------------------------
+# --- Lookback ---------------------------------------------------------------
 
 
 def _floating_lookback_premium(request: LookbackOptionRequest) -> _PremiumFn:
@@ -470,7 +468,7 @@ def _floating_lookback_premium(request: LookbackOptionRequest) -> _PremiumFn:
 
 
 def _fixed_lookback_premium(request: LookbackOptionRequest) -> _PremiumFn:
-    """Conze-Viswanathan: requires a positive fixed ``strike`` (Req 6.4)."""
+    """Conze-Viswanathan: requires a positive fixed ``strike``."""
     if request.strike is None:
         raise ValidationError(
             "strike is required (must not be None) for strike_type='fixed' — a "
@@ -489,8 +487,8 @@ def _fixed_lookback_premium(request: LookbackOptionRequest) -> _PremiumFn:
     return premium_fn
 
 
-# Strategy dispatch (Req 6.3): each factory validates the strike/strike_type pairing,
-# then returns the kernel closure — floating -> GSG, fixed -> Conze-Viswanathan.
+# Each factory validates the strike/strike_type pairing, then returns the kernel
+# closure: floating -> GSG, fixed -> Conze-Viswanathan.
 _LOOKBACK_PREMIUMS: Final[dict[str, Callable[[LookbackOptionRequest], _PremiumFn]]] = {
     "floating": _floating_lookback_premium,
     "fixed": _fixed_lookback_premium,
@@ -504,16 +502,16 @@ def price_lookback(
     vol_bump: float = _VOL_BUMP,
     time_bump: float = _TIME_BUMP,
 ) -> ExoticOptionResult:
-    """Price a lookback option on a forward (Req 6.3).
+    """Price a lookback option on a forward.
 
     Strike-type dispatch: ``"floating"`` prices via Goldman-Sosin-Gatto and must carry
-    ``strike=None`` (the strike *is* the running extreme); ``"fixed"`` prices via
+    ``strike=None`` (the strike is the running extreme); ``"fixed"`` prices via
     Conze-Viswanathan and requires a positive ``strike``. Greeks are central finite
     differences of the selected kernel.
 
     Args:
         request: Fully specified lookback option; validated eagerly before any
-            computation (Req 6.4).
+            computation.
         forward_bump_fraction: Relative forward bump for delta/gamma, positive
             (default ``1e-4``).
         vol_bump: Absolute vol bump for vega, positive (default ``1e-4``).

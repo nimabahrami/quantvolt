@@ -1,10 +1,9 @@
-"""ModelingWorkflow — the fixed 7-step model-selection skeleton (Task 44).
+"""ModelingWorkflow — the fixed 7-step model-selection skeleton.
 
-Realizes the Template Method *intent* the idiomatic-Python way mandated by
-``.kiro/steering/coding-style.md``: :meth:`ModelingWorkflow.run` is a fixed skeleton that
-enforces the strict step ordering 1 -> 2 -> 3 -> 4 -> 5 -> (6 -> 3 loop) -> 7
-(Property 40), while the seven steps themselves are *injected callables*
-(:class:`WorkflowSteps`) — not abstract methods, not inheritance. Callers customise a
+``ModelingWorkflow.run`` is a fixed skeleton that
+enforces the strict step ordering 1 -> 2 -> 3 -> 4 -> 5 -> (6 -> 3 loop) -> 7,
+while the seven steps themselves are injected callables
+(``WorkflowSteps``), not abstract methods, not inheritance. Callers customise a
 step by passing e.g. ``WorkflowSteps(step4=my_fitting_step)``; the skeleton and its
 ordering guarantee never change.
 
@@ -15,7 +14,7 @@ Risk factors are ``"category:detail"`` strings (e.g. ``"price:power"``,
 *model-independent* (linear) risk — hedgeable in principle with forwards/swaps.
 :data:`DEFAULT_HEDGE_INSTRUMENTS` lists the markets where such a static-hedge instrument
 actually exists; a model-independent factor outside it (an illiquid hub, say) cannot be
-statically hedged, and risk-factor separation (Property 41) fails for it. To hedge in
+statically hedged, and risk-factor separation fails for it. To hedge in
 other markets, inject a ``step2`` closed over your own instrument registry.
 
 The default steps are deterministic, pure module-level functions that make the workflow
@@ -147,7 +146,7 @@ class WorkflowResult:
 
     ``price`` and ``residual_model`` are None when step 5 reported insufficient data:
     the workflow still completes with the static hedges in place, and the unmodelled
-    residual is left for trader judgment (Property 41).
+    residual is left for trader judgment.
     """
 
     price: float | None
@@ -291,7 +290,7 @@ DEFAULT_STEPS: Final[WorkflowSteps] = WorkflowSteps()
 
 
 class ModelingWorkflow:
-    """Steps run 1 -> 2 -> 3 -> 4 -> 5 -> (6 -> 3 loop) -> 7 (Property 40)."""
+    """Steps run 1 -> 2 -> 3 -> 4 -> 5 -> (6 -> 3 loop) -> 7."""
 
     def run(
         self,
@@ -303,12 +302,12 @@ class ModelingWorkflow:
     ) -> WorkflowResult:
         """Execute the fixed 7-step skeleton over the injected step callables.
 
-        Ordering (Property 40): steps run strictly 1, 2, 3, 4, 5, 6; if step 6 reports
+        Ordering: steps run strictly 1, 2, 3, 4, 5, 6; if step 6 reports
         inconsistency the workflow re-enters at step 3 (re-running 3, 4, 5, 6) up to
         ``max_consistency_loops`` times, then fails loudly; step 7 runs last. Every
         executed step number is recorded in order in ``WorkflowResult.steps_executed``.
 
-        Risk-factor separation (Property 41): after step 2 every model-independent risk
+        Risk-factor separation: after step 2 every model-independent risk
         factor of the product must be covered by a static hedge. If it is not and
         ``criteria.require_risk_factor_separation`` is True, a ``ValidationError`` is
         raised; otherwise the result records the failure. When step 5 reports

@@ -136,7 +136,7 @@ class PpaPriceTerms:
 
         Selects the ``fixed_price_per_mwh`` of the latest step whose
         ``effective_from_utc <= when_utc``; the step boundary switches exactly at
-        ``effective_from_utc`` (Property 86).
+        ``effective_from_utc``.
         """
         price = base
         for step in self.indexation:
@@ -164,7 +164,7 @@ class NegativePriceClause:
     threshold does NOT trigger (a declared design decision).
 
     ``min_consecutive_intervals`` (default ``None``) is the optional EEG-style
-    consecutive-hour trigger length (Requirement 11): when set, the clause
+    consecutive-hour trigger length: when set, the clause
     only applies to a *maximal run* of intervals whose spot is strictly below
     ``threshold_per_mwh`` that reaches or exceeds this length. **A consecutive-
     hour clause cannot be evaluated interval-locally** — determining run
@@ -175,9 +175,9 @@ class NegativePriceClause:
     exactly as if no negative-price clause were attached at all) and the
     cross-row suspension is instead computed entirely by the post-processing
     :func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger` pass, as an explicit
-    ``consecutive_hour_true_up`` cash flow per reconciliation period
-    (Requirement 11.2). A length of 1 would be indistinguishable from the
-    ordinary per-interval clause already covered by Requirement 3, so
+    ``consecutive_hour_true_up`` cash flow per reconciliation period.
+    A length of 1 would be indistinguishable from the
+    ordinary per-interval clause already covered by the interval-local trigger, so
     ``min_consecutive_intervals``, when given, must be an integer ``>= 2``.
     """
 
@@ -200,7 +200,7 @@ class NegativePriceClause:
         This is the interval-local trigger test used by Requirement 3. It does
         NOT consult ``min_consecutive_intervals``: run-length gating is a
         cross-row concern resolved only by
-        :func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger` (Requirement 11).
+        :func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger`.
         """
         return spot_price_per_mwh < self.threshold_per_mwh
 
@@ -264,7 +264,7 @@ class PpaReconciliationPeriod(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class PpaAvailabilityGuarantee:
-    """A one-directional deemed-vs-measured availability guarantee (Requirement 10).
+    """A one-directional deemed-vs-measured availability guarantee.
 
     ``deemed_availability_fraction`` is the contractually guaranteed minimum
     fraction of contracted volume the asset must make available over a
@@ -287,28 +287,28 @@ class PpaAvailabilityGuarantee:
 
 @dataclass(frozen=True, slots=True)
 class PpaReconciliationTerms:
-    """Period reconciliation and true-up terms (Requirements 9-11).
+    """Period reconciliation and true-up terms.
 
-    ``period`` (Requirement 9.1) sets the aggregation cadence used by
+    ``period`` sets the aggregation cadence used by
     :func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger`, a **pure post-
     processing pass over an already-settled interval ledger that makes no
-    change to the interval pass** (Requirement 9.2). ``volume_band``, when
+    change to the interval pass**. ``volume_band``, when
     present, reuses :class:`PpaToleranceBand` **applied to the period's
     aggregate** contracted/metered MWh (summed across the period's rows)
     rather than to a single interval — this is economically distinct from any
-    interval-level ``PpaVolumeTerms.tolerance`` (Requirement 4), which the two
+    interval-level ``PpaVolumeTerms.tolerance``, which the two
     may coexist with; its own ``penalty_per_mwh`` prices the aggregate true-up.
-    ``true_up_price_per_mwh`` (Requirement 9.1's "explicit true-up price
-    basis") is a **caller-supplied price, not derived from spot or any ledger
-    column** — consistent with this framework's I/O-boundary doctrine
+    ``true_up_price_per_mwh`` (the explicit true-up price basis) is a
+    **caller-supplied price, not derived from spot or any ledger column** —
+    consistent with this framework's I/O-boundary doctrine
     (:class:`IndexationStep` is likewise a precomputed restatement); it prices
-    only the availability true-up (Requirement 10) when ``availability`` is
+    only the availability true-up when ``availability`` is
     attached. This split (the volume band prices itself via
     ``penalty_per_mwh``; the availability guarantee is priced by
     ``true_up_price_per_mwh``) is a **declared design decision** resolving the
-    otherwise-ambiguous "an aggregate volume band, and an explicit true-up
-    price basis" wording of Requirement 9.1 into two independently
-    configurable true-up mechanisms.
+    otherwise-ambiguous case of an aggregate volume band coexisting with an
+    explicit true-up price basis into two independently configurable true-up
+    mechanisms.
     """
 
     period: PpaReconciliationPeriod
@@ -353,13 +353,13 @@ class ChangeInLawAllocation(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class PpaContractMetadata:
-    """Carried contract metadata with **ZERO settlement semantics** (Requirement 12).
+    """Carried contract metadata with **ZERO settlement semantics**.
 
     Guarantee-of-Origin, credit-support, and change-in-law fields are carried
     and validated but never enter ``K_eff`` resolution, any ledger component,
-    ``component_sum``, or ``net_cashflow`` — this is verified by the
-    metadata-only branch of Property 85 (Requirement 12.2), which holds for
-    *any* metadata content, not only the all-default instance.
+    ``component_sum``, or ``net_cashflow`` — this is verified by
+    property-based tests covering arbitrary metadata content, not only the
+    all-default instance.
     """
 
     goo_transfer: bool = False
@@ -400,12 +400,12 @@ class PpaTerms:
 
     Every field defaults to ``None``. ``PpaTerms()`` (all fields ``None``)
     represents "no additional terms" and is semantically equivalent to
-    attaching no terms at all (Property 85). ``reconciliation`` (Requirements
+    attaching no terms at all. ``reconciliation`` (Requirements
     9-11), when attached, drives :func:`~quantvolt.pricing.ppa.reconcile_ppa_ledger`'s
     period-level true-ups (volume-band and availability) via its four fields
     (:class:`PpaReconciliationTerms`); ``metadata`` (:class:`PpaContractMetadata`)
     remains a settlement-inert bundle of non-computational, world-facing facts
-    (Requirement 12) that no pricing or reconciliation path ever reads.
+    that no pricing or reconciliation path ever reads.
     """
 
     price: PpaPriceTerms | None = None

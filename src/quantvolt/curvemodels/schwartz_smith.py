@@ -1,11 +1,11 @@
-"""Two-factor Schwartz-Smith forward-curve model (Task 81, Req 25.1/25.2/25.5/25.6).
+"""Two-factor Schwartz-Smith forward-curve model.
 
 The log spot price is split into a short-term mean-reverting deviation ``chi`` and a
-long-term random-walk level ``xi`` (§31.1)::
+long-term random-walk level ``xi``::
 
     ln S_t = chi_t + xi_t
 
-Under the **risk-neutral measure Q** the factors follow (boxed dynamics of §31.1)::
+Under the risk-neutral measure Q the factors follow::
 
     d chi_t = (-kappa*chi_t - lambda_chi) dt + sigma_chi dW_chi^Q          (mean-reverting)
     d  xi_t = (mu_xi - lambda_xi)          dt + sigma_xi  dW_xi^Q          (random walk)
@@ -15,7 +15,7 @@ Under the **risk-neutral measure Q** the factors follow (boxed dynamics of §31.
 is the risk-neutral long-term drift (exposed as :attr:`SchwartzSmithParams.mu_xi_star`).
 
 Because forward prices are Q-expectations of the spot, the integrated forward curve has the
-closed form of §31.2 (equation "Schwartz-Smith Forward Curve"), with ``tau = T - t``::
+closed form of the Schwartz-Smith forward curve equation, with ``tau = T - t``::
 
     F(t, T) = exp[ e^(-kappa*tau)*chi_t + xi_t + A(tau) ]
 
@@ -24,28 +24,28 @@ closed form of §31.2 (equation "Schwartz-Smith Forward Curve"), with ``tau = T 
                      + sigma_xi^2*tau
                      + 2 rho sigma_chi sigma_xi/kappa*(1 - e^(-kappa*tau)) ]
 
-This module implements ``A(tau)`` verbatim per §31.2 (:func:`_a_tau`) and exposes:
+This module implements ``A(tau)`` verbatim (``_a_tau``) and exposes:
 
-* :func:`forward_curve` / :func:`log_forward_curve` — the §31.2 closed form (Property 69).
+* ``forward_curve`` / ``log_forward_curve``: the closed form above.
   As ``kappa*tau -> inf`` the short-factor loading ``e^(-kappa*tau) -> 0``, so long-dated
-  forwards depend only on ``xi`` and ``A(tau)`` (Property 70).
-* :func:`simulate` — exact joint discretisation of the (chi, xi) dynamics under Q
-  (Req 25.6 determinism).
-* :func:`calibrate` — a hand-rolled linear-Gaussian Kalman filter over the latent
+  forwards depend only on ``xi`` and ``A(tau)``.
+* ``simulate``: exact joint discretisation of the (chi, xi) dynamics under Q, deterministic
+  under a given seed.
+* ``calibrate``: a hand-rolled linear-Gaussian Kalman filter over the latent
   (chi, xi), fitted by Gaussian maximum likelihood, returning parameters + diagnostics and
-  flagging any initial-curve mismatch (Req 25.2, 25.5, 25.6).
+  flagging any initial-curve mismatch.
 
-**Measure discipline.** :func:`forward_curve` and :func:`simulate` use the risk-neutral
-dynamics of §31.1 (measure Q). In :func:`calibrate` the *measurement* equation is the Q
-closed form (``A(tau)`` carries ``lambda_chi``/``lambda_xi``), while the *transition* of the
-latent state is under the **physical measure P** (``chi`` reverts to 0, ``xi`` drifts at
-``mu_xi``) — the standard Schwartz-Smith state-space split of P-dynamics from a Q-priced
+Measure discipline. ``forward_curve`` and ``simulate`` use the risk-neutral
+dynamics under measure Q. In ``calibrate`` the measurement equation is the Q
+closed form (``A(tau)`` carries ``lambda_chi``/``lambda_xi``), while the transition of the
+latent state is under the physical measure P (``chi`` reverts to 0, ``xi`` drifts at
+``mu_xi``): the standard Schwartz-Smith state-space split of P-dynamics from a Q-priced
 cross-section. The risk premia are what map one to the other and are identified only through
 the cross-sectional shape of ``A(tau)``.
 
-**Caveat (Req 25.5, §31.3).** Lognormal forward models are not automatically appropriate for
+Caveat. Lognormal forward models are not automatically appropriate for
 spiky power prices, and the two-factor model does not fit an arbitrary initial forward curve
-exactly; :func:`calibrate` reports the residual mismatch rather than hiding it.
+exactly; ``calibrate`` reports the residual mismatch rather than hiding it.
 """
 
 from __future__ import annotations
@@ -84,9 +84,7 @@ __all__ = [
 
 @dataclass(frozen=True, slots=True)
 class SchwartzSmithParams:
-    """Risk-neutral parameters of the two-factor Schwartz-Smith model (§31.1).
-
-    Fields match Req 25.1 / design ``SchwartzSmithParams``:
+    """Risk-neutral parameters of the two-factor Schwartz-Smith model.
 
     * ``kappa`` — short-factor mean-reversion speed (``> 0``).
     * ``sigma_chi`` — short-factor volatility (``> 0``).
@@ -96,8 +94,8 @@ class SchwartzSmithParams:
     * ``lambda_chi`` — short-factor risk premium (unconstrained).
     * ``lambda_xi`` — long-factor risk premium (unconstrained).
 
-    :attr:`mu_xi_star` = ``mu_xi - lambda_xi`` is the risk-neutral long-term drift that
-    enters the forward curve (§31.2).
+    ``mu_xi_star`` = ``mu_xi - lambda_xi`` is the risk-neutral long-term drift that
+    enters the forward curve.
     """
 
     kappa: float
@@ -125,7 +123,7 @@ class SchwartzSmithParams:
 
 
 def _a_tau(params: SchwartzSmithParams, tau: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-    """The closed-form ``A(tau)`` of §31.2 (equation "Schwartz-Smith Forward Curve").
+    """The closed-form ``A(tau)`` of the Schwartz-Smith forward curve equation.
 
     ``1 - e^(-k*tau)`` and ``1 - e^(-2 k*tau)`` are evaluated with :func:`numpy.expm1`
     (``1 - e^x = -expm1(x)``) so the ``tau -> 0`` limit ``A(0) = 0`` is exact.
@@ -177,8 +175,7 @@ def log_forward_curve(
 
     This is the measurement space of the model (linear in the latent factors), so the
     short-factor loading ``e^(-kappa*tau)`` is exposed directly: as ``kappa*tau -> inf`` it
-    decays to 0 and the long-dated log-forward depends only on ``xi`` and ``A(tau)``
-    (Property 70).
+    decays to 0 and the long-dated log-forward depends only on ``xi`` and ``A(tau)``.
 
     Args:
         params: Risk-neutral model parameters.
@@ -205,10 +202,10 @@ def forward_curve(
     t: float,
     tenors: npt.ArrayLike,
 ) -> npt.NDArray[np.float64]:
-    """Closed-form forward curve ``F(t, T) = exp[e^(-kappa*tau)*chi + xi + A(tau)]`` (§31.2).
+    """Closed-form forward curve ``F(t, T) = exp[e^(-kappa*tau)*chi + xi + A(tau)]``.
 
-    The lightest faithful surface (tasks.md wording): a ``float64`` array of forward prices
-    ``F(t, T)`` aligned with ``tenors``. No :class:`~quantvolt.models.ForwardCurve` is built
+    The lightest faithful surface: a ``float64`` array of forward prices
+    ``F(t, T)`` aligned with ``tenors``. No ``quantvolt.models.ForwardCurve`` is built
     because this signature carries no commodity/delivery-period context; the caller wraps the
     result if a full curve object is wanted.
 
@@ -259,7 +256,7 @@ def simulate(
     additive kernel cannot represent, and the ``rho`` correlation couples the two factors so
     they must be drawn jointly. A direct exact scheme is therefore used — it is unconditionally
     exact (no discretisation bias for any ``dt``) and stays deterministic under ``seed`` via
-    :func:`numpy.random.default_rng` (Req 25.6, 11.2).
+    :func:`numpy.random.default_rng`.
 
     Args:
         params: Risk-neutral model parameters.
@@ -268,7 +265,8 @@ def simulate(
         dt: Step length in years (``> 0``).
         steps: Number of steps (``>= 1``).
         path_count: Number of paths (``>= 1``).
-        seed: Non-negative RNG seed; identical inputs give bit-identical paths.
+        seed: Non-negative RNG seed. Repeated calls with the same inputs, seed,
+            QuantVolt version, architecture and native build give identical paths.
 
     Returns:
         A ``float64`` array of shape ``(path_count, steps + 1, 2)`` (matching the Task-62
@@ -305,7 +303,7 @@ def simulate(
 
 @dataclass(frozen=True, slots=True)
 class CalibrationDiagnostics:
-    """Fit diagnostics returned alongside calibrated :class:`SchwartzSmithParams` (Req 25.6).
+    """Fit diagnostics returned alongside calibrated :class:`SchwartzSmithParams`.
 
     * ``converged`` / ``optimizer_message`` / ``n_iterations`` — MLE termination status.
       ``n_iterations`` is ``result.nit`` when the chosen ``optimizer_method`` reports it;
@@ -322,8 +320,8 @@ class CalibrationDiagnostics:
     * ``filtered_initial_state`` — filtered ``(chi_0, xi_0)`` at the first observation date.
     * ``residual_rmse`` — RMSE of the log-price measurement residuals (filtered fit).
     * ``initial_curve_max_abs_mismatch`` — max ``|model - observed|`` log-forward at the first
-      date (Req 25.5 flag); ``fits_initial_curve`` is ``True`` only if it is within tolerance.
-    * ``lognormal_power_caveat`` — the §31.3 suitability warning (Req 25.5).
+      date; ``fits_initial_curve`` is ``True`` only if it is within tolerance.
+    * ``lognormal_power_caveat`` — the lognormal-vs-spiky-power suitability warning.
     """
 
     converged: bool
@@ -377,7 +375,7 @@ def _kalman_filter(
 ) -> tuple[float, npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     """Run the linear-Gaussian Kalman filter; return (log-likelihood, filtered states, resid).
 
-    State ``s = [chi, xi]``. Measurement (Q closed form, §31.2)::
+    State ``s = [chi, xi]``. Measurement (Q closed form)::
 
         y_n = design @ s_n + A(tau) + e_n,   e_n ~ N(0, meas_sigma^2 * I)
         design[j] = [e^(-kappa*tau_j), 1]
@@ -554,7 +552,7 @@ def calibrate(
     diffuse_prior_var: float = _DIFFUSE_VAR,
     optimizer_method: str = "L-BFGS-B",
 ) -> tuple[SchwartzSmithParams, CalibrationDiagnostics]:
-    """Calibrate the model from a history of observed forward curves (Req 25.2, 25.5, 25.6).
+    """Calibrate the model from a history of observed forward curves.
 
     A linear-Gaussian Kalman filter (see :func:`_kalman_filter`) treats the latent
     ``(chi, xi)`` as the state and the log-forward cross-sections as measurements, and its
@@ -583,8 +581,7 @@ def calibrate(
     Returns:
         ``(params, diagnostics)`` — the fitted :class:`SchwartzSmithParams` and a
         :class:`CalibrationDiagnostics`. The diagnostics flag any initial-curve mismatch
-        (Req 25.5) and report identifiability via standard errors / Hessian conditioning
-        (Req 25.6).
+        and report identifiability via standard errors / Hessian conditioning.
 
     Raises:
         ValidationError: if ``dt <= 0``, ``initial_curve_tol <= 0``,

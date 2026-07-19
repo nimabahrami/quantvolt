@@ -1,4 +1,4 @@
-"""Spread-option model kernels (Task 15).
+"""Spread-option model kernels.
 
 Pure numeric kernels: ``float`` in, ``float`` out. No domain types and no
 domain validation live here — the orchestrator (``pricing/spread_option.py``)

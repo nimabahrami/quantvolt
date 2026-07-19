@@ -1,4 +1,4 @@
-"""Day-count conventions (Task 11)."""
+"""Day-count conventions."""
 
 from __future__ import annotations
 

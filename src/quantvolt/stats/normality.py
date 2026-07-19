@@ -1,4 +1,4 @@
-"""Normality tests (Task 21).
+"""Normality tests.
 
 Stateless normality testing on a Polars ``Series``. The test algorithm is chosen
 by :class:`NormalityTestType` through a dispatch table (Strategy) — never a

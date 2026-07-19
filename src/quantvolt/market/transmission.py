@@ -1,4 +1,4 @@
-"""Transmission cost (Task 42).
+"""Transmission cost.
 
 Base version: the caller supplies distance + tariff (the data they actually have); the library
 computes the cost. No hub map, capacity, congestion model, or pipeline registry — those are caller
@@ -23,7 +23,7 @@ class Pipeline:
 
 
 def transmission_cost(pipeline: Pipeline, volume: float) -> float:
-    """Total transmission cost = tariff * volume (Property 38: deterministic, non-negative).
+    """Total transmission cost = tariff * volume (deterministic, non-negative).
 
     Args:
         pipeline: The pipeline whose tariff applies (validated at construction).

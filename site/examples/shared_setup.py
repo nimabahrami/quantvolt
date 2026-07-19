@@ -67,7 +67,7 @@ def example_market() -> ExampleMarket:
 
 # Seasonal 12-node TTF curve for the storage tutorial: cheap in summer, expensive in
 # winter, matching the shape used by the external-validation storage grid-refinement
-# study (`.kiro/specs/external-validation/storage_grid_refinement.md`).
+# study (`scripts/studies/storage_grid_refinement_study.py`).
 SEASONAL_GAS_PRICES = (20.0, 19.0, 21.0, 24.0, 27.0, 30.0, 32.0, 31.0, 28.0, 25.0, 22.0, 20.0)
 
 

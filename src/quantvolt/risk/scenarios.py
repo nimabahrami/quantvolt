@@ -102,7 +102,7 @@ def gas_crisis(
     german_power_shock: float = 2.0,
     eua_shock: float = 0.3,
 ) -> ScenarioShock:
-    """ "European Gas Crisis 2022" stress scenario (Req 9.4).
+    """ "European Gas Crisis 2022" stress scenario.
 
     TTF front-month rose from roughly EUR 70-80/MWh in early 2022 to a
     ~EUR 340/MWh peak (Aug 2022), i.e. roughly +300 %; NBP followed slightly
@@ -125,7 +125,7 @@ def gas_crisis(
 
 
 def cold_snap_winter(*, gas_shock: float = 1.0, power_shock: float = 0.8) -> ScenarioShock:
-    """ "Cold Snap Winter" stress scenario (Req 9.4).
+    """ "Cold Snap Winter" stress scenario.
 
     A sustained 1-in-20 cold spell: gas roughly doubles on heating demand and
     storage draw; power follows at a slightly smaller relative move (gas sets
@@ -143,7 +143,7 @@ def cold_snap_winter(*, gas_shock: float = 1.0, power_shock: float = 0.8) -> Sce
 def mild_winter_demand_slump(
     *, gas_shock: float = -0.4, power_shock: float = -0.3
 ) -> ScenarioShock:
-    """ "Mild Winter Demand Slump" stress scenario (Req 9.4).
+    """ "Mild Winter Demand Slump" stress scenario.
 
     The mirror-image demand shock to :func:`cold_snap_winter`: weak heating
     demand and full storage depress gas, dragging power down with it. Both
@@ -157,7 +157,7 @@ def mild_winter_demand_slump(
 
 
 def carbon_price_shock(*, eua_shock: float = 1.0, power_shock: float = 0.25) -> ScenarioShock:
-    """ "Carbon Price Shock" stress scenario (Req 9.4).
+    """ "Carbon Price Shock" stress scenario.
 
     EUA doubles (policy tightening); fossil marginal costs pass through to
     power at a fraction of the relative carbon move. ``power_shock`` applies
@@ -182,7 +182,7 @@ BUILT_IN_SCENARIOS: dict[str, ScenarioShock] = {
 
 
 class ScenarioCatalogue:
-    """Resolves scenario names to :class:`ScenarioShock` vectors (Req 9.4, 9.7).
+    """Resolves scenario names to :class:`ScenarioShock` vectors.
 
     A config-holding service over :data:`BUILT_IN_SCENARIOS` — not a Singleton.
     Caller-supplied ``extra_scenarios`` are merged OVER the built-ins (caller

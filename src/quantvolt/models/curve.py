@@ -1,4 +1,4 @@
-"""Forward curve value objects with round-trip serialisation (Task 5).
+"""Forward curve value objects with round-trip serialisation.
 
 A :class:`ForwardCurve` is a discrete term structure: exactly one
 :class:`CurveNode` per delivery period, ordered strictly by period. Following
@@ -100,7 +100,7 @@ class ForwardCurve:
         The commodity (with its hub), ``market_date`` (as an ISO-8601 string) and
         every node (period as ``{year, month}``, price and status) are written
         inline, so the result round-trips through :meth:`from_dict` to an equal
-        curve (Property 5).
+        curve.
         """
         hub = self.commodity.hub
         return {
@@ -129,7 +129,7 @@ class ForwardCurve:
         """Reconstruct a :class:`ForwardCurve` from :meth:`to_dict` output.
 
         Rebuilds the exact commodity, hub and node objects; ``from_dict(c.to_dict())``
-        equals ``c`` (Property 5). ``data`` is only read, never mutated.
+        equals ``c``. ``data`` is only read, never mutated.
         """
         commodity_data = data["commodity"]
         hub_data = commodity_data["hub"]
@@ -160,7 +160,7 @@ class ForwardCurve:
         )
 
     def __eq__(self, other: object) -> bool:
-        """Tolerance-aware equality (Property 1).
+        """Tolerance-aware equality.
 
         Two curves are equal iff they share the same commodity and market date and
         have node-for-node identical periods and statuses with prices equal to

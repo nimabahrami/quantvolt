@@ -1,4 +1,4 @@
-"""Price of risk / risk-adjustment kernels (Task 63).
+"""Price of risk / risk-adjustment kernels.
 
 Pure scalar functions implementing the Chapter-10 risk-adjustment identities
 (ASCII math notation matches the numerics/ house style; ``mu``, ``sigma``,
@@ -79,7 +79,7 @@ def tradable_price_of_risk(mu: float, y: float, r: float, sigma: float) -> float
 
     Adds the net convenience yield ``y`` (including storage costs) to the numerator.
     When the underlying is *not* fully hedgeable, lambda_S is instead a free,
-    caller-supplied parameter (Req 19.2) and this function should not be used to derive it.
+    caller-supplied parameter and this function should not be used to derive it.
 
     Args:
         mu: Drift of the underlying under the physical measure.
@@ -110,7 +110,7 @@ def risk_adjusted_drift(mu: float, lambda_s: float, sigma: float) -> float:
 
     Returns:
         The risk-adjusted drift. For a tradable underlying with
-        ``lambda_S = (mu + y - r)/sigma`` this collapses to ``r - y`` (Property 58).
+        ``lambda_S = (mu + y - r)/sigma`` this collapses to ``r - y``.
 
     Raises:
         ValidationError: If ``sigma`` is not strictly positive.

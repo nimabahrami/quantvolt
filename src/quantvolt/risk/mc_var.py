@@ -1,94 +1,94 @@
-"""Monte Carlo VaR by full revaluation (Task 66, Req 15, Properties 50-51, design §2.18).
+"""Monte Carlo VaR by full revaluation.
 
 ``monte_carlo_var`` measures the loss distribution of a book of energy positions by
 simulating correlated forward-curve scenarios over a holding period under the
-**physical** measure, then **fully revaluing** every position on every path with the
-same pricing functions used for its base NPV — no delta/delta-gamma approximation. This
+physical measure, then fully revaluing every position on every path with the
+same pricing functions used for its base NPV: no delta/delta-gamma approximation. This
 is the method of choice when a book's value is materially non-linear in the forwards
 (options, tolling, storage): a linear parametric VaR would misstate the tails.
 
-Risk specification (the acceptance-criteria block this specialist owns)
------------------------------------------------------------------------
-* **sign convention** — loss ``L = -ΔNPV``; ``ΔNPV`` is the per-path revalued NPV minus
+Risk specification
+-------------------
+* sign convention: loss ``L = -ΔNPV``; ``ΔNPV`` is the per-path revalued NPV minus
   the base NPV. VaR at confidence ``alpha`` is the ``alpha``-quantile of ``L`` (upper tail).
-* **holding period** — a single caller-supplied horizon; risk factors are evolved once
+* holding period: a single caller-supplied horizon; risk factors are evolved once
   to that horizon (see "Simulation" below).
-* **confidence / measures reported** — 95% and 99% VaR and 97.5% CVaR (expected
+* confidence / measures reported: 95% and 99% VaR and 97.5% CVaR (expected
   shortfall) by default, matching the house quantile conventions in
-  :mod:`quantvolt.risk.engine`; each level is caller-overridable via ``confidences`` /
+  ``quantvolt.risk.engine``; each level is caller-overridable via ``confidences`` /
   ``cvar_confidence``.
-* **probability measure** — physical (real-world) ``P``. The drift is *required*, is
-  tagged with its :class:`~quantvolt.numerics.risk_adjustment.DriftKind`, and a
-  risk-neutral drift is rejected before any simulation (Req 15.2 / Property 50).
-* **revaluation method** — full revaluation via
-  :func:`quantvolt.portfolio.valuation.value_portfolio` and ``DEFAULT_PRICERS``.
-* **distribution method** — correlated Monte Carlo (design §2.20 / Req 20).
-* **liquidity assumption** — the holding period is the assumed liquidation/holding
+* probability measure: physical (real-world) ``P``. The drift is required, is
+  tagged with its ``quantvolt.numerics.risk_adjustment.DriftKind``, and a
+  risk-neutral drift is rejected before any simulation.
+* revaluation method: full revaluation via
+  ``quantvolt.portfolio.valuation.value_portfolio`` and ``DEFAULT_PRICERS``.
+* distribution method: correlated Monte Carlo.
+* liquidity assumption: the holding period is the assumed liquidation/holding
   horizon; short-horizon mark-to-market VaR is only meaningful for liquid positions.
-  Long-dated illiquid exposures should use CFaR / scenario analysis instead (see the
-  specialist workflow and :mod:`quantvolt.risk.cfar`).
-* **limitations** — GBM (lognormal) factor dynamics: current forwards must be strictly
+  Long-dated illiquid exposures should use CFaR / scenario analysis instead (see
+  ``quantvolt.risk.cfar``).
+* limitations: GBM (lognormal) factor dynamics: current forwards must be strictly
   positive, so this surface cannot model factors that trade through zero (negative power
   prices). Parameter/model risk in ``sigma``/``corr``/``physical_drift`` is the caller's;
-  reported standard errors quantify *sampling* error only, not model error.
+  reported standard errors quantify sampling error only, not model error.
 
 Request surface
 ---------------
 ``monte_carlo_var(positions, factor_model, physical_drift, holding_period, path_count, seed)``
 
-* ``positions: Sequence[Position]`` — the raw held instruments (not pre-priced): full
+* ``positions: Sequence[Position]``: the raw held instruments (not pre-priced); full
   revaluation reprices them from their definition on every path.
-* ``factor_model: FactorModel`` — bundles the base market state (its forward curves supply
+* ``factor_model: FactorModel``: bundles the base market state (its forward curves supply
   the current forwards / ``z0``, plus the discount curve and valuation date needed to
   revalue) with the GBM dynamics (``sigma``, ``corr``) over an explicit, ordered factor
-  grid (see :class:`FactorModel`).
-* ``physical_drift: TaggedDrift`` — a per-factor physical log-drift *rate* vector tagged
+  grid (see ``FactorModel``).
+* ``physical_drift: TaggedDrift``: a per-factor physical log-drift rate vector tagged
   with its measure. Required, never defaulting; a ``RISK_NEUTRAL`` tag is rejected.
-* ``holding_period: float`` — the risk horizon in the same time unit as ``sigma`` and the
+* ``holding_period: float``: the risk horizon in the same time unit as ``sigma`` and the
   drift rate (e.g. years). Must be ``> 0``.
-* ``path_count: int`` — number of simulated paths; ``< 1000`` raises before simulating.
-* ``seed: int`` — makes the whole computation reproducible (Req 15.3 / Property 51).
+* ``path_count: int``: number of simulated paths; ``< 1000`` raises before simulating.
+* ``seed: int``: makes the whole computation reproducible.
 
 Factor flattening convention
 ----------------------------
-:attr:`FactorModel.factors` is the ordered tuple of ``(commodity_id, delivery_period)``
+``FactorModel.factors`` is the ordered tuple of ``(commodity_id, delivery_period)``
 labels; factor index ``i`` indexes ``z0``/``sigma`` row/column ``i`` and ``corr`` row/col
-``i``. The labels are required to be **strictly ascending** by ``(commodity_id, period)``
-— commodities lexicographically, periods chronologically — so for a dense
+``i``. The labels are required to be strictly ascending by ``(commodity_id, period)``
+(commodities lexicographically, periods chronologically) so for a dense
 commodity x period grid this reproduces the row-major ``i·n_periods + j`` flattening used
-by :class:`quantvolt.risk.engine.RiskEngine`.
+by ``quantvolt.risk.engine.RiskEngine``.
 
 Simulation and revaluation
 --------------------------
 The current forwards ``F_0`` are read from the factor model's curves and ``z0 = log F_0``
 (GBM, hence ``F_0 > 0`` required). The horizon covariance is
 ``C = build_covariance(sigma, corr, holding_period)`` and the horizon drift is
-``physical_drift.values · holding_period`` — drift and variance both scale linearly with
-the horizon. Because GBM increments are exact, a **single** step of length
+``physical_drift.values · holding_period``: drift and variance both scale linearly with
+the horizon. Because GBM increments are exact, a single step of length
 ``holding_period`` yields exactly the horizon distribution
-``log F_T ~ N(z0 + drift·h, C)``, so ``steps = 1`` (faster, and exact — no discretisation
-error). Paths default to **iid** (``antithetic=False``); enabling ``antithetic=True``
-pairs paths as ``(+ε, -ε)`` (see :mod:`quantvolt.numerics.monte_carlo`) for variance
+``log F_T ~ N(z0 + drift·h, C)``, so ``steps = 1`` (faster, and exact: no discretisation
+error). Paths default to iid (``antithetic=False``); enabling ``antithetic=True``
+pairs paths as ``(+ε, -ε)`` (see ``quantvolt.numerics.monte_carlo``) for variance
 reduction. The bootstrap standard-error estimator (see "Standard errors" below) adapts
 its resampling unit to this choice, so both modes yield consistent SE estimates.
 
 Each path's terminal forwards ``F_T = exp(Z_T)`` are written into fresh, bumped
 ``ForwardCurve`` objects (only the factor nodes move; the discount curve and valuation
 date are held fixed, isolating market-move P&L). The portfolio is revalued with
-:func:`value_portfolio`; the path P&L is ``revalued_total_npv - base_total_npv``.
+``value_portfolio``; the path P&L is ``revalued_total_npv - base_total_npv``.
 
 Standard errors
 ---------------
-Each reported quantile carries a **nonparametric bootstrap** standard error (Req 15.4):
+Each reported quantile carries a nonparametric bootstrap standard error:
 ``_BOOTSTRAP_REPLICATES`` resamples of the per-path loss array (drawn with replacement by
 an RNG seeded deterministically from ``seed``), each recomputing the metric with the
 identical estimator, and the sample standard deviation across replicates is the SE. The
 bootstrap is chosen over the asymptotic order-statistic formula
 ``se(q_p) = sqrt(p(1-p)/n) / f̂(q_p)`` because it applies uniformly to both the VaR
-quantiles *and* the CVaR tail-mean (the order-statistic formula covers only quantiles and
+quantiles and the CVaR tail-mean (the order-statistic formula covers only quantiles and
 needs a separate delta-method formula for expected shortfall) and it avoids a fragile
-density estimate ``f̂``. Being ``∝ 1/sqrt(n)`` it shrinks as ``path_count`` grows
-(Property 51), and being seeded from ``seed`` it preserves determinism (Req 15.3).
+density estimate ``f̂``. Being proportional to ``1/sqrt(n)`` it shrinks as ``path_count``
+grows, and being seeded from ``seed`` it preserves determinism.
 
 The resampling **unit** matches the simulation mode: with the default ``antithetic=False``
 each replicate resamples individual path losses (the classic iid bootstrap). With
@@ -154,7 +154,7 @@ class FactorModel:
             (see the module docstring for the flattening convention). Factor ``i`` indexes
             ``sigma[i]`` and row/column ``i`` of ``corr``.
         sigma: per-factor instantaneous volatility (length ``D``); ``0`` marks an expired,
-            frozen factor (eq A.5). Deep numeric validation lives in ``build_covariance``.
+            frozen factor. Deep numeric validation lives in ``build_covariance``.
         corr: the ``(D, D)`` cross-factor correlation matrix ``R``.
 
     ``sigma``/``corr`` are snapshot to contiguous ``float64`` at construction. Equality is
@@ -225,9 +225,9 @@ class TaggedDrift:
     """A drift vector tagged with the probability measure it belongs to.
 
     Used for the required ``physical_drift`` argument: routing the tag through
-    :func:`~quantvolt.numerics.risk_adjustment.require_physical_drift` rejects a
-    ``RISK_NEUTRAL`` drift before any simulation runs (Req 15.2 / Property 59). ``values``
-    are per-factor physical log-drift *rates* (per unit of the holding period's time
+    ``quantvolt.numerics.risk_adjustment.require_physical_drift`` rejects a
+    ``RISK_NEUTRAL`` drift before any simulation runs. ``values``
+    are per-factor physical log-drift rates (per unit of the holding period's time
     unit). Snapshot to contiguous ``float64``; equality is value-based (``eq=False``).
     """
 
@@ -250,12 +250,12 @@ class TaggedDrift:
 
 @dataclass(frozen=True, slots=True)
 class McVaRResult:
-    """Full-revaluation Monte Carlo VaR outcome (Req 15.1, 15.4).
+    """Full-revaluation Monte Carlo VaR outcome.
 
     ``var_95`` / ``var_99`` are the ``confidences`` percentiles (95th / 99th by default)
     of the loss distribution ``L = -ΔNPV``; ``cvar_975`` is the mean loss at or above the
     ``cvar_confidence`` percentile (97.5th by default, inclusive tail, matching
-    :class:`quantvolt.risk.engine.RiskEngine`). The field names are fixed regardless of
+    ``quantvolt.risk.engine.RiskEngine``). The field names are fixed regardless of
     the levels supplied. Each carries a
     nonparametric bootstrap standard error (``*_se``). ``path_count`` is the number of
     simulated paths the metrics are computed over, and ``holding_period`` / ``seed`` are
@@ -290,12 +290,12 @@ def _bootstrap_standard_errors(
     nonparametric bootstrap.
 
     When ``antithetic`` is ``True``, ``losses`` holds the simulator's ``(+ε, -ε)``
-    pairs at adjacent indices ``(2k, 2k+1)`` (see :mod:`quantvolt.numerics.monte_carlo`);
+    pairs at adjacent indices ``(2k, 2k+1)`` (see ``quantvolt.numerics.monte_carlo``);
     resampling individual losses would treat within-pair losses as independent when
     they are in fact strongly (negatively) correlated by construction, biasing the
-    bootstrap SE. Each replicate instead resamples whole **pairs** with replacement —
+    bootstrap SE. Each replicate instead resamples whole pairs with replacement:
     ``losses`` is reshaped to ``(n_pairs, 2)``, pair indices are drawn, and the result is
-    flattened back to a loss vector of the original length — which preserves the
+    flattened back to a loss vector of the original length, which preserves the
     within-pair dependence structure the antithetic construction introduces.
     """
     n = int(losses.shape[0])
@@ -373,7 +373,7 @@ def monte_carlo_var(
     bootstrap_replicates: int = _BOOTSTRAP_REPLICATES,
     min_path_count: int = _MIN_PATH_COUNT,
 ) -> McVaRResult:
-    """Full-revaluation Monte Carlo VaR/CVaR over a holding period (Req 15).
+    """Full-revaluation Monte Carlo VaR/CVaR over a holding period.
 
     See the module docstring for the request surface, the factor flattening convention,
     the simulation/revaluation mechanics, the sign convention, and the standard-error
@@ -388,30 +388,29 @@ def monte_carlo_var(
         path_count: simulated paths (``>= min_path_count``).
         seed: reproducibility seed.
         confidences: The two VaR confidence levels (fractions in ``(0, 1)``, matching
-            :mod:`quantvolt.risk.parametric_var`'s convention) reported as ``var_95`` /
+            ``quantvolt.risk.parametric_var``'s convention) reported as ``var_95`` /
             ``var_99``; defaults to ``(0.95, 0.99)``.
         cvar_confidence: The CVaR confidence level (a fraction in ``(0, 1)``) reported
             as ``cvar_975``; defaults to ``0.975``.
         antithetic: Whether the simulation uses antithetic-variate path pairing;
             defaults to ``False`` (iid paths). The bootstrap SE estimator resamples
             individual paths when ``False`` and whole ``(+eps, -eps)`` pairs when
-            ``True``, so both modes yield consistent SE estimates — see the module
+            ``True``, so both modes yield consistent SE estimates; see the module
             docstring.
         bootstrap_replicates: Number of bootstrap resamples for the quantile standard
             errors; defaults to ``500``. Must be an integer ``>= 2`` (a sample standard
             deviation across replicates needs at least 2 of them).
-        min_path_count: Minimum accepted ``path_count`` (Req 15.5); defaults to
-            ``1000``.
+        min_path_count: Minimum accepted ``path_count``; defaults to ``1000``.
 
     Returns:
-        A :class:`McVaRResult` with VaR/CVaR at the requested confidence levels
+        A ``McVaRResult`` with VaR/CVaR at the requested confidence levels
         (reported as ``var_95``/``var_99``/``cvar_975`` regardless of the levels used)
         and bootstrap SEs.
 
     Raises:
-        ValidationError: if ``path_count < min_path_count`` (raised *before* simulating,
-            Req 15.5); if ``holding_period <= 0``; if ``physical_drift`` is not tagged
-            physical (Req 15.2); if ``physical_drift.values`` does not match the factor
+        ValidationError: if ``path_count < min_path_count`` (raised before simulating);
+            if ``holding_period <= 0``; if ``physical_drift`` is not tagged
+            physical; if ``physical_drift.values`` does not match the factor
             count; if any current forward is not strictly positive (GBM requires
             ``F_0 > 0``); if ``confidences`` does not contain exactly 2 strictly
             ascending levels in ``(0, 1)``; if ``cvar_confidence`` is not in ``(0, 1)``;
@@ -419,13 +418,13 @@ def monte_carlo_var(
             needs at least 2 replicates); or if ``min_path_count`` is not ``>= 1``.
     """
     require_positive("min_path_count", min_path_count)
-    # Req 15.5: reject an under-sampled request before any simulation prep.
+    # Reject an under-sampled request before any simulation prep.
     if path_count < min_path_count:
         raise ValidationError(
             f"path_count must be >= {min_path_count} for Monte Carlo VaR, got {path_count}"
         )
     require_positive("holding_period", holding_period)
-    # Req 15.2 / Property 50: a risk-neutral drift is rejected here, before simulating.
+    # A risk-neutral drift is rejected here, before simulating.
     require_physical_drift(physical_drift.kind, "physical_drift")
     var_lo_pct, var_hi_pct = _validate_confidence_pair(confidences)
     cvar_pct = _validate_single_confidence(cvar_confidence, name="cvar_confidence")

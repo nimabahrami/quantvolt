@@ -1,4 +1,4 @@
-"""Stationarity analysis with Samuelson-effect detection (Task 22)."""
+"""Stationarity analysis with Samuelson-effect detection."""
 
 from __future__ import annotations
 

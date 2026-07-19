@@ -1,4 +1,4 @@
-"""RiskEngine — holds the scenario catalogue; computes VaR/CVaR (Task 41).
+"""RiskEngine — holds the scenario catalogue; computes VaR/CVaR.
 
 ``RiskEngine`` is a class because it carries configuration — the
 :class:`~quantvolt.risk.scenarios.ScenarioCatalogue` used to resolve named
@@ -94,11 +94,11 @@ class RiskResult:
 
 @dataclass(frozen=True, slots=True)
 class ScenarioResult:
-    """Outcome of applying one stress scenario to a book (Req 9.4).
+    """Outcome of applying one stress scenario to a book.
 
     ``per_position_pnl`` is ordered exactly like the input position list, and
     ``total_pnl`` is the plain left-to-right sum of those contributions, so
-    ``total_pnl == sum(per_position_pnl)`` holds exactly (Property 23).
+    ``total_pnl == sum(per_position_pnl)`` holds exactly.
     """
 
     scenario_name: str
@@ -109,7 +109,7 @@ class ScenarioResult:
 def _exclusion_reason(
     position: PricedPosition,
 ) -> Literal["missing_delta", "missing_npv", "unresolvable_instrument"] | None:
-    """Classify why a position cannot enter aggregated risk metrics (Req 9.5).
+    """Classify why a position cannot enter aggregated risk metrics.
 
     ``PricedPosition`` already guarantees a finite ``npv`` at construction, so
     ``missing_npv`` is a defensive classification for values that bypassed that
@@ -174,7 +174,7 @@ def _position_pnl(position: PricedPosition, shocks: Mapping[ShockKey, float]) ->
 
 
 class RiskEngine:
-    """Portfolio risk metrics: VaR / CVaR, delta aggregation, stress scenarios (Req 9).
+    """Portfolio risk metrics: VaR / CVaR, delta aggregation, stress scenarios.
 
     A configured service, not a Singleton: it holds the scenario catalogue used to
     resolve named scenarios and nothing else. All methods are pure with respect to
@@ -206,7 +206,7 @@ class RiskEngine:
         percentile (inclusive tail, so the tail is never empty). The result field names
         (``var_95``/``var_99``/``cvar_975``) are fixed regardless of the levels supplied.
 
-        Timeout / partial results (Req 9.6): elapsed time (``time.monotonic``) is
+        Timeout / partial results: elapsed time (``time.monotonic``) is
         checked inside the per-position filtering loop — the only step whose cost
         grows per position; the vectorised P&L step afterwards is effectively
         instantaneous, so the guard lives in the loop. On expiry the loop stops
@@ -292,7 +292,7 @@ class RiskEngine:
         )
 
     def aggregate_delta(self, positions: list[PricedPosition]) -> DeltaMatrix:
-        """Net delta by commodity x delivery period (Req 9.3).
+        """Net delta by commodity x delivery period.
 
         Delegates to :func:`quantvolt.risk.aggregation.aggregate_delta`.
         """
@@ -301,11 +301,11 @@ class RiskEngine:
     def apply_scenario(
         self, positions: list[PricedPosition], scenario: str | ScenarioShock
     ) -> ScenarioResult:
-        """Apply a named or user-defined stress scenario to the book (Req 9.4).
+        """Apply a named or user-defined stress scenario to the book.
 
         A ``str`` is resolved through the engine's catalogue;
         :class:`~quantvolt.exceptions.ScenarioNotFoundError` propagates for an
-        unknown name, listing the available scenario names (Req 9.7). Each
+        unknown name, listing the available scenario names. Each
         position contributes ``sum(delta x reference_price x shock)`` over its
         delta entries, where a period-specific shock wins over a commodity-wide
         one, an unshocked factor contributes zero, and ``reference_price`` comes

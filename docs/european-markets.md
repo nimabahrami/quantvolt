@@ -216,7 +216,7 @@ it with `pricing.basis` between two curves), `LIQUIDITY`, `CREDIT` (forwards car
 ## Forward curves: free vs commercial data sources
 
 There is no free source of European forward/futures curves, and the library does not pretend
-otherwise (Requirement 12.8):
+otherwise:
 
 - **Free, token-authenticated adapters** (`quantvolt[data]`) cover spot and fundamentals only:
   `EntsoeSource` (ENTSO-E day-ahead prices, load, generation), `EntsogSource` (gas flows),

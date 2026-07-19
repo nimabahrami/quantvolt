@@ -14,10 +14,8 @@ class _DatasetRecordLike(Protocol):
     """Structural stand-in for ``quantvolt.data.datasets.DatasetRecord``.
 
     The core (including this CLI entry point) must never statically import
-    ``quantvolt.data`` (Req 12.1; enforced by
-    ``tests/unit/test_data_isolation.py::test_no_core_source_file_imports_the_data_layer``),
-    so this protocol names only the attributes the CLI itself reads rather than importing
-    the real dataclass.
+    ``quantvolt.data``, so this protocol names only the attributes the CLI itself reads
+    rather than importing the real dataclass.
     """
 
     dataset_id: str

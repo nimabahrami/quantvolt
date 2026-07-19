@@ -1,7 +1,7 @@
-"""Covariance forecasting — EWMA and diagonal GARCH(1,1)+CCC (Task 64, Req 14.3).
+"""Covariance forecasting — EWMA and diagonal GARCH(1,1)+CCC.
 
 Two forward-looking covariance estimators over a Caller-supplied return matrix, plus the
-positive-semidefinite (PSD) machinery the parametric-VaR path (Task 65) consumes. Both
+positive-semidefinite (PSD) machinery the parametric-VaR path consumes. Both
 estimators return a symmetric, PSD ``np.ndarray`` (design §2.16, Property 49):
 
 * :func:`ewma_covariance` — the RiskMetrics exponentially-weighted recursion (eq. U10.1).

@@ -9,8 +9,7 @@ against a *different* implementation of the same formula does that.
 **Scope.** This is validation of the pricing kernels, not of the whole library, and not of
 any specific PPA/hedge/portfolio workflow built on top of them. Nothing here changes
 `src/quantvolt/` behaviour: this is checked-in test data (`tests/validation/fixtures/`),
-comparison tests (`tests/validation/`), and this documentation page — see
-`.kiro/specs/external-validation/`.
+comparison tests (`tests/validation/`), and this documentation page.
 
 **How to read the tables.** `Reference` is the value QuantLib 1.43 produced at fixture
 *generation* time (frozen into the checked-in JSON — QuantLib is a maintainer-only
@@ -89,13 +88,17 @@ documented discounted-intrinsic identity (`black76.py:88-92`), not a QuantLib in
 }
 ```
 
-**Important scope note (from the fixture `notes`, verbatim):** "Caplet-by-caplet blackFormula
-reference. QuantLib's interest-rate cap machinery (ql.Cap / BlackCapFloorEngine) is NOT used:
-Ibor forwards and accrual day-counts make it not comparable to an energy cap on delivery-period
-forward prices (Requirement 4.1). strip_premium == sum(caplet_premiums) is the additivity
-identity." — i.e. each *caplet* forward/σ/T/DF is priced against QuantLib's `blackFormula`
-individually; QuantLib's rate-cap product is a different instrument and is deliberately not used
-as the reference.
+**Important scope note (paraphrased from the fixture `notes` field):** QuantLib's interest-rate
+cap machinery (`ql.Cap` / `BlackCapFloorEngine`) is NOT used as the reference — Ibor forwards and
+accrual day-counts make it incomparable to an energy cap on delivery-period forward prices.
+`strip_premium == sum(caplet_premiums)` is the additivity identity being checked. In other words,
+each *caplet* forward/σ/T/DF is priced against QuantLib's `blackFormula` individually; QuantLib's
+rate-cap product is a different instrument and is deliberately not used as the reference.
+
+*(The checked-in `tests/validation/fixtures/capfloor.json` `notes` field itself still cites an
+internal requirement ID from the fixture-generation script's docstring; that ID is not
+reproduced here because public documentation does not carry internal spec traceability. See the
+fixture file directly for the exact source string.)*
 
 3 strips / 24 caplets total (`tests/validation/test_capfloor_fixtures.py`). One 6-caplet strip
 (`cap_strip0_K50_N1000_n6`, strike 50, notional 1000) shown in full:
@@ -108,12 +111,13 @@ as the reference.
 | caplet[3] | F=47.0, σ=0.45, T=0.33, DF=0.98 | 3556.624178 | 3556.624178 | 6.821e-12 | rel 1e-9 | n/a |
 | caplet[4] | F=55.0, σ=0.40, T=0.42, DF=0.975 | 8066.936741 | 8066.936741 | 0.000e+00 | rel 1e-9 | n/a |
 | caplet[5] | F=60.0, σ=0.38, T=0.50, DF=0.97 | 11804.264053 | 11804.26405 | 0.000e+00 | rel 1e-9 | n/a |
-| strip (Property 94 additivity) | Σ of the 6 caplets above | 34001.461326 | 34001.46133 | 7.276e-12 | rel 1e-9 | n/a |
+| strip (sum-of-caplets additivity) | Σ of the 6 caplets above | 34001.461326 | 34001.46133 | 7.276e-12 | rel 1e-9 | n/a |
 
-**Tolerance rationale (verbatim):** "rel 1e-9: each caplet reference is QuantLib blackFormula on
-that period's own forward/sigma/T/DF (convention-identical to `price_cap_floor`'s Black-76
-caplet), so the residual is only the two normal-CDF implementations' difference. The strip
-premium is the exact sum of the per-caplet references (Property 94 additivity)."
+**Tolerance rationale (paraphrased from the fixture `tolerance_rationale` field):** rel 1e-9,
+because each caplet reference is QuantLib blackFormula on that period's own forward/sigma/T/DF
+(convention-identical to `price_cap_floor`'s Black-76 caplet), so the residual is only the two
+normal-CDF implementations' difference. The strip premium is the exact sum of the per-caplet
+references (an additivity check, not an approximation).
 
 ## Spread options: Kirk / Margrabe vs QuantLib's Kirk spread engine
 
@@ -155,13 +159,13 @@ collapses to the exact Margrabe form and is compared against margrabe()."
 requires cmdty-storage, which runs on pythonnet/.NET; that runtime is unavailable in this
 implementation environment, so the generator reports BLOCKED and **writes no fixture** rather
 than fabricate a reference value. `tests/validation/test_storage_fixtures.py` collects zero
-parametrized cases and is skipped in CI. See `.kiro/specs/external-validation/tasks.md` (Task 9)
-for the full 5-case design (intrinsic, extrinsic, costs/losses, step ratchets, terminal
-hard-vs-soft) and every documented parameter-mapping risk.
+parametrized cases and is skipped in CI. The generator script (`scripts/fixtures/`) documents the
+full 5-case design (intrinsic, extrinsic, costs/losses, step ratchets, terminal hard-vs-soft) and
+every documented parameter-mapping risk.
 
 **In the meantime, tolerances were sized from an internal QuantVolt-only multi-method study**
 (no reference library) — see
-[`.kiro/specs/external-validation/storage_grid_refinement.md`](../.kiro/specs/external-validation/storage_grid_refinement.md).
+the grid-refinement study script, [`scripts/studies/storage_grid_refinement_study.py`](../scripts/studies/storage_grid_refinement_study.py).
 It replaces the earlier single-case sweep (whose "0.00% across grids" was a grid-*alignment*
 artefact) with an **exact grid-free LP cross-check** of the intrinsic DP, Richardson
 extrapolation, a perfect-foresight bracket of the LSMC extrinsic, an SE calibration and a basis
@@ -202,8 +206,7 @@ band — no closed reference exists for the discrete average); MC put-call parit
   case family by the grid-refinement study). Two internal methods agreeing (`DP ↔ LP`) is strong
   evidence of *consistency*, not of agreement with an independent engine; that remains the job of
   the (BLOCKED) cmdty-storage fixture. Generating `storage.json` needs a .NET-capable (likely
-  Linux container) environment; see the regeneration instructions below and
-  `.kiro/specs/external-validation/tasks.md` Task 9.
+  Linux container) environment; see the regeneration instructions below.
 - **Storage parameter-mapping risks**, documented so a future cmdty-storage run is not mistaken
   for a real disagreement: QuantVolt's dynamic program is **undiscounted** (cmdty-storage rates
   must be set to 0 for comparability); monthly-vs-daily re-optimisation granularity biases
@@ -250,8 +253,6 @@ runs the fixture-comparison tests in `tests/validation/` against the checked-in 
 
 ## See also
 
-- [`.kiro/specs/external-validation/`](../.kiro/specs/external-validation/) — the full
-  requirements/design/tasks for this validation work.
 - [`tests/validation/fixtures/README.md`](../tests/validation/fixtures/README.md) — the fixture
   JSON schema.
 - [`site/examples/verify_validation.py`](../site/examples/verify_validation.py) — the anti-drift

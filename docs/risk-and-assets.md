@@ -129,7 +129,7 @@ adjustment (`decomposed_delta`), never a silent risk-neutral one.
 Physical-asset value is bounded and staged. `dispatch_deterministic` solves the perfect-foresight
 optimum (Appendix B eq. B.1) by exact backward-induction DP over the commitment/output state
 machine; because it optimises the fully known path it is the **upper bound** any non-anticipating
-policy is tested against — `dispatch_value <= dispatch_deterministic` (Property 62).
+policy is tested against — `dispatch_value <= dispatch_deterministic`.
 `dispatch_value` computes the risk-adjusted expected value by stochastic DP (`method="lsm"` or
 `"tree"`), carrying the on-peak/off-peak Markov split (two power coordinates) that an hourly power
 sequence needs, and returns the four critical-exercise spark-spread surfaces. Three caller-selectable
@@ -143,7 +143,7 @@ Gas storage separates the two value components. `storage_intrinsic` is the forwa
 injection/withdrawal schedule (exact DP over an inventory grid, subject to bounds, ratchets and the
 terminal condition); `storage_value` adds the extrinsic (re-optimisation / timing) value via
 Least-Squares Monte Carlo, with `total == intrinsic + extrinsic`. The extrinsic value is
-theoretically non-negative (Property 64) and is reported honestly with its Monte-Carlo standard
+theoretically non-negative and is reported with its Monte-Carlo standard
 error rather than clamped — under the shipped single-factor `StorageFactorModel`, which moves the
 whole curve together, it is small for a monotonic seasonal curve and grows once spot can deviate
 from the forward ordering.
@@ -172,14 +172,13 @@ returns the forced-outage available-capacity fraction `M ∈ [0, 1]` for a perio
 `dispatch_value(..., availability=[M, ...])` to derate `c_max`, mapping to the plant's stochastic
 forced-outage rate `λ`. Only `FORCED` events enter `M`, so scheduled maintenance and other
 categories never leak into the stochastic-outage seam.
-# Financial–physical risk experiments
 
-`quantvolt` is designed for reproducible energy-risk experiments that connect financial
-positions and hedges to physical operating flexibility. A single experiment can use the same
-forward curves and stochastic factors to value derivatives, measure portfolio exposure, and
-value generation or storage decisions under their actual operating constraints. The probability
-measure remains explicit: physical dynamics drive exposure experiments, while risk-adjusted
-dynamics drive valuation.
+## Financial-physical risk experiments
+
+A single experiment can use the same forward curves and stochastic factors to value
+derivatives, measure portfolio exposure, and value generation or storage decisions under their
+actual operating constraints. The probability measure remains explicit: physical dynamics drive
+exposure experiments, while risk-adjusted dynamics drive valuation.
 
 For Appendix-A-style simulations whose volatility, correlation, drift, or live-tenor set changes
 through time, use `CorrelatedSimulationRequest` with

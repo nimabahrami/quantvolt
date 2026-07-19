@@ -18,7 +18,7 @@ from ..exceptions import ValidationError
 
 
 class Granularity(StrEnum):
-    """Single source of delivery granularity, reused by instruments (Task 3)."""
+    """Single source of delivery granularity, reused by instruments."""
 
     HOURLY = "hourly"
     DAILY = "daily"

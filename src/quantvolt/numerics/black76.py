@@ -1,4 +1,4 @@
-"""Black-76 kernel — pure functions (Task 14).
+"""Black-76 kernel — pure functions.
 
 Pure numeric kernels: ``float`` in, ``float`` / :class:`Greeks` out. No domain
 types and no domain validation live here — orchestration (``pricing/vanilla.py``,
@@ -223,8 +223,7 @@ def black76_implied_vol(
     The premium is monotonically increasing in ``sigma``, bounded below by the
     discounted intrinsic value (as ``sigma -> 0``) and above by the discounted
     forward/strike (as ``sigma -> inf``). The market premium must therefore lie
-    strictly inside those no-arbitrage bounds, checked *before* inversion
-    (Req 5.3):
+    strictly inside those no-arbitrage bounds, checked *before* inversion:
 
     - call: ``DF*max(F-K, 0) < premium < DF*F``
     - put:  ``DF*max(K-F, 0) < premium < DF*K``

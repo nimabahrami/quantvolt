@@ -1,27 +1,27 @@
-"""Stochastic dispatch valuation (Task 73; Req 21.1, 21.2, 21.5, 21.6; Properties 62-63).
+"""Stochastic dispatch valuation.
 
 ``dispatch_value`` computes the risk-adjusted expected value of a thermal unit by
-stochastic dynamic programming -- the Bellman recursion of Appendix B eqs. B.2-B.3
-solved by backward induction over the *same* commitment state machine as
-:mod:`quantvolt.assets.dispatch_deterministic`. Two solution methods are offered
-(Req 21.2): ``method="tree"`` (recombining lattice / binomial-forest backward
+stochastic dynamic programming: the Bellman recursion of Appendix B eqs. B.2-B.3
+solved by backward induction over the same commitment state machine as
+``quantvolt.assets.dispatch_deterministic``. Two solution methods are offered:
+``method="tree"`` (recombining lattice / binomial-forest backward
 induction) and ``method="lsm"`` (least-squares Monte Carlo, Longstaff-Schwartz).
-Both return a :class:`DispatchResult` carrying the value and the four critical
+Both return a ``DispatchResult`` carrying the value and the four critical
 exercise surfaces of eq. B.5 (start-up / shutdown / ramp-up / ramp-down).
 
 Relationship to the deterministic benchmark
 --------------------------------------------
-The perfect-foresight optimum (:func:`dispatch_deterministic`, eq. B.1) is the
+The perfect-foresight optimum (``dispatch_deterministic``, eq. B.1) is the
 upper bound of any non-anticipating policy: valuing each realised path with
-perfect foresight and averaging bounds the stochastic value from above
-(Property 62). This module reuses the deterministic module's *private* state
+perfect foresight and averaging bounds the stochastic value from above.
+This module reuses the deterministic module's private state
 machine (the status codes, output grid, initial-state translation and the
 feasible-transition enumerator ``_transitions``) so the two solvers optimise over
-an identical feasible set -- the reuse, not a re-implementation, is what makes
-Property 62 hold exactly on shared conventions. Only the immediate-cash-flow
-arithmetic is recomputed here (vectorised over scenarios); the intricate
-feasibility logic is never duplicated. Should ``dispatch_deterministic`` ever
-need to change those helpers, this module must be revisited (documented coupling).
+an identical feasible set: the reuse, not a re-implementation, is what makes
+the upper-bound property hold exactly on shared conventions. Only the
+immediate-cash-flow arithmetic is recomputed here (vectorised over scenarios);
+the intricate feasibility logic is never duplicated. Should ``dispatch_deterministic``
+ever need to change those helpers, this module must be revisited (documented coupling).
 
 Reused state machine (see ``dispatch_deterministic`` for the full account)
 --------------------------------------------------------------------------
@@ -35,42 +35,42 @@ so the Bellman continuation is the plain (undiscounted-further) sum of future
 discounted cash flows -- equivalent to eq. B.2's stepwise ``e^{-r dt}`` when the
 factors are ``e^{-r t dt}``.
 
-The Markov state and the on-peak / off-peak split (Req 21.6, eq. B.4)
----------------------------------------------------------------------
-Appendix B stresses that an hourly power-price *sequence* is **not** Markovian:
+The Markov state and the on-peak / off-peak split (eq. B.4)
+-------------------------------------------------------------
+Appendix B stresses that an hourly power-price sequence is not Markovian:
 tomorrow's on-peak price depends on recent on-peak prices, only weakly on the
-current off-peak price. The fix (eq. B.4) is to carry **two** power spot processes
--- one on-peak, one off-peak -- as separate state coordinates, restoring the
-Markov property. :class:`DispatchFactorModel` implements the split *in the factor
-definition*: ``power_on_index`` and ``power_off_index`` name two coordinates of the
+current off-peak price. The fix (eq. B.4) is to carry two power spot processes,
+one on-peak, one off-peak, as separate state coordinates, restoring the
+Markov property. ``DispatchFactorModel`` implements the split in the factor
+definition: ``power_on_index`` and ``power_off_index`` name two coordinates of the
 simulated log-forward state (they may coincide when every period shares a peak
-kind), and ``peak_kinds[t]`` selects which coordinate is the *active* spot price
+kind), and ``peak_kinds[t]`` selects which coordinate is the active spot price
 for period ``t``. Both coordinates evolve on every step and both enter the LSM
 regression basis / the lattice, so the conditioning information is the full
-Markov state ``(P_on, P_off, G, ...)`` -- exactly the eq. B.4 construction.
+Markov state ``(P_on, P_off, G, ...)``, exactly the eq. B.4 construction.
 
-Risk-adjusted expectation (Req 21.5, consistent with Req 19)
-------------------------------------------------------------
-eq. B.2 optimises under a *risk-adjusted* expectation ``E*``. The factor model's
+Risk-adjusted expectation
+--------------------------
+eq. B.2 optimises under a risk-adjusted expectation ``E*``. The factor model's
 per-step drift ``mu`` is therefore tagged with
-:class:`~quantvolt.numerics.risk_adjustment.DriftKind`, and ``dispatch_value``
-requires :attr:`~quantvolt.numerics.risk_adjustment.DriftKind.RISK_NEUTRAL` -- the
+``quantvolt.numerics.risk_adjustment.DriftKind``, and ``dispatch_value``
+requires ``DriftKind.RISK_NEUTRAL``: the
 pricing / valuation measure in this library's vocabulary ("arbitrage-free
-valuation only"). A :attr:`DriftKind.PHYSICAL` drift is **rejected**: valuing a
+valuation only"). A ``DriftKind.PHYSICAL`` drift is rejected: valuing a
 not-fully-hedgeable asset under the real-world measure would overstate its value,
 the very failure this optimiser guards against. The caller forms the risk-adjusted
 drift ``mu* = mu - lambda_S * sigma`` (eq. 10.5, via
-:func:`~quantvolt.numerics.risk_adjustment.risk_adjusted_drift`) -- for a fully
-tradable factor this collapses to the risk-neutral ``r - y`` -- and tags it
+``quantvolt.numerics.risk_adjustment.risk_adjusted_drift``): for a fully
+tradable factor this collapses to the risk-neutral ``r - y``, and tags it
 ``RISK_NEUTRAL`` to signal "this drift is under the pricing measure ``E*``".
 
 Forced outages (the outage seam)
 --------------------------------
 An optional per-period ``availability`` vector ``M`` in ``(0, 1]`` derates the
 capacity ceiling to ``M_t * c_max(S_t)`` for period ``t`` (eq. B.1's ``M_ti``). A
-caller with an :class:`~quantvolt.market.outages.OutageDataset` supplies
-``M_t = dataset.forced_outage_multiplier(period_hours, installed_capacity_mw)``
-(design 2.23). Online outputs above the derated ceiling become infeasible that
+caller with an ``quantvolt.market.outages.OutageDataset`` supplies
+``M_t = dataset.forced_outage_multiplier(period_hours, installed_capacity_mw)``.
+Online outputs above the derated ceiling become infeasible that
 period; if the derated ceiling falls below ``c_min`` the unit is forced offline
 (eq. B.1 constraint 5).
 
@@ -234,8 +234,8 @@ class DispatchDiagnostics:
 class DispatchFactorModel:
     """Risk-adjusted factor dynamics driving stochastic dispatch (eqs. B.2-B.4).
 
-    The stochastic factors are correlated log-forwards evolved by the Task-62
-    engine ``ΔZ = mu + L·ε`` (GBM). At least a power and a gas coordinate are
+    The stochastic factors are correlated log-forwards evolved by the shared
+    simulation engine ``ΔZ = mu + L·ε`` (GBM). At least a power and a gas coordinate are
     required; the on-peak / off-peak Markov split (eq. B.4) is expressed by naming
     two power coordinates (which may coincide) and a per-period peak label.
     Temperature is supplied deterministically (``temperatures``) -- it drives
@@ -245,13 +245,13 @@ class DispatchFactorModel:
     Attributes:
         log_forward0: Initial log-forward vector ``z0 = log F(0, ·)`` over the
             flattened factor state, dimension ``D`` (``>= 2``).
-        drift: Per-step drift ``mu`` (length ``D``). Must be the **risk-adjusted**
+        drift: Per-step drift ``mu`` (length ``D``). Must be the risk-adjusted
             (pricing-measure) drift and is tagged by ``drift_kind``.
         covariance: Per-step covariance ``C`` (``D x D``), assembled by
-            :func:`~quantvolt.numerics.monte_carlo.build_covariance`.
+            ``quantvolt.numerics.monte_carlo.build_covariance``.
         drift_kind: Measure tag on ``drift``; ``dispatch_value`` requires
-            :attr:`DriftKind.RISK_NEUTRAL` (Req 21.5).
-        peak_kinds: Per-period :class:`PeakKind` selecting the active power
+            ``DriftKind.RISK_NEUTRAL``.
+        peak_kinds: Per-period ``PeakKind`` selecting the active power
             coordinate; its length is the dispatch horizon ``H`` (``>= 1``).
         temperatures: Per-period ambient temperature ``S_t`` (length ``H``).
         power_on_index: Coordinate of ``z0`` used as the on-peak power spot.
@@ -335,11 +335,11 @@ class DispatchFactorModel:
         return self.power_off_index
 
     def simulate(self, seed: int, path_count: int, *, antithetic: bool = True) -> Vector:
-        """Simulate ``(n_paths, H + 1, D)`` log-forward paths (Task-62 engine).
+        """Simulate ``(n_paths, H + 1, D)`` log-forward paths.
 
         Record 0 is ``log_forward0``; record ``t + 1`` holds the prices realised in
-        dispatch period ``t``. Deterministic under ``seed`` (Req 11.2), so a caller
-        (or a Property-62 test) can reproduce the exact scenario set.
+        dispatch period ``t``. Deterministic under ``seed``, so a caller can
+        reproduce the exact scenario set.
         """
         if self.drift.ndim == 1 and self.covariance.ndim == 2:
             return simulate_correlated_forwards(
@@ -431,8 +431,8 @@ def _moves(
     for eq. B.1 constraint 5): a running unit whose min-run timer has not yet reached
     ``d_min`` cannot use ``_transitions``'s own shutdown transition, so if the derate
     also drops every ramp target below ``eff_capacity`` the state machine would offer
-    *no* feasible action at all -- a dead end the reused deterministic state space
-    never has to consider (it assumes full availability, Req 21.4). A physical
+    no feasible action at all, a dead end the reused deterministic state space
+    never has to consider (it assumes full availability). A physical
     derating below ``c_min`` overrides the min-run rule (the unit cannot keep
     producing regardless of the timer), so when no ordinary move survives the filter
     a forced shutdown at zero cash is appended, mirroring the already-documented
@@ -1107,7 +1107,7 @@ _SOLVERS: dict[str, _Solver] = {"lsm": _dispatch_lsm, "tree": _dispatch_tree}
 
 
 def _require_risk_adjusted_drift(drift_kind: DriftKind) -> None:
-    """Reject a physical drift for valuation (Req 21.5; mirror of the VaR guard).
+    """Reject a physical drift for valuation (mirror of the VaR guard).
 
     Valuation optimises under the risk-adjusted expectation ``E*`` (eq. B.2), whose
     drift is ``RISK_NEUTRAL`` in this library's ``DriftKind`` vocabulary
@@ -1141,12 +1141,12 @@ def dispatch_value(
     antithetic: bool = True,
     regression_basis_degree: int = 2,
 ) -> DispatchResult:
-    """Value ``plant`` under uncertainty by stochastic DP (eqs. B.2-B.3; Req 21.1-21.2).
+    """Value ``plant`` under uncertainty by stochastic DP (eqs. B.2-B.3).
 
     Solves the Bellman recursion over the deterministic module's commitment state
-    machine, under the risk-adjusted expectation carried by ``factor_model``
-    (Req 21.5). See the module docstring for the state machine, the on-peak /
-    off-peak Markov split (Req 21.6), the risk-adjusted-drift requirement, the
+    machine, under the risk-adjusted expectation carried by ``factor_model``.
+    See the module docstring for the state machine, the on-peak /
+    off-peak Markov split, the risk-adjusted-drift requirement, the
     forced-outage seam, and the critical-surface representation. All inputs are
     validated before any computation and never mutated.
 
@@ -1157,7 +1157,7 @@ def dispatch_value(
             temperature context (also fixes the horizon ``H``).
         method: ``"lsm"`` (least-squares Monte Carlo) or ``"tree"`` (recombining
             lattice); selected via a dispatch table.
-        seed: Monte Carlo / lattice seed (Req 11.2 determinism); ``>= 0``.
+        seed: Monte Carlo / lattice seed (determinism); ``>= 0``.
         path_count: Simulated paths for ``"lsm"`` (ignored by ``"tree"``); ``>= 1``.
         output_step: Output-grid spacing (MW); defaults to the ramp rate.
         availability: Optional per-period forced-outage multiplier ``M`` in
@@ -1170,7 +1170,7 @@ def dispatch_value(
         initial_uptime: Producing periods already accrued (min-run).
         initial_downtime: Periods already offline (start bucket / min-down); must be
             ``>= 1`` when not ``initial_online`` (delegated to the reused
-            :func:`~quantvolt.assets.dispatch_deterministic._initial_state`).
+            ``quantvolt.assets.dispatch_deterministic._initial_state``).
         evaluation: Independent LSM policy-evaluation sample. By default, the fitted
             policy is evaluated on ``path_count`` fresh paths using ``seed + 1``.
         antithetic: Whether ``"lsm"``'s simulated paths use antithetic variates
@@ -1184,11 +1184,11 @@ def dispatch_value(
             ``"tree"``. Must be ``>= 1``.
 
     Returns:
-        The :class:`DispatchResult` (value + eq. B.5 critical surfaces).
+        The ``DispatchResult`` (value + eq. B.5 critical surfaces).
 
     Raises:
         ValidationError: If ``method`` is unknown; if ``factor_model.drift`` is not
-            risk-adjusted (Req 21.5); if ``path_count`` / ``seed`` /
+            risk-adjusted; if ``path_count`` / ``seed`` /
             ``discount_factors`` / ``availability`` / ``regression_basis_degree`` are
             out of range or mis-sized; if a plant curve is infeasible at a supplied
             temperature; if ``initial_downtime < 1`` while offline; or if the initial

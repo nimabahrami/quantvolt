@@ -1,7 +1,7 @@
-"""Delta aggregation grouped by commodity x delivery period (Task 40, Req 9.3).
+"""Delta aggregation grouped by commodity x delivery period.
 
 ``aggregate_delta`` nets position-level delta exposure into a dense matrix with one row
-per commodity and one column per calendar-month delivery period (Property 22). The
+per commodity and one column per calendar-month delivery period. The
 runtime import of :class:`~quantvolt.portfolio.model.PricedPosition` is the normal
 inward dependency ``risk/`` → ``portfolio/``: risk consumes the priced book.
 """
@@ -57,7 +57,7 @@ class DeltaMatrix:
 
 
 def aggregate_delta(positions: list[PricedPosition]) -> DeltaMatrix:
-    """Net position-level delta by commodity (rows) x delivery period (cols) — Property 22.
+    """Net position-level delta by commodity (rows) x delivery period (cols).
 
     Each cell is the sum of that ``(commodity, period)`` delta across all positions.
     The grid is the sorted union of the key sets of every position's ``delta`` mapping:

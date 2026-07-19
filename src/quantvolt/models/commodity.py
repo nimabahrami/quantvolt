@@ -1,4 +1,4 @@
-"""Commodity/hub value objects and the built-in commodity registry (Task 4).
+"""Commodity/hub value objects and the built-in commodity registry.
 
 The registry is extended, never edited: callers pass a ``dict[str, CommodityConfig]``
 that is merged *over* :data:`BUILT_IN_COMMODITIES` (caller entries win). This is the
@@ -66,7 +66,7 @@ def merge_commodities(
 ) -> dict[str, CommodityConfig]:
     """Return a new registry: ``extra_commodities`` merged OVER the built-ins.
 
-    Caller-supplied entries win on id collision (Adapter seam, Req 1.6). Neither
+    Caller-supplied entries win on id collision. Neither
     :data:`BUILT_IN_COMMODITIES` nor ``extra_commodities`` is mutated — the result
     is a fresh dict. ``CurveBuilder`` reuses this to assemble its registry.
     """

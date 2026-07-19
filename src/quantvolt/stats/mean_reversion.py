@@ -1,4 +1,4 @@
-"""Ornstein-Uhlenbeck mean-reversion estimation (Task 24).
+"""Ornstein-Uhlenbeck mean-reversion estimation.
 
 Fits ``dX = kappa*(mu - X) dt + sigma dW`` by ordinary least squares on the exact
 discrete-time (AR(1)) representation of the process. Used for power prices (strong

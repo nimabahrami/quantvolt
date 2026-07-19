@@ -1,4 +1,4 @@
-"""Hybrid-model power-price hedging (Task 71, Requirement 18.5).
+"""Hybrid-model power-price hedging.
 
 A *hybrid* (structural) power-price model represents the power price ``p_t`` as a
 **deterministic stack transformation** ``s^bid`` of fundamental drivers plus a
@@ -18,8 +18,8 @@ whole price reduces to a payoff function of tradables plus residuals.
 
 **Economics / measure discipline.** Hedging the tradable drivers hedges the
 *model-explained* part of the price; the residual ``epsilon_t`` is the
-**unhedgeable remainder** and is what makes the market incomplete (Req 18.5,
-Req 18.6). Two things follow, and this module provides one kernel for each:
+**unhedgeable remainder** and is what makes the market incomplete. Two things
+follow, and this module provides one kernel for each:
 
 * The local variance-minimizing hedge ratios are the sensitivities of the
   deterministic stack to each tradable driver, obtained by the chain rule /
@@ -28,13 +28,13 @@ Req 18.6). Two things follow, and this module provides one kernel for each:
 * The *quality* of a hybrid representation is measured by the size of its
   residual: "the smaller its variance, the better the representation" (source
   text after eq 10.28). :func:`residual_variance` computes this metric, and
-  **smaller means a better hedge** (Property 57). In the limit of a zero residual
+  **smaller means a better hedge**. In the limit of a zero residual
   variance the price is fully hedgeable and any derivative on it can be valued
   under the risk-neutral distributions of the tradables alone (source, after eq
   10.28); with a non-zero residual the hedge is only an *optimal statistical*
   (local variance-minimizing) hedge, and the residual's expectation -- where it
   is needed for valuation -- requires an explicit corporate risk adjustment
-  (Req 18.6, handled by :func:`quantvolt.hedging.variance_min.decomposed_delta`,
+  (handled by ``quantvolt.hedging.variance_min.decomposed_delta``,
   not here). :func:`residual_variance` is a physical-measure (``P``) descriptive
   statistic used only to *rank* representations, so it carries no risk
   adjustment of its own.
@@ -61,7 +61,7 @@ StackFn = Callable[[Mapping[str, float]], float]
 
 
 def hybrid_deltas(stack_fn: StackFn, drivers: Mapping[str, float], bump: float) -> dict[str, float]:
-    """Chain-rule deltas of a hybrid power-price model to each tradable driver (eq 10.26, Req 18.5).
+    """Chain-rule deltas of a hybrid power-price model to each tradable driver (eq 10.26).
 
     The hybrid price is ``p = s^bid(drivers) + epsilon`` (eq 10.26). The local
     variance-minimizing hedge to a tradable driver ``k`` is the partial derivative
@@ -75,8 +75,8 @@ def hybrid_deltas(stack_fn: StackFn, drivers: Mapping[str, float], bump: float) 
     e.g. gas via its ``BOM`` / option contracts) -- each returned partial is
     directly the hedge ratio to that tradable. Each partial is one link of the
     chain rule; the total first-order price move is their sum,
-    ``dp = sum_k (partial p / partial driver_k) d(driver_k)`` (Property 57,
-    "chain-rule deltas sum consistently across drivers").
+    ``dp = sum_k (partial p / partial driver_k) d(driver_k)``: chain-rule
+    deltas sum consistently across drivers.
 
     Each partial is estimated by a central finite difference (via
     :func:`quantvolt.numerics.rootfind.finite_difference_bump`): each driver is
@@ -127,14 +127,14 @@ def residual_variance(
     drivers: Mapping[str, Sequence[float]],
     realized: Sequence[float],
 ) -> float:
-    """Hybrid hedge-quality metric: variance of the residual ``epsilon_t`` (eq 10.26, Req 18.5).
+    """Hybrid hedge-quality metric: variance of the residual ``epsilon_t`` (eq 10.26).
 
     From ``p_t = s^bid(drivers_t) + epsilon_t`` (eq 10.26) the residual is
     ``epsilon_t = p_t - s^bid(drivers_t)``. This applies the deterministic stack to
     each observation of the driver series, subtracts it from the realized power
     price, and returns the (unbiased, ``ddof=1``) sample variance of the residual.
 
-    **Smaller is better** (Property 57). The residual is the unhedgeable part of
+    **Smaller is better**. The residual is the unhedgeable part of
     the price; a representation that explains more of the price leaves a smaller
     residual, and "the smaller its variance, the better the representation"
     (source text after eq 10.28). A zero residual variance means the price is
@@ -145,7 +145,7 @@ def residual_variance(
 
     This is a physical-measure (``P``) descriptive statistic and carries no risk
     adjustment (the risk-adjusted valuation of the unhedgeable residual lives in
-    :func:`quantvolt.hedging.variance_min.decomposed_delta`, Req 18.6).
+    ``quantvolt.hedging.variance_min.decomposed_delta``).
 
     The caller's inputs are never mutated.
 

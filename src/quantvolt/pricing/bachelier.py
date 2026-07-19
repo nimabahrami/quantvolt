@@ -50,6 +50,9 @@ class BachelierOptionRequest:
 
 @dataclass(frozen=True, slots=True)
 class BachelierOptionResult:
+    """Bachelier (normal-model) option output containing the discounted premium and the
+    complete analytical Greeks object."""
+
     premium: float
     greeks: Greeks
 

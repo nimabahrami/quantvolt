@@ -1,5 +1,5 @@
 """The `EnergyQuantError` hierarchy. Every exception the library raises is a subclass,
-and messages name the offending parameter and the violated constraint (Req 11.5)."""
+and messages name the offending parameter and the violated constraint."""
 
 from __future__ import annotations
 

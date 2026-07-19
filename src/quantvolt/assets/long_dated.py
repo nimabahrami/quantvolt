@@ -1,64 +1,61 @@
-"""Long-dated / projected-spot valuation governance (Task 76; Req 23.1-23.4).
+"""Long-dated / projected-spot valuation governance.
 
 Long tenors run past the liquid forward curve. Beyond that horizon there is no
-tradable benchmark, so a value must be *projected* from a spot model plus an
-explicit corporate risk premium — and such a value carries far more risk than a
+tradable benchmark, so a value must be projected from a spot model plus an
+explicit corporate risk premium, and such a value carries far more risk than a
 forward-covered one. This module keeps the two regimes strictly separated so that
-long-dated risk is never understated (Req 23):
+long-dated risk is never understated:
 
-- :func:`valuation_benchmark` returns the **forward-curve** price where the period
-  is liquid, and otherwise a **projected-spot** value tagged distinctly, so a
-  projected figure can never be mistaken for a forward-based one (Req 23.1-23.2).
-- :func:`var_applicability_guard` flags short-horizon VaR as *inapplicable* for a
-  position valued off projected spot (Req 23.3): VaR is meaningful only in liquid
-  markets (Chapter-10 caveat).
-- :func:`furthest_forward_lower_bound` implements the "furthest liquid forward is a
-  lower bound for later tenors" trick **only for storable commodities**, and
-  refuses it for non-storable power (Req 23.4).
+- ``valuation_benchmark`` returns the forward-curve price where the period is
+  liquid, and otherwise a projected-spot value tagged distinctly, so a projected
+  figure can never be mistaken for a forward-based one.
+- ``var_applicability_guard`` flags short-horizon VaR as inapplicable for a
+  position valued off projected spot: VaR is meaningful only in liquid markets.
+- ``furthest_forward_lower_bound`` implements the "furthest liquid forward is a
+  lower bound for later tenors" trick only for storable commodities, and refuses
+  it for non-storable power.
 
 Tagging semantics
 -----------------
-:class:`ValuationSource` (``models/instruments.py``) is the single vocabulary of
+``ValuationSource`` (``models/instruments.py``) is the single vocabulary of
 provenance tags. This module produces two of its values, ``"forward"`` and
-``"projected"`` -- exactly the strings a caller should propagate onto a
-:class:`~quantvolt.portfolio.model.Position`'s ``tags`` so that downstream risk code
-can tell the regimes apart. :class:`BenchmarkResult` carries the tag prominently in
-its ``source`` field. A third value, ``"simulated"``, is produced elsewhere (the
-portfolio-native-pricers spec's ``CachedAssetValuation`` wrapper, Req 19) for a
-precomputed LSMC/dispatch cache -- a third regime this module does not itself
-produce, tagged the same way for the same reason (Property-66 pattern).
+``"projected"``, exactly the strings a caller should propagate onto a
+``Position``'s ``tags`` so that downstream risk code can tell the regimes apart.
+``BenchmarkResult`` carries the tag prominently in its ``source`` field. A third
+value, ``"simulated"``, is produced elsewhere (``CachedAssetValuation``) for a
+precomputed LSMC/dispatch cache, a third regime this module does not itself
+produce, tagged the same way for the same reason.
 
 Intended wiring (this module does not touch ``risk/``)
 ------------------------------------------------------
-1. Value a long-dated period with :func:`valuation_benchmark`; read
+1. Value a long-dated period with ``valuation_benchmark``; read
    ``result.source``.
 2. Build the ``Position`` carrying ``result.source`` (i.e. the string
    ``ValuationSource.PROJECTED`` / ``ValuationSource.FORWARD``) in its ``tags``,
    and the ``PricedPosition`` from ``result.value``.
-3. Before including the position in an MC-VaR / parametric-VaR run, *consult*
-   :func:`var_applicability_guard`: a projected-valued position returns
+3. Before including the position in an MC-VaR / parametric-VaR run, consult
+   ``var_applicability_guard``: a projected-valued position returns
    ``applicable=False`` (or, with ``strict=True``, raises) so the risk caller can
    exclude it or switch to CFaR / scenario analysis. The VaR modules stay
    unchanged; they simply query this verdict.
 
 Design choices
 --------------
-- ``spot_model`` is a **pure callable** ``DeliveryPeriod -> float`` returning the
+- ``spot_model`` is a pure callable ``DeliveryPeriod -> float`` returning the
   model's projected spot expectation for a period. The library treats it as data
   and never mutates it.
-- Storability is a **caller-declared** ``storable: bool`` argument, not inferred
-  from ``commodity_id`` / ``price_unit``. Per the library's "the caller supplies
-  all data" principle, whether the carry / cash-and-carry argument holds is a
-  market judgement the caller owns; the library refuses to guess it from naming
-  conventions.
-- The corporate risk premium must be an explicitly *corporate*-tagged
-  :class:`CorporatePremium` (via :class:`~quantvolt.numerics.risk_adjustment.PriceOfRiskKind`).
-  A market-tagged or untagged premium is rejected — the premium is never applied
-  silently (Req 19.3).
+- Storability is a caller-declared ``storable: bool`` argument, not inferred
+  from ``commodity_id`` / ``price_unit``: whether the carry / cash-and-carry
+  argument holds is a market judgement the caller owns; the library refuses to
+  guess it from naming conventions.
+- The corporate risk premium must be an explicitly corporate-tagged
+  ``CorporatePremium`` (via ``quantvolt.numerics.risk_adjustment.PriceOfRiskKind``).
+  A market-tagged or untagged premium is rejected; the premium is never applied
+  silently.
 
 Dependency note: this module imports value objects from ``models/``, ``numerics/``
-and the :class:`~quantvolt.portfolio.model.PricedPosition` value object; none of
-those import ``assets/``, so the dependency graph stays acyclic. It never imports
+and the ``quantvolt.portfolio.model.PricedPosition`` value object; none of those
+import ``assets/``, so the dependency graph stays acyclic. It never imports
 ``risk/``.
 """
 
@@ -77,12 +74,11 @@ from ..portfolio.model import PricedPosition
 # A pure projection of a period to its model spot expectation (documented, never mutated).
 SpotModel = Callable[[DeliveryPeriod], float]
 
-# ``ValuationSource`` is now defined in ``models/instruments.py`` (the portfolio-native-pricers
-# spec, Req 19, reuses it for a THIRD regime -- a precomputed LSMC/dispatch cache -- and
-# ``models/instruments.py`` is the leaf-ish module every instrument-bearing type can import
-# without a cycle back through ``portfolio/model.py``, which this module already depends on).
-# Imported here (not re-defined) so there remains exactly one provenance vocabulary; every
-# existing ``from quantvolt.assets.long_dated import ValuationSource`` import keeps working.
+# ``ValuationSource`` is defined in ``models/instruments.py``, the leaf-ish module every
+# instrument-bearing type can import without a cycle back through ``portfolio/model.py``,
+# which this module already depends on. Imported here (not re-defined) so there remains
+# exactly one provenance vocabulary; every existing
+# ``from quantvolt.assets.long_dated import ValuationSource`` import keeps working.
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,17 +86,17 @@ class CorporatePremium:
     """A projected-spot risk premium with an explicit price-of-risk provenance.
 
     ``kind`` has no default: the caller must state the provenance explicitly, so the
-    premium is never applied silently (Req 19.3). :func:`valuation_benchmark` accepts
-    only a :attr:`~quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE`
-    premium; a market-tagged one reflects traded quotes, not the firm's own long-dated
-    risk appetite, and cannot stand in for it.
+    premium is never applied silently. ``valuation_benchmark`` accepts only a
+    ``quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE`` premium; a
+    market-tagged one reflects traded quotes, not the firm's own long-dated risk
+    appetite, and cannot stand in for it.
 
     Attributes:
         premium: The additive corporate risk premium in the commodity's price unit,
-            applied as ``projected_spot = spot_model(period) + premium`` (Req 23.2).
-            May be negative.
+            applied as ``projected_spot = spot_model(period) + premium``. May be
+            negative.
         kind: Provenance of the premium; must be
-            :attr:`~quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE`.
+            ``quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE``.
     """
 
     premium: float
@@ -111,10 +107,10 @@ class CorporatePremium:
 class BenchmarkResult:
     """A long-dated valuation with its provenance tag carried prominently.
 
-    ``source`` is the load-bearing field: :attr:`ValuationSource.FORWARD` means the
-    value is the liquid forward price (Req 23.1); :attr:`ValuationSource.PROJECTED`
-    means it is a projected-spot value (Req 23.2) that carries much higher risk and
-    for which short-horizon VaR is inapplicable.
+    ``source`` is the load-bearing field: ``ValuationSource.FORWARD`` means the
+    value is the liquid forward price; ``ValuationSource.PROJECTED`` means it is
+    a projected-spot value that carries much higher risk and for which
+    short-horizon VaR is inapplicable.
     """
 
     period: DeliveryPeriod
@@ -130,7 +126,7 @@ class BenchmarkResult:
     def var_applicable(self) -> bool:
         """``True`` iff short-horizon VaR is meaningful for a position at this benchmark.
 
-        Convenience mirror of :func:`var_applicability_guard` for a single period:
+        Convenience mirror of ``var_applicability_guard`` for a single period:
         forward-based values are VaR-applicable, projected-spot values are not.
         """
         return self.source == ValuationSource.FORWARD
@@ -142,7 +138,7 @@ class VarApplicabilityVerdict:
 
     A frozen verdict an MC-VaR / parametric-VaR caller can consult without this module
     reaching into the risk engines. ``applicable`` is ``False`` for projected-spot
-    positions (Req 23.3); ``reason`` states why in human-readable form.
+    positions; ``reason`` states why in human-readable form.
     """
 
     applicable: bool
@@ -174,16 +170,16 @@ def valuation_benchmark(
     """Value ``period`` off the forward curve where liquid, else off projected spot.
 
     Where the liquid ``forward_curve`` covers ``period``, the forward price is the
-    valuation benchmark and no projected-spot value is substituted (Req 23.1). A
-    period present on the curve counts as forward-based whether its node is
-    ``observed`` or ``interpolated`` — both lie within the liquid forward span. Where
-    the curve does not cover ``period``, the value is projected as
+    valuation benchmark and no projected-spot value is substituted. A period
+    present on the curve counts as forward-based whether its node is ``observed``
+    or ``interpolated``; both lie within the liquid forward span. Where the curve
+    does not cover ``period``, the value is projected as
     ``spot_model(period) + corporate_premium.premium`` and tagged
-    :attr:`ValuationSource.PROJECTED` (Req 23.2).
+    ``ValuationSource.PROJECTED``.
 
     ``corporate_premium`` is validated eagerly (before the liquidity branch) so a
     market-tagged or untagged premium is rejected regardless of this period's
-    liquidity — the corporate risk premium is never applied silently (Req 19.3).
+    liquidity; the corporate risk premium is never applied silently.
 
     Args:
         period: The delivery period to value.
@@ -192,14 +188,14 @@ def valuation_benchmark(
         spot_model: Pure callable ``DeliveryPeriod -> float`` giving the model spot
             expectation used when no liquid forward exists. Never mutated.
         corporate_premium: The additive corporate risk premium, explicitly tagged
-            :attr:`~quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE`.
+            ``quantvolt.numerics.risk_adjustment.PriceOfRiskKind.CORPORATE``.
 
     Returns:
-        A :class:`BenchmarkResult` whose ``source`` tags the regime prominently.
+        A ``BenchmarkResult`` whose ``source`` tags the regime prominently.
 
     Raises:
         ValidationError: If ``corporate_premium`` is not an explicitly corporate-tagged
-            :class:`CorporatePremium`.
+            ``CorporatePremium``.
     """
     _require_corporate_premium(corporate_premium)
     liquid_price = _forward_price_if_liquid(forward_curve, period)
@@ -217,23 +213,23 @@ def var_applicability_guard(
     """Flag short-horizon VaR as inapplicable for a projected-spot-valued position.
 
     Reads the position's provenance from ``position.position.tags``: a position
-    carrying the :attr:`ValuationSource.PROJECTED` tag was valued off projected spot,
-    for which short-horizon VaR is not meaningful — VaR is meaningful only in liquid
-    markets (Chapter-10 caveat, Req 23.3). Absence of that tag is treated as
-    forward-based / liquid and therefore VaR-applicable.
+    carrying the ``ValuationSource.PROJECTED`` tag was valued off projected spot,
+    for which short-horizon VaR is not meaningful, since VaR is meaningful only in
+    liquid markets. Absence of that tag is treated as forward-based / liquid and
+    therefore VaR-applicable.
 
-    Designed to be *consulted* by MC-VaR / parametric-VaR callers: they inspect the
+    Designed to be consulted by MC-VaR / parametric-VaR callers: they inspect the
     returned verdict and exclude the position (or switch to CFaR / scenario analysis)
     without this module modifying ``risk/``. With ``strict=True`` the guard instead
     raises for an inapplicable position, for callers that prefer to hard-fail.
 
     Args:
         position: The priced position to judge, as consumed by the risk engines.
-        strict: When ``True``, raise :class:`ValidationError` for a projected-spot
+        strict: When ``True``, raise ``ValidationError`` for a projected-spot
             position instead of returning an ``applicable=False`` verdict.
 
     Returns:
-        A :class:`VarApplicabilityVerdict` with ``applicable`` and a ``reason``.
+        A ``VarApplicabilityVerdict`` with ``applicable`` and a ``reason``.
 
     Raises:
         ValidationError: If ``strict`` is ``True`` and the position is projected-valued.
@@ -264,15 +260,15 @@ def furthest_forward_lower_bound(
 ) -> LowerBoundResult:
     """Use the furthest visible forward as a lower bound for an illiquid later tenor.
 
-    For a **storable** commodity the cash-and-carry / no-arbitrage relationship links
+    For a storable commodity the cash-and-carry / no-arbitrage relationship links
     a later delivery to a nearer one, so the furthest liquid forward price is a valid
-    lower bound for tenors beyond the curve (Req 23.4). This helper returns that bound
-    for ``period`` (which must be strictly later than the furthest liquid forward).
+    lower bound for tenors beyond the curve. This helper returns that bound for
+    ``period`` (which must be strictly later than the furthest liquid forward).
 
-    For a **non-storable** commodity such as power (``storable=False``) the bound is
+    For a non-storable commodity such as power (``storable=False``) the bound is
     refused: non-storability breaks the carry argument, so a nearer forward does not
-    bound a later illiquid tenor and the furthest forward is not a valid lower bound
-    (Req 23.4). Storability is caller-declared, never inferred from the commodity.
+    bound a later illiquid tenor and the furthest forward is not a valid lower bound.
+    Storability is caller-declared, never inferred from the commodity.
 
     Args:
         forward_curve: The liquid forward curve; its furthest node supplies the bound.
@@ -282,7 +278,7 @@ def furthest_forward_lower_bound(
             (e.g. power) refuses the bound.
 
     Returns:
-        A :class:`LowerBoundResult` carrying the bound and the period it came from.
+        A ``LowerBoundResult`` carrying the bound and the period it came from.
 
     Raises:
         ValidationError: If ``storable`` is ``False`` (non-storable / power), or if
@@ -311,11 +307,11 @@ def furthest_forward_lower_bound(
 
 
 def _require_corporate_premium(corporate_premium: CorporatePremium) -> None:
-    """Reject a premium that is not an explicitly corporate-tagged :class:`CorporatePremium`.
+    """Reject a premium that is not an explicitly corporate-tagged ``CorporatePremium``.
 
     Guards both the untagged case (a caller passing a bare number rather than a
-    :class:`CorporatePremium`) and the market-tagged case, naming ``corporate_premium``
-    so the violated contract is unambiguous (Req 19.3).
+    ``CorporatePremium``) and the market-tagged case, naming ``corporate_premium``
+    so the violated contract is unambiguous.
     """
     if not isinstance(corporate_premium, CorporatePremium):
         raise ValidationError(
@@ -335,9 +331,9 @@ def _require_corporate_premium(corporate_premium: CorporatePremium) -> None:
 def _forward_price_if_liquid(forward_curve: ForwardCurve, period: DeliveryPeriod) -> float | None:
     """Return the forward price for ``period`` if the curve covers it, else ``None``.
 
-    Tell-Don't-Ask: delegates the node lookup to :meth:`ForwardCurve.price_at` rather
-    than scanning ``forward_curve.nodes`` here, and translates its
-    :class:`~quantvolt.exceptions.MissingTenorError` (illiquid tenor) into ``None``.
+    Delegates the node lookup to ``ForwardCurve.price_at`` rather than scanning
+    ``forward_curve.nodes`` here, and translates its ``MissingTenorError``
+    (illiquid tenor) into ``None``.
     """
     try:
         return forward_curve.price_at(period)

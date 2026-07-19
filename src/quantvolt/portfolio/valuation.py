@@ -1,20 +1,18 @@
-"""Portfolio valuation — dispatch each instrument to its pricer and aggregate (Task 61).
+"""Portfolio valuation: dispatch each instrument to its registered pricer and aggregate the NPV.
 
-Composite (value the whole book) + Replace-Conditional-with-Dispatch (instrument type -> pricer).
-New instrument kinds are supported by registering an entry — in :data:`DEFAULT_PRICERS` inside
-the library, or per call via the ``pricers`` argument of :func:`value_portfolio` — never by
-editing ``value_portfolio`` itself (open/closed, Req 13.4).
+New instrument kinds are supported by registering an entry in ``DEFAULT_PRICERS``, or per
+call via the ``pricers`` argument of ``value_portfolio``, never by editing ``value_portfolio``
+itself.
 
-The produced :class:`~quantvolt.portfolio.model.PricedPosition` objects are exactly what
-``risk.aggregation.aggregate_delta`` / ``RiskEngine`` and mark-to-market consume (Req 13.5),
-so the flow is: instruments -> ``Portfolio`` -> ``value_portfolio`` -> ``PricedPosition`` ->
-risk / mark-to-market.
+The produced ``PricedPosition`` objects are exactly what ``risk.aggregation.aggregate_delta``,
+``RiskEngine`` and mark-to-market consume, so the flow is: instruments -> ``Portfolio`` ->
+``value_portfolio`` -> ``PricedPosition`` -> risk / mark-to-market.
 
 Every built-in pricer also populates ``PricedPosition.reference_prices`` with the forward
 curve price observed for each ``delta`` entry's ``(commodity_id, delivery period)`` key.
-``RiskEngine.apply_scenario`` uses this to scale a *relative* named/user scenario shock
-(:mod:`quantvolt.risk.scenarios`) into currency P&L (``delta x reference_price x shock``);
-see that module and :mod:`quantvolt.risk.engine` for the full convention.
+``RiskEngine.apply_scenario`` uses this to scale a relative named/user scenario shock
+(``quantvolt.risk.scenarios``) into currency P&L (``delta x reference_price x shock``);
+see that module and ``quantvolt.risk.engine`` for the full convention.
 """
 
 from __future__ import annotations
@@ -68,20 +66,17 @@ from .model import Portfolio, Position, PricedPosition
 
 @dataclass(frozen=True, slots=True)
 class MarketData:
-    """The market inputs needed to value a portfolio (Req 13.2; portfolio-native-pricers
-    Req 1: ``vol_surfaces`` / ``correlations`` extension).
+    """The market inputs needed to value a portfolio: forward curves, a discount curve,
+    the valuation date, and optional volatility surfaces and correlations.
 
     ``forward_curves``, ``vol_surfaces`` and ``correlations`` are all defensively copied
-    into fresh ``dict``s at construction (the ``object.__setattr__`` pattern), so later
-    mutation of a caller's mapping cannot reach into this frozen value object. The stored
-    copies are treated as immutable by convention from then on — nothing in the library
-    writes to them. ``vol_surfaces`` and ``correlations`` both default to empty, so every
-    existing ``MarketData(...)`` call site (and the futures/forward/swap/transport
-    pricers, which never touch either field) continues to work unchanged.
+    into fresh ``dict``s at construction, so later mutation of a caller's mapping cannot
+    reach into this frozen value object. The stored copies are treated as immutable by
+    convention from then on; nothing in the library writes to them. ``vol_surfaces`` and
+    ``correlations`` both default to empty.
 
-    Every ``correlations`` value is validated once, here, to lie strictly inside
-    ``(-1, 1)`` via :func:`~quantvolt._validation.require_correlation`; :meth:`correlation_for`
-    is therefore a pure lookup that never re-validates.
+    Every ``correlations`` value is validated once, here, to lie strictly inside ``(-1, 1)``;
+    ``correlation_for`` is therefore a pure lookup that never re-validates.
     """
 
     forward_curves: dict[str, ForwardCurve]  # keyed by commodity_id
@@ -98,10 +93,7 @@ class MarketData:
             require_correlation(f"correlations[{key!r}]", value)
 
     def curve_for(self, commodity_id: str) -> ForwardCurve:
-        """Return the forward curve for ``commodity_id``; raise if absent (Task 61).
-
-        An intrinsic query (Tell-Don't-Ask): callers ask the market data for the
-        curve instead of indexing into ``forward_curves`` themselves.
+        """Return the forward curve for ``commodity_id``; raise if absent.
 
         Raises:
             ValidationError: If no curve is registered for ``commodity_id``, naming
@@ -118,8 +110,6 @@ class MarketData:
 
     def surface_for(self, commodity_id: str) -> VolatilitySurface:
         """Return the volatility surface for ``commodity_id``; raise if absent.
-
-        An intrinsic query (Tell-Don't-Ask), mirroring :meth:`curve_for`'s shape.
 
         Raises:
             ValidationError: If no surface is registered for ``commodity_id``, naming
@@ -157,14 +147,14 @@ class MarketData:
 
 @dataclass(frozen=True, slots=True)
 class PortfolioValuation:
-    """Aggregate NPV plus per-position results, in portfolio order (Req 13.2, 13.3)."""
+    """Aggregate NPV plus per-position results, in portfolio order."""
 
     total_npv: float  # sum over ``priced`` only; ``unpriced`` never contributes
     priced: tuple[PricedPosition, ...]
     unpriced: tuple[Position, ...]  # instrument type had no registered pricer
 
 
-# --- Dispatch: instrument type -> how to value one position (Task 61) ---
+# --- Dispatch: instrument type -> how to value one position ---
 
 # A pricer adapter values one position against the market data. Registered per
 # instrument type; adding a type means adding an entry, not editing value_portfolio.
@@ -180,11 +170,10 @@ def _signed(
 ) -> tuple[float, dict[tuple[str, DeliveryPeriod], float], Greeks | None]:
     """Apply the SHORT-negates-LONG sign convention once, for every native pricer.
 
-    ``short-side-instruments`` spec convention: ``sign`` is ``+1.0`` for ``OptionSide.LONG``
-    and ``-1.0`` for ``OptionSide.SHORT``. It flips ``npv``, every value in ``delta``, and
-    ``greeks`` (via :meth:`~quantvolt.models.greeks.Greeks.scale`) when given.
+    ``sign`` is ``+1.0`` for ``OptionSide.LONG`` and ``-1.0`` for ``OptionSide.SHORT``. It
+    flips ``npv``, every value in ``delta``, and ``greeks`` (via ``Greeks.scale``) when given.
 
-    ``reference_prices`` is **never** scaled -- neither here nor by any of this helper's
+    ``reference_prices`` is never scaled -- neither here nor by any of this helper's
     callers -- because it stays the raw observed forward/curve price. The ``RiskEngine``'s
     scenario P&L (``delta x reference_price x shock``) already flips for a SHORT position
     through the flipped ``delta`` alone; scaling ``reference_prices`` too would double-flip it.
@@ -196,10 +185,10 @@ def _signed(
 
 
 def _price_forward_like(position: Position, market_data: MarketData) -> PricedPosition:
-    """FuturesContract / ForwardContract via pricing.futures (Req 13.2).
+    """FuturesContract / ForwardContract via pricing.futures.
 
-    Direction lives in ``instrument.side`` (``short-side-instruments`` spec); see
-    :func:`_signed` for the shared sign convention applied to ``npv``/``delta``.
+    Direction lives in ``instrument.side``; see ``_signed`` for the shared sign
+    convention applied to ``npv``/``delta``.
     """
     instrument = position.instrument
     if not isinstance(instrument, FuturesContract | ForwardContract):
@@ -227,12 +216,12 @@ def _price_forward_like(position: Position, market_data: MarketData) -> PricedPo
 
 
 def _price_swap(position: Position, market_data: MarketData) -> PricedPosition:
-    """SwapContract via pricing.swap — one delta entry per schedule period (Req 13.2).
+    """SwapContract via pricing.swap: one delta entry per schedule period.
 
-    Direction lives in ``instrument.side`` (``short-side-instruments`` spec): a ``SHORT``
-    (receive-fixed / pay-floating) swap is the exact negation of the ``LONG`` (pay-fixed /
-    receive-floating) perspective the kernel prices; see :func:`_signed` for the shared
-    sign convention applied to ``npv`` and every per-period ``delta``.
+    Direction lives in ``instrument.side``: a ``SHORT`` (receive-fixed / pay-floating)
+    swap is the exact negation of the ``LONG`` (pay-fixed / receive-floating) perspective
+    the kernel prices; see ``_signed`` for the shared sign convention applied to ``npv``
+    and every per-period ``delta``.
     """
     instrument = position.instrument
     if not isinstance(instrument, SwapContract):
@@ -257,14 +246,14 @@ def _price_swap(position: Position, market_data: MarketData) -> PricedPosition:
 
 
 def _price_transport_right(position: Position, market_data: MarketData) -> PricedPosition:
-    """TransmissionRight / PipelineRight via pricing.transmission_right (Req 24, Task 80).
+    """TransmissionRight / PipelineRight via pricing.transmission_right.
 
     Prices the intrinsic transport value (market data carries no location vols, so no
     extrinsic term) over the shared periods of the origin (hub A) and destination
     (hub B) curves. The per-position ``delta`` carries one entry per (hub, period):
     ``delta_origin`` on the origin commodity and the opposite-signed ``delta_destination``
-    on the destination — the right holder is short the origin and long the destination
-    (module-level sign convention of :mod:`quantvolt.pricing.transmission_right`).
+    on the destination; the right holder is short the origin and long the destination
+    (the sign convention of ``quantvolt.pricing.transmission_right``).
     """
     instrument = position.instrument
     if not isinstance(instrument, TransmissionRight | PipelineRight):
@@ -294,16 +283,15 @@ def _price_transport_right(position: Position, market_data: MarketData) -> Price
 
 
 def _price_vanilla_option(position: Position, market_data: MarketData) -> PricedPosition:
-    """VanillaOptionContract via pricing.vanilla.price_vanilla_option (Req 7).
+    """VanillaOptionContract via pricing.vanilla.price_vanilla_option.
 
-    Conventions inherited verbatim from :mod:`quantvolt.pricing.tolling` (the in-repo
-    anchor for turning a ``DeliveryPeriod`` + ``valuation_date`` into a Black-76 request):
-    the discount factor is looked up at ``delivery_period.last_day``, time-to-expiry is
-    ``actual_365(valuation_date, expiry or delivery_period.last_day)``, and the kernel
-    premium is already discounted — it is never discounted a second time.
+    Conventions match ``quantvolt.pricing.tolling``'s handling of a ``DeliveryPeriod`` +
+    ``valuation_date``: the discount factor is looked up at ``delivery_period.last_day``,
+    time-to-expiry is ``actual_365(valuation_date, expiry or delivery_period.last_day)``,
+    and the kernel premium is already discounted; it is never discounted a second time.
 
     A non-positive observed forward propagates the kernel's own ``ValidationError``
-    (Black-76 requires ``forward > 0``); this adapter never clamps or floors it (Req 12).
+    (Black-76 requires ``forward > 0``); this adapter never clamps or floors it.
     """
     instrument = position.instrument
     if not isinstance(instrument, VanillaOptionContract):
@@ -347,13 +335,13 @@ def _price_vanilla_option(position: Position, market_data: MarketData) -> Priced
 
 
 def _price_spread_option(position: Position, market_data: MarketData) -> PricedPosition:
-    """SpreadOptionContract via pricing.spread_option (Req 8).
+    """SpreadOptionContract via pricing.spread_option.
 
-    ``leg2_weight == 1.0`` delegates to :func:`~quantvolt.pricing.spread_option.
-    price_spread_option`; any other (strictly positive) ``leg2_weight`` delegates to
-    :func:`~quantvolt.pricing.spread_option.price_spark_spread_option` with
+    ``leg2_weight == 1.0`` delegates to ``quantvolt.pricing.spread_option.
+    price_spread_option``; any other (strictly positive) ``leg2_weight`` delegates to
+    ``quantvolt.pricing.spread_option.price_spark_spread_option`` with
     ``heat_rate = leg2_weight``, so the leg-2 delta is already chain-ruled back onto the
-    raw ``forward2`` by the kernel's documented convention — no extra scaling here.
+    raw ``forward2`` by the kernel's documented convention; no extra scaling here.
 
     ``greeks`` is deliberately left ``None``: a spread option's sensitivity vocabulary
     (``delta1``, ``delta2``, ``vega1``, ``vega2``, ``correlation_sensitivity``) does not
@@ -407,7 +395,7 @@ def _price_spread_option(position: Position, market_data: MarketData) -> PricedP
 
 
 def _price_tolling_agreement(position: Position, market_data: MarketData) -> PricedPosition:
-    """TollingAgreement via pricing.tolling.price_tolling_agreement (Req 14).
+    """TollingAgreement via pricing.tolling.price_tolling_agreement.
 
     Assembles the kernel's required 3x3 ``[power, fuel, eua]`` correlation matrix from
     three pairwise ``MarketData.correlations`` entries via ``correlation_for``, failing
@@ -471,18 +459,18 @@ def _price_tolling_agreement(position: Position, market_data: MarketData) -> Pri
 
 
 def _price_cached_asset_valuation(position: Position, market_data: MarketData) -> PricedPosition:
-    """CachedAssetValuation passthrough (Req 19, DEFERRED roadmap).
+    """CachedAssetValuation passthrough.
 
-    This adapter never runs an LSMC or dispatch engine (Req 19.2): it only re-emits the
+    This adapter never runs an LSMC or dispatch engine itself: it only re-emits the
     wrapper's already-computed ``npv``/``delta`` as a ``PricedPosition``, after checking that
     ``instrument.valuation_date`` still matches ``market_data.valuation_date``. A mismatch
     means the cache is stale relative to the book being valued and raises rather than being
     silently repriced or reused, naming both dates.
 
     The ``ValuationSource`` provenance tag is propagated onto the re-emitted position's
-    ``tags`` (the ``assets/long_dated.py`` Property-66 pattern: ``var_applicability_guard`` and
-    other risk code read the tag from ``position.position.tags``) via a fresh ``Position``
-    built from the original one plus that tag, added only if not already present.
+    ``tags`` (``var_applicability_guard`` and other risk code read the tag from
+    ``position.position.tags``) via a fresh ``Position`` built from the original one plus
+    that tag, added only if not already present.
     """
     instrument = position.instrument
     if not isinstance(instrument, CachedAssetValuation):
@@ -511,17 +499,16 @@ def _price_cached_asset_valuation(position: Position, market_data: MarketData) -
 
 
 def _price_cap_floor_strip(position: Position, market_data: MarketData) -> PricedPosition:
-    """CapFloorStripContract via pricing.vanilla.price_cap_floor (Req 20, DEFERRED roadmap).
+    """CapFloorStripContract via pricing.vanilla.price_cap_floor.
 
     Builds one caplet/floorlet ``VanillaOptionRequest`` per ``schedule`` period, gathering
     forward/vol/discount-factor exactly like ``_price_vanilla_option``'s single-period adapter
     (``actual_365(valuation_date, period.last_day)`` time-to-expiry, discount factor at that
     same date, premium already discounted -- never twice), then delegates the assembled strip
-    to :func:`~quantvolt.pricing.vanilla.price_cap_floor`. Per-period ``delta`` is keyed
+    to ``quantvolt.pricing.vanilla.price_cap_floor``. Per-period ``delta`` is keyed
     ``(commodity_id, period)`` from each caplet's own (unaggregated) result; the returned
-    ``greeks`` is the kernel's own aggregate (summed across periods -- Property 16 / the
-    external-validation spec's Property 94 strip-additivity), scaled by side exactly as the
-    single-period vanilla adapter scales its own kernel ``Greeks``.
+    ``greeks`` is the kernel's own aggregate, summed across periods, scaled by side exactly
+    as the single-period vanilla adapter scales its own kernel ``Greeks``.
     """
     instrument = position.instrument
     if not isinstance(instrument, CapFloorStripContract):
@@ -579,9 +566,9 @@ def _price_cap_floor_strip(position: Position, market_data: MarketData) -> Price
 
 
 #: Built-in dispatch table: instrument type -> pricer adapter. A module-level constant,
-#: **not** a Singleton (coding-style.md §3) and never mutated: ``value_portfolio`` merges
-#: it with any caller-supplied ``pricers`` into a fresh dict per call, so registering an
-#: extra instrument type needs no edit to this module (Req 13.4).
+#: never mutated: ``value_portfolio`` merges it with any caller-supplied ``pricers`` into
+#: a fresh dict per call, so registering an extra instrument type needs no edit to this
+#: module.
 DEFAULT_PRICERS: dict[type[Any], Pricer] = {
     FuturesContract: _price_forward_like,
     ForwardContract: _price_forward_like,
@@ -601,29 +588,27 @@ def value_portfolio(
     market_data: MarketData,
     pricers: Mapping[type[Any], Pricer] | None = None,
 ) -> PortfolioValuation:
-    """Value every position via its registered pricer and aggregate the NPV (Req 13.2-13.6).
+    """Value every position via its registered pricer and aggregate the NPV.
 
-    The dispatch registry is :data:`DEFAULT_PRICERS` merged with the caller-supplied
-    ``pricers`` (caller entries win) — the open/closed extension seam: new instrument
-    types are registered, never edited in (Req 13.4). Positions are processed in
-    portfolio order; a position whose instrument type has no registered pricer is
-    returned in ``unpriced`` rather than raising, so the rest of the book is still
-    valued, and ``total_npv`` sums the priced positions only (Req 13.3).
+    The dispatch registry is ``DEFAULT_PRICERS`` merged with the caller-supplied
+    ``pricers`` (caller entries win); new instrument types are registered, never edited
+    in. Positions are processed in portfolio order; a position whose instrument type has
+    no registered pricer is returned in ``unpriced`` rather than raising, so the rest of
+    the book is still valued, and ``total_npv`` sums the priced positions only.
 
-    Pricing errors — :class:`~quantvolt.exceptions.ExpiredContractError`,
-    :class:`~quantvolt.exceptions.MissingTenorError`, a missing forward curve from
-    :meth:`MarketData.curve_for` — **propagate**: they are data errors on a position
-    the registry *does* know how to price, not registry misses, and silently skipping
-    them would hide a mispriced book.
+    Pricing errors -- ``ExpiredContractError``, ``MissingTenorError``, a missing forward
+    curve from ``MarketData.curve_for`` -- propagate: they are data errors on a position
+    the registry does know how to price, not registry misses, and silently skipping them
+    would hide a mispriced book.
 
-    Inputs are never mutated, and identical inputs produce identical results (Req 13.6).
+    Inputs are never mutated, and identical inputs produce identical results.
 
-    **No LSMC or dispatch engine ever runs inside this function** (Req 19.2). A
-    :class:`~quantvolt.models.instruments.CachedAssetValuation` position is priced by
-    re-emitting its already-computed ``npv``/``delta`` (after a staleness check against
-    ``market_data.valuation_date``) — ``value_portfolio`` itself never simulates or
-    re-optimises anything; every native pricer here is a thin *validate -> gather inputs ->
-    delegate to an existing closed-form kernel -> package a result* orchestration.
+    No LSMC or dispatch engine ever runs inside this function. A
+    ``CachedAssetValuation`` position is priced by re-emitting its already-computed
+    ``npv``/``delta`` (after a staleness check against ``market_data.valuation_date``);
+    ``value_portfolio`` itself never simulates or re-optimises anything -- every native
+    pricer here validates, gathers inputs, delegates to an existing closed-form kernel,
+    and packages a result.
     """
     registry: dict[type[Any], Pricer] = {**DEFAULT_PRICERS, **(pricers or {})}
     priced: list[PricedPosition] = []

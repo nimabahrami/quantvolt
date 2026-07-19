@@ -44,7 +44,7 @@ def main() -> None:
     )
 
     # 1. Deterministic intrinsic value: the optimal forward-locked injection/withdrawal
-    #    schedule against the seasonal curve (Jan-27 .. Dec-27), 100-step inventory grid.
+    #    schedule against the seasonal curve (Jan-27 to Dec-27), 100-step inventory grid.
     intrinsic = storage_intrinsic(model, curve, grid_steps=100)
     print("intrinsic value:", round(intrinsic.value, 2))
     print("injection schedule (MWh):", [round(v, 2) for v in intrinsic.injection])

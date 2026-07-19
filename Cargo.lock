@@ -237,7 +237,7 @@ dependencies = [
 
 [[package]]
 name = "quantvolt-core"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "ndarray 0.17.2",
  "numpy",

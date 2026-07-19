@@ -1,8 +1,8 @@
-"""Portfolio value objects — a Composite over heterogeneous instrument positions (Task 60).
+"""Portfolio value objects — a Composite over heterogeneous instrument positions.
 
 ``Portfolio`` realises the Composite intent with the lightest Python construct
 (``coding-style.md`` §0/§2): a frozen tuple of positions plus native iteration, so
-downstream valuation and risk code handles one position and many uniformly (Req 13.1).
+downstream valuation and risk code handles one position and many uniformly.
 """
 
 from __future__ import annotations
@@ -65,7 +65,7 @@ class Position:
 class PricedPosition:
     """A position after valuation — exactly what RiskEngine and mark_to_market consume.
 
-    Invariants enforced at construction (eager boundary validation, ``coding-style.md`` §7):
+    Invariants enforced eagerly at construction:
 
     - ``npv`` must be finite. A NaN or ±inf NPV would silently poison every downstream
       aggregate (portfolio NPV, VaR loss quantiles), so it is rejected here with a
@@ -105,9 +105,9 @@ class PricedPosition:
 class Portfolio:
     """An immutable, iterable Composite of positions — one and many handled uniformly.
 
-    Satisfies Req 13.1: an ordered, immutable collection whose positions can be iterated
-    and counted without mutation — ``__iter__`` delegates to the underlying tuple in
-    construction order and ``__len__`` counts without side effects.
+    An ordered, immutable collection whose positions can be iterated and counted without
+    mutation — ``__iter__`` delegates to the underlying tuple in construction order and
+    ``__len__`` counts without side effects.
     """
 
     positions: tuple[Position, ...]

@@ -1,11 +1,11 @@
-"""DataSource protocol, Credentials, errors, and snapshot/replay for the data layer (Task 53).
+"""DataSource protocol, Credentials, errors, and snapshot/replay for the data layer.
 
 ``quantvolt.data`` is the **optional imperative shell** (``pip install quantvolt[data]``) — the
 only part of the library that performs I/O. The analytics core never imports it; the dependency
 points inward (``data/`` -> ``models/``), and adapters return the same value objects the core
-consumes, so fetched and caller-supplied data are interchangeable (Req 12.1, 12.2).
+consumes, so fetched and caller-supplied data are interchangeable.
 
-Credentials are caller-owned (Req 12.3, 12.4): they are read only from an explicit
+Credentials are caller-owned: they are read only from an explicit
 :class:`Credentials` object or, when that is absent, from the documented
 ``QUANTVOLT_<PROVIDER>_TOKEN`` environment variables (explicit wins). They are never persisted,
 cached, or logged; they are redacted from all string representations and error messages; and
@@ -55,7 +55,7 @@ __all__ = [
 class Credentials:
     """Caller-owned API keys. Never persisted or logged; redacted in repr.
 
-    Resolution order (Req 12.3): an explicitly constructed ``Credentials`` object always wins;
+    Resolution order: an explicitly constructed ``Credentials`` object always wins;
     :meth:`from_env` is the documented environment-variable fallback. Credentials are read
     from nowhere else.
     """
@@ -80,7 +80,7 @@ class Credentials:
         Raises:
             AuthenticationError: If neither ``token`` nor ``api_key`` is set. The message
                 names the provider and the ``QUANTVOLT_<PROVIDER>_TOKEN`` environment
-                variable — never a credential value (Req 12.5).
+                variable — never a credential value.
         """
         value = self.token or self.api_key
         if value:
@@ -132,7 +132,7 @@ class DataSource(Protocol):
 
     Free adapters (ENTSO-E, ENTSOG, Open-Meteo) provide spot/day-ahead prices, fundamentals,
     and weather; ``forward_curve`` is implemented **only** by commercial adapters or replaced
-    by caller-supplied curves (Req 12.8).
+    by caller-supplied curves.
     """
 
     def forward_curve(self, commodity: CommodityConfig, market_date: date) -> ForwardCurve: ...
@@ -147,18 +147,18 @@ class _SupportsToDict(Protocol):
 
 
 def snapshot(obj: _SupportsToDict) -> dict[str, Any]:
-    """Serialise a fetched value object to a JSON-friendly snapshot (Req 12.7).
+    """Serialise a fetched value object to a JSON-friendly snapshot.
 
     The fetch itself is non-deterministic (live data), but a persisted snapshot makes every
     downstream analytic reproducible: :func:`restore` rebuilds an equal value object, and the
-    core's determinism (Req 11.2) guarantees identical results from identical inputs.
+    core's determinism guarantees identical results from identical inputs.
     Snapshots contain only market data — never credentials.
     """
     return obj.to_dict()
 
 
 def restore(data: dict[str, Any]) -> ForwardCurve:
-    """Rebuild a :class:`ForwardCurve` from a :func:`snapshot` dict (Req 12.7).
+    """Rebuild a :class:`ForwardCurve` from a :func:`snapshot` dict.
 
     ``restore(snapshot(curve)) == curve``, so re-running analytics from a stored snapshot
     reproduces identical results.
@@ -167,7 +167,7 @@ def restore(data: dict[str, Any]) -> ForwardCurve:
 
 
 def _require_https(url: str) -> None:
-    """Refuse any non-HTTPS provider URL (Req 12.4). All adapters call this before a request.
+    """Refuse any non-HTTPS provider URL. All adapters call this before a request.
 
     The error names only the scheme and host — never the query string, which may carry a
     credential.
@@ -181,7 +181,7 @@ def _require_https(url: str) -> None:
 
 
 def _raise_for_status(provider: str, status_code: int) -> None:
-    """Map a provider HTTP status onto the library error hierarchy (Req 12.5).
+    """Map a provider HTTP status onto the library error hierarchy.
 
     Messages name the provider and the credential *name* (the env var), never a credential
     value, and never echo the request URL or response body.
@@ -200,7 +200,7 @@ def _raise_for_status(provider: str, status_code: int) -> None:
 
 
 def _json_object(provider: str, response: httpx.Response) -> dict[str, Any]:
-    """Parse ``response`` as JSON and require a top-level JSON object (Req 12.5/12.6).
+    """Parse ``response`` as JSON and require a top-level JSON object.
 
     Shared by every JSON-based free adapter (ENTSOG, Open-Meteo) so the "provider
     returned garbage" error messages are defined exactly once: an unparseable body

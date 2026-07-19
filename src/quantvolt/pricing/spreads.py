@@ -1,30 +1,29 @@
-"""Spread analysis — spark/dark/clean/basis/crack/forward/implied-heat-rate (Tasks 32-34).
+"""Spread analysis: spark/dark/clean/basis/crack/forward/implied-heat-rate.
 
-Intercommodity spread analytics over discrete forward curves (design §2.4, Req 2).
-Every function computes over the **intersection** of the delivery periods of its
-input curves; an empty intersection raises
-:class:`~quantvolt.exceptions.InsufficientDataError` naming both commodities (and
+Intercommodity spread analytics over discrete forward curves. Every function
+computes over the intersection of the delivery periods of its input curves; an
+empty intersection raises ``InsufficientDataError`` naming both commodities (and
 the requested range where one applies) rather than computing partial results
-silently (Req 2.4, 2.5).
+silently.
 
-Conventions fixed by this module (result objects are co-located per ``structure.md``):
+Conventions fixed by this module:
 
-- :class:`SpreadResult` carries its ``spread_type`` (``"spark"`` or ``"dark"``)
-  alongside the per-period values, so spark and dark margins are always *separate*
-  immutable objects — computing one can never touch the other (Req 2.1, Property 6).
-- :func:`clean_spread` reads Req 2.2 as follows: the function cleans the ONE spread
-  it is given and labels the result with that spread's type. "Compute both the
-  Clean_Spark_Spread and the Clean_Dark_Spread" is satisfied by calling it twice —
-  once with a spark :class:`SpreadResult` and once with a dark one — each deducting
-  ``emissions_intensity * EUA_price`` from its corresponding uncleaned spread.
-- :func:`crack_spread` uses the market ``input:outputs`` ratio convention: with
+- ``SpreadResult`` carries its ``spread_type`` (``"spark"`` or ``"dark"``)
+  alongside the per-period values, so spark and dark margins are always separate
+  immutable objects; computing one can never touch the other.
+- ``clean_spread`` cleans the one spread it is given and labels the result with
+  that spread's type. Computing both a clean spark spread and a clean dark spread
+  means calling it twice, once with a spark ``SpreadResult`` and once with a dark
+  one, each deducting ``emissions_intensity * EUA_price`` from its corresponding
+  uncleaned spread.
+- ``crack_spread`` uses the market ``input:outputs`` ratio convention: with
   ``ratio=(3, 2, 1)`` (3:2:1), 3 units of crude yield 2 units of the first product
   and 1 unit of the second, and the spread is normalised per unit of crude.
-- :func:`basis` reports the population standard deviation by default (``ddof=0``);
-  percentiles default to the 5th/95th and use :func:`numpy.percentile` with its
+- ``basis`` reports the population standard deviation by default (``ddof=0``);
+  percentiles default to the 5th/95th and use ``numpy.percentile`` with its
   default (linear) interpolation.
-- :func:`forward_spread` is the forward spark spread: the formula is identical to
-  :func:`spark_spread`, differing only in time-horizon interpretation (Property 43).
+- ``forward_spread`` is the forward spark spread: the formula is identical to
+  ``spark_spread``, differing only in time-horizon interpretation.
 """
 
 from __future__ import annotations
@@ -53,8 +52,8 @@ class SpreadResult:
     """A generation-margin spread per delivery period, labelled by its type.
 
     ``spread_type`` records whether the values are spark (gas-fired) or dark
-    (coal-fired) margins; the label is what lets :func:`clean_spread` name its
-    output and what keeps spark and dark results distinct objects (Property 6).
+    (coal-fired) margins; the label is what lets ``clean_spread`` name its
+    output and what keeps spark and dark results distinct objects.
     ``per_period`` preserves chronological key order.
     """
 
@@ -68,7 +67,7 @@ class CleanSpreadResult:
 
     ``per_period`` holds the cleaned spread (uncleaned - carbon cost) and
     ``carbon_cost`` the deducted ``emissions_intensity * EUA_price`` per period,
-    so callers can reconstruct the uncleaned spread (Property 7).
+    so callers can reconstruct the uncleaned spread.
     """
 
     spread_type: SpreadType
@@ -82,7 +81,7 @@ class ImpliedHeatRateResult:
 
     ``anomalous`` lists, in chronological order, the periods whose implied heat
     rate falls strictly outside the caller-supplied ``anomaly_range``; it is empty
-    when no range was supplied (Req 2.3).
+    when no range was supplied.
     """
 
     per_period: dict[DeliveryPeriod, float]
@@ -91,11 +90,11 @@ class ImpliedHeatRateResult:
 
 @dataclass(frozen=True, slots=True)
 class BasisResult:
-    """Per-period locational basis (A - B) with summary statistics (Req 2.4).
+    """Per-period locational basis (A - B) with summary statistics.
 
     ``std`` is the standard deviation (population by default, ``ddof=0``);
     ``p5``/``p95`` are the ``lower_percentile``/``upper_percentile`` (5th/95th by
-    default) via :func:`numpy.percentile` (linear interpolation). See :func:`basis`.
+    default) via ``numpy.percentile`` (linear interpolation). See ``basis``.
     """
 
     per_period: dict[DeliveryPeriod, float]
@@ -109,7 +108,7 @@ class BasisResult:
 class CrackSpreadResult:
     """Refining margin per delivery period, normalised per unit of crude.
 
-    ``ratio`` echoes the crack convention used, e.g. ``(3, 2, 1)`` — crude units
+    ``ratio`` echoes the crack convention used, e.g. ``(3, 2, 1)``: crude units
     first, then one output entry per product curve in insertion order.
     """
 
@@ -119,7 +118,7 @@ class CrackSpreadResult:
 
 @dataclass(frozen=True, slots=True)
 class CalendarSpreadResult:
-    """Storage-related calendar spread between two delivery periods (Property 44).
+    """Storage-related calendar spread between two delivery periods.
 
     ``price_difference`` is the raw later-minus-earlier price difference;
     ``storage_cost_total`` is ``storage_cost`` (per month) times the number of
@@ -151,10 +150,10 @@ def _shared_periods(
     """Chronologically ordered intersection of two curves' delivery periods.
 
     When ``within=(start, end)`` is given, only shared periods whose
-    :attr:`~quantvolt.models.schedule.DeliveryPeriod.last_day` falls inside the
-    inclusive ``[start, end]`` range survive. An empty result raises
-    :class:`InsufficientDataError` naming both parameters, both commodities, each
-    curve's covered span, and the requested range (Req 2.4, 2.5).
+    ``DeliveryPeriod.last_day`` falls inside the inclusive ``[start, end]`` range
+    survive. An empty result raises ``InsufficientDataError`` naming both
+    parameters, both commodities, each curve's covered span, and the requested
+    range.
     """
     periods_b = {node.period for node in curve_b.nodes}
     shared = [node.period for node in curve_a.nodes if node.period in periods_b]
@@ -185,7 +184,7 @@ def _generation_spread(
     emissions_cost: float,
     spread_type: SpreadType,
 ) -> SpreadResult:
-    """Shared spark/dark kernel: validate eagerly, then apply Req 2.1 per period."""
+    """Shared spark/dark kernel: validate eagerly, then compute the margin per period."""
     require_positive("heat_rate", heat_rate)
     require_non_negative("variable_cost", variable_cost)
     require_non_negative("emissions_cost", emissions_cost)
@@ -212,14 +211,14 @@ def spark_spread(
     """Spark spread (gas-fired generation margin) per shared delivery period.
 
     For each period in the intersection of ``power_curve`` and ``fuel_curve``:
-    ``power_price - heat_rate * fuel_price - variable_cost - emissions_cost``
-    (Req 2.1, Property 6). Computing a spark spread never reads or writes any dark
-    values: each call returns a new immutable :class:`SpreadResult` labelled
-    ``"spark"``, so any existing dark result remains untouched.
+    ``power_price - heat_rate * fuel_price - variable_cost - emissions_cost``.
+    Computing a spark spread never reads or writes any dark values: each call
+    returns a new immutable ``SpreadResult`` labelled ``"spark"``, so any existing
+    dark result remains untouched.
 
-    Raises :class:`~quantvolt.exceptions.ValidationError` unless ``heat_rate > 0``,
-    ``variable_cost >= 0`` and ``emissions_cost >= 0``, and
-    :class:`InsufficientDataError` when the curves share no delivery periods.
+    Raises ``ValidationError`` unless ``heat_rate > 0``, ``variable_cost >= 0``
+    and ``emissions_cost >= 0``, and ``InsufficientDataError`` when the curves
+    share no delivery periods.
     """
     return _generation_spread(
         power_curve, fuel_curve, heat_rate, variable_cost, emissions_cost, "spark"
@@ -235,9 +234,9 @@ def dark_spread(
 ) -> SpreadResult:
     """Dark spread (coal-fired generation margin) per shared delivery period.
 
-    Same formula and validation as :func:`spark_spread` with a coal ``fuel_curve``;
+    Same formula and validation as ``spark_spread`` with a coal ``fuel_curve``;
     the result is labelled ``"dark"``. It is a separate immutable object, so
-    computing it never modifies any spark values (Req 2.1, Property 6).
+    computing it never modifies any spark values.
     """
     return _generation_spread(
         power_curve, fuel_curve, heat_rate, variable_cost, emissions_cost, "dark"
@@ -247,18 +246,17 @@ def dark_spread(
 def clean_spread(
     spread: SpreadResult, eua_curve: ForwardCurve, emissions_intensity: float
 ) -> CleanSpreadResult:
-    """Deduct the carbon cost from an uncleaned spark or dark spread (Req 2.2).
+    """Deduct the carbon cost from an uncleaned spark or dark spread.
 
-    Decorator intent as a plain function: wraps one :class:`SpreadResult` and adds
-    the carbon cost, per period: ``cleaned = spread - emissions_intensity *
-    EUA_price``. The result keeps the input's ``spread_type``, so cleaning a spark
-    spread yields the clean spark spread and cleaning a dark spread the clean dark
-    spread — call once per uncleaned spread to obtain both (Property 7).
+    Wraps one ``SpreadResult`` and adds the carbon cost, per period:
+    ``cleaned = spread - emissions_intensity * EUA_price``. The result keeps the
+    input's ``spread_type``, so cleaning a spark spread yields the clean spark
+    spread and cleaning a dark spread the clean dark spread; call once per
+    uncleaned spread to obtain both.
 
-    Raises :class:`~quantvolt.exceptions.ValidationError` unless
-    ``emissions_intensity >= 0``, and :class:`InsufficientDataError` when
-    ``eua_curve`` lacks any of the spread's delivery periods (Req 2.5) — no
-    partial result is returned.
+    Raises ``ValidationError`` unless ``emissions_intensity >= 0``, and
+    ``InsufficientDataError`` when ``eua_curve`` lacks any of the spread's
+    delivery periods; no partial result is returned.
     """
     require_non_negative("emissions_intensity", emissions_intensity)
     eua_prices = _prices_by_period(eua_curve)
@@ -283,15 +281,15 @@ def implied_heat_rate(
     gas_curve: ForwardCurve,
     anomaly_range: tuple[float, float] | None = None,
 ) -> ImpliedHeatRateResult:
-    """Implied heat rate ``power_price / gas_price`` per shared period (Req 2.3).
+    """Implied heat rate ``power_price / gas_price`` per shared period.
 
     Validation is eager and complete before any computation: every shared period's
     gas price must be strictly positive; the first violation raises
-    :class:`~quantvolt.exceptions.ValidationError` identifying that delivery period
-    and no heat rate is computed (Property 8). When ``anomaly_range=(lo, hi)`` is
-    supplied (requiring ``lo < hi``), periods whose implied heat rate falls
-    *strictly outside* the inclusive ``[lo, hi]`` band are flagged in
-    ``anomalous``; without a range no period is flagged.
+    ``ValidationError`` identifying that delivery period and no heat rate is
+    computed. When ``anomaly_range=(lo, hi)`` is supplied (requiring ``lo < hi``),
+    periods whose implied heat rate falls strictly outside the inclusive
+    ``[lo, hi]`` band are flagged in ``anomalous``; without a range no period is
+    flagged.
     """
     if anomaly_range is not None:
         lo, hi = anomaly_range
@@ -325,16 +323,15 @@ def basis(
     upper_percentile: float = 95.0,
     ddof: int = 0,
 ) -> BasisResult:
-    """Locational basis ``price(A) - price(B)`` per period in ``[start, end]`` (Req 2.4).
+    """Locational basis ``price(A) - price(B)`` per period in ``[start, end]``.
 
     The computation covers the shared delivery periods whose last calendar day
     falls within the inclusive ``[start, end]`` range; no such period raises
-    :class:`InsufficientDataError` naming both commodities and the range rather
-    than returning empty statistics (Property 9). Summary statistics: mean,
-    standard deviation (``ddof=0`` by default — the periods are the whole
-    population of interest, not a sample), and the ``lower_percentile``/
-    ``upper_percentile`` (default 5th/95th) via :func:`numpy.percentile`
-    (linear interpolation).
+    ``InsufficientDataError`` naming both commodities and the range rather than
+    returning empty statistics. Summary statistics: mean, standard deviation
+    (``ddof=0`` by default; the periods are the whole population of interest,
+    not a sample), and the ``lower_percentile``/``upper_percentile`` (default
+    5th/95th) via ``numpy.percentile`` (linear interpolation).
 
     Args:
         curve_a: First curve of the basis (``A`` in ``A - B``).
@@ -345,7 +342,7 @@ def basis(
             (default 5.0) and strictly below ``upper_percentile``.
         upper_percentile: Percentile reported as ``p95``, in ``[0, 100]``
             (default 95.0).
-        ddof: Delta degrees of freedom for :func:`numpy.std`, non-negative
+        ddof: Delta degrees of freedom for ``numpy.std``, non-negative
             (default 0, population standard deviation).
     """
     if start > end:
@@ -383,20 +380,19 @@ def crack_spread(
     """Refining margin per delivery period for an ``input:outputs`` crack ratio.
 
     Convention: ``ratio[0]`` is the number of crude (input) units and ``ratio[1:]``
-    the product (output) units, matched to ``product_curves`` in insertion order —
-    the default 3:2:1 means 3 crude → 2 of the first product + 1 of the second.
-    Per period, over the shared delivery periods of *all* curves::
+    the product (output) units, matched to ``product_curves`` in insertion order;
+    the default 3:2:1 means 3 crude to 2 of the first product plus 1 of the second.
+    Per period, over the shared delivery periods of all curves::
 
-        spread = (Σᵢ product_priceᵢ * ratio[1 + i] - crude_price * ratio[0]) / ratio[0]
+        spread = (sum(product_price_i * ratio[1 + i]) - crude_price * ratio[0]) / ratio[0]
 
     i.e. the margin normalised per unit of crude. For the standard 3:2:1 and 5:3:2
-    cracks the output units sum to the input units, so the product weights sum to 1
-    (Property 42).
+    cracks the output units sum to the input units, so the product weights sum to 1.
 
-    Raises :class:`~quantvolt.exceptions.ValidationError` unless ``product_curves``
-    is non-empty, ``len(ratio) == len(product_curves) + 1`` and every ratio entry
-    is > 0; raises :class:`InsufficientDataError` when no delivery period is common
-    to the crude curve and every product curve.
+    Raises ``ValidationError`` unless ``product_curves`` is non-empty,
+    ``len(ratio) == len(product_curves) + 1`` and every ratio entry is > 0;
+    raises ``InsufficientDataError`` when no delivery period is common to the
+    crude curve and every product curve.
     """
     require_non_empty("product_curves", product_curves)
     expected_entries = len(product_curves) + 1
@@ -445,10 +441,10 @@ def forward_spread(
 ) -> SpreadResult:
     """Forward spark spread over the curve intersection, for forward price risk.
 
-    The formula is identical to :func:`spark_spread` — forward power minus
-    heat-rate-weighted forward fuel minus costs — differing only in time-horizon
-    interpretation, so this delegates to it and returns the same ``"spark"``
-    -labelled :class:`SpreadResult` (design §2.4, Property 43).
+    The formula is identical to ``spark_spread``: forward power minus
+    heat-rate-weighted forward fuel minus costs, differing only in time-horizon
+    interpretation, so this delegates to it and returns the same
+    ``"spark"``-labelled ``SpreadResult``.
     """
     return spark_spread(power_curve, fuel_curve, heat_rate, variable_cost, emissions_cost)
 
@@ -459,7 +455,7 @@ def calendar_spread(
     period_late: DeliveryPeriod,
     storage_cost: float = 0.0,
 ) -> CalendarSpreadResult:
-    """Storage-related calendar spread on one curve (Task 34, Property 44).
+    """Storage-related calendar spread on one curve.
 
     ``spread = price(period_late) - price(period_early) - storage_cost * months``
     where ``months`` is the whole-month distance between the two delivery periods
@@ -468,10 +464,9 @@ def calendar_spread(
     ``period_late``; positive means contango net of carry, negative means
     backwardation.
 
-    Raises :class:`~quantvolt.exceptions.ValidationError` unless
-    ``period_early < period_late`` and ``storage_cost >= 0``; a period absent from
-    the curve raises :class:`~quantvolt.exceptions.MissingTenorError` (via
-    :meth:`ForwardCurve.price_at`).
+    Raises ``ValidationError`` unless ``period_early < period_late`` and
+    ``storage_cost >= 0``; a period absent from the curve raises
+    ``MissingTenorError`` (via ``ForwardCurve.price_at``).
     """
     require_non_negative("storage_cost", storage_cost)
     if not period_early < period_late:

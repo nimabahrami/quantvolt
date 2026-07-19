@@ -9,7 +9,7 @@ spread-option engine (``coding-style``: validate -> compute per period -> packag
   ``V = Σ_i D(t, T_i) · Q_delivered · max(P_B,i - P_A,i - T_AB, 0)`` with
   ``Q_delivered = min(Q, capacity) · (1 - loss)``. The per-period *payoff* the
   property names is the undiscounted ``Q_delivered · max(P_B - P_A - T_AB, 0)``.
-- **Extrinsic (option) value** (Req 24.2): when both location volatilities and their
+- **Extrinsic (option) value**: when both location volatilities and their
   correlation are supplied, each period is valued as a locational spread option
   (:func:`quantvolt.pricing.spread_option.price_spread_option`) — a call on
   ``P_B - P_A - T_AB`` (``forward1 = P_B``, ``forward2 = P_A``, ``strike = T_AB``,
@@ -20,7 +20,7 @@ spread-option engine (``coding-style``: validate -> compute per period -> packag
   per-period total value is that premium and the extrinsic value is
   ``premium - intrinsic`` (≥ 0: a spread option is worth at least its discounted
   intrinsic). Without vols/correlation the extrinsic value is zero.
-- **Bidirectional** (Req 24.3, Property 68): each period is committed to the
+- **Bidirectional**: each period is committed to the
   economically best of ``{A→B (tariff T_AB), B→A (tariff T_BA), no-flow}`` by *total*
   value. Since ``max`` over the two directions never exceeds their sum, a
   bidirectional right is subadditive: its value ≤ (A→B right) + (B→A right). For the
@@ -65,7 +65,7 @@ class TransportPeriodValue:
     """One shared delivery period's transport-right valuation.
 
     ``payoff`` is the undiscounted per-period intrinsic payoff
-    ``Q_delivered · max(P_sink - P_source - tariff, 0)`` (Property 67 form);
+    ``Q_delivered · max(P_sink - P_source - tariff, 0)``;
     ``intrinsic`` is that payoff discounted at ``discount_factor``; ``extrinsic`` is
     the option time value (0 without vols); ``value = intrinsic + extrinsic``.
     ``direction`` is the committed flow (``None`` for no-flow). ``delta_origin`` and
@@ -86,7 +86,7 @@ class TransportPeriodValue:
 
 @dataclass(frozen=True, slots=True)
 class TransportRightResult:
-    """Aggregate transport-right value plus per-period detail (Req 24.1-24.3).
+    """Aggregate transport-right value plus per-period detail.
 
     ``intrinsic``/``extrinsic``/``total`` are the sums over ``per_period`` with
     ``total == intrinsic + extrinsic``. ``delta_origin``/``delta_destination`` are the
@@ -136,8 +136,7 @@ def _shared_periods(
 
     Reuses the curve-intersection convention of :mod:`quantvolt.pricing.spreads`: an
     empty intersection raises :class:`InsufficientDataError` naming both commodities
-    and the requested schedule range rather than returning an empty valuation
-    (Req 24.5).
+    and the requested schedule range rather than returning an empty valuation.
     """
     prices_a = _prices_by_period(curve_a)
     prices_b = _prices_by_period(curve_b)
@@ -217,7 +216,7 @@ def _resolve_vols(
     vols: tuple[float, float] | None,
     correlation: float | None,
 ) -> tuple[float | None, float | None]:
-    """Validate the both-or-neither vols/correlation contract (Req 24.2).
+    """Validate the both-or-neither vols/correlation contract.
 
     Returns ``(sigma_a, sigma_b)`` (both ``None`` for the intrinsic-only path).
     ``vols`` is ``(sigma_origin, sigma_destination)``; both entries must be > 0 and
@@ -249,12 +248,12 @@ def value_transport_right(
     day_count: Callable[[date, date], float] = actual_365,
     settlement_lag_days: int = 0,
 ) -> TransportRightResult:
-    """Value a transmission or pipeline right (Req 24.1-24.5, Properties 67-68).
+    """Value a transmission or pipeline right.
 
     ``curve_a`` is the origin (hub A) forward curve and ``curve_b`` the destination
     (hub B) curve; their commodity ids must match ``right.origin`` / ``right.destination``
     so curves cannot be silently swapped. Valuation covers the shared periods of both
-    curves within the right's schedule (Req 24.5). Each period's settlement is its
+    curves within the right's schedule. Each period's settlement is its
     ``last_day`` plus ``settlement_lag_days`` (the swap/tolling convention): the
     discount factor is taken there. For the option path, ``time_to_expiry`` is
     ``day_count`` (default actual/365) from ``discount_curve.reference_date`` to the
@@ -266,7 +265,7 @@ def value_transport_right(
     Req 24.2) adds the spread-option extrinsic value per period. A ``BIDIRECTIONAL``
     right commits each period to the best of A→B (tariff ``tariff``), B→A (tariff
     ``reverse_tariff``, defaulting to ``tariff``) or no-flow, and is subadditive versus
-    two one-way rights (Property 68).
+    two one-way rights.
 
     Args:
         right: The transmission or pipeline right to value.
@@ -287,11 +286,11 @@ def value_transport_right(
 
     Raises:
         ValidationError: If ``vols``/``correlation`` are not supplied both-or-neither
-            (Req 24.2), if the curve commodity ids do not match ``right.origin`` /
+           , if the curve commodity ids do not match ``right.origin`` /
             ``right.destination``, if ``settlement_lag_days`` is negative, or if a
             location forward is non-positive on the option path (from the
             spread-option engine).
-        InsufficientDataError: If the two curves share no schedule period (Req 24.5).
+        InsufficientDataError: If the two curves share no schedule period.
         MissingTenorError: If the discount curve does not cover a period's settlement.
     """
     if right.origin != curve_a.commodity.commodity_id:

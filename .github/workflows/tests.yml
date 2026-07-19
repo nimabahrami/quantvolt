@@ -47,6 +47,11 @@ jobs:
         # public pricing kernel is in tests/validation/coverage_manifest.json. See
         # .kiro/steering/provenance.md and scripts/ci/check_provenance.py.
         run: python scripts/ci/check_provenance.py
+      - name: Documentation lint
+        # Stdlib-only static checks (no quantvolt import) over the public-facing docs: stray
+        # internal spec/task references, banned marketing phrases, and stray double
+        # punctuation. See scripts/ci/check_docs.py and docs/claims.md.
+        run: python scripts/ci/check_docs.py
 
   test:
     runs-on: ubuntu-latest
@@ -72,6 +77,20 @@ jobs:
         # which would risk CI timeouts on convergence/standard-error tests.
         run: uv run maturin develop --release
       - run: uv run pytest --ignore=tests/benchmarks -q --durations=20
+      - name: Run documentation verify scripts
+        # Every site/examples/verify_*.py re-executes a documentation code sample end-to-end
+        # against the just-built package -- these previously ran in no CI at all. Each script
+        # imports its sibling shared_setup.py via Python's implicit "script directory is on
+        # sys.path" behaviour, so it must run with its own directory as the working directory
+        # (not `python -m`, and not invoked from the repo root).
+        working-directory: site/examples
+        run: |
+          set -e
+          for script in verify_*.py; do
+            echo "::group::$script"
+            uv run python "$script"
+            echo "::endgroup::"
+          done
 
   benchmarks:
     runs-on: ubuntu-latest

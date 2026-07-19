@@ -91,10 +91,11 @@ Call premium: 45,663 EUR (delta 5,288 EUR per EUR/MWh)
 Book NPV: 9,133 EUR, VaR(95): 11,715 EUR
 ```
 
-Identical inputs give identical outputs: Monte Carlo honours a `seed`, inputs are validated
-eagerly (no silent partial results), results round-trip through plain dicts / JSON, and the
-library never mutates caller data — `quantvolt.testing.assert_input_unchanged` lets you verify
-that last invariant in your own tests.
+Repeated calls with the same inputs, seed, QuantVolt version, architecture, and native build
+produce identical results. Monte Carlo honours a `seed`, inputs are validated eagerly (no silent
+partial results), results round-trip through plain dicts / JSON, and the library never mutates
+caller data — `quantvolt.testing.assert_input_unchanged` lets you verify that last invariant in
+your own tests.
 
 ### Settle a PPA with your own interval data
 
@@ -309,9 +310,6 @@ positions. See [docs/risk-and-assets.md](docs/risk-and-assets.md).
   verify_tutorial_*.py` script): [spark spread to hedge](https://nimabahrami.github.io/quantvolt/#/guide/tutorial-spark),
   [renewable PPA to CFaR](https://nimabahrami.github.io/quantvolt/#/guide/tutorial-ppa), and
   [storage intrinsic to hedge](https://nimabahrami.github.io/quantvolt/#/guide/tutorial-storage)
-- `.kiro/steering/` — product, tech, structure, and coding-style standards
-- `.kiro/specs/power-energy-quant-analysis/` — requirements, design, and task breakdown
-  (the library is spec-driven; the design document is the source of truth for the maths)
 
 ## Development
 

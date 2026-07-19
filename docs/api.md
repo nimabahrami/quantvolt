@@ -12,7 +12,8 @@ Conventions that hold across the whole library:
 - Validation is eager and loud: bad inputs raise a subclass of `quantvolt.exceptions.EnergyQuantError`
   (`ValidationError`, `InsufficientDataError`, `MissingTenorError`, `ArbitrageError`, …) before any
   computation runs.
-- Anything random takes a `seed`; identical inputs give identical outputs.
+- Anything random takes a `seed`. Repeated calls with the same inputs, seed, QuantVolt version,
+  architecture, and native build produce identical results.
 - The package ships `py.typed` — all signatures below are visible to your type checker.
 
 ---
@@ -316,24 +317,24 @@ assigned to it, not calendar bounds), `interval_count`, `total_contracted_mwh`,
 `total_metered_generation_mwh`, and three independently-zeroable true-up components that sum
 to `net_true_up`:
 
-- **`volume_band_true_up`** (Requirement 9) — the *aggregate* analogue of the interval-level
+- **`volume_band_true_up`** — the *aggregate* analogue of the interval-level
   `PpaVolumeTerms.tolerance`: `-volume_band.penalty_per_mwh *
   volume_band.out_of_band_mwh(total_metered, total_contracted)`. Economically distinct from
   the interval-level tolerance band; the two may coexist.
-- **`availability_true_up`** (Requirement 10) — a **one-directional, shortfall-only**
+- **`availability_true_up`** — a **one-directional, shortfall-only**
   deemed-vs-measured availability guarantee (a declared design decision: it charges a true-up
   when measured availability falls below `deemed_availability_fraction`, and pays nothing back
   when measured beats it): `-true_up_price_per_mwh *
   availability.shortfall_fraction(measured) * total_contracted`, where `measured =
   total_metered / total_contracted` (`1.0` when `total_contracted == 0`, avoiding division by
   zero).
-- **`consecutive_hour_true_up`** (Requirement 11, EEG-style 4h/6h clauses) — only computed
+- **`consecutive_hour_true_up`** (EEG-style 4h/6h clauses) — only computed
   when `NegativePriceClause.min_consecutive_intervals` is set. **A consecutive-hour clause
   cannot be evaluated interval-locally**: whether a row belongs to a qualifying run needs
   neighbouring-row state a single interval settlement does not have. This is a **declared
   design decision**: `settle_ppa_interval`/`settle_ppa_frame` treat such a clause as fully
-  inert (`K_eff` resolves exactly as if no negative-price clause were attached at all;
-  Property 97 covers this locality), and `reconcile_ppa_ledger` detects maximal runs of
+  inert (`K_eff` resolves exactly as if no negative-price clause were attached at all),
+  and `reconcile_ppa_ledger` detects maximal runs of
   `spot < threshold_per_mwh` across the ledger, applying the suspension only to intervals in
   runs `>= min_consecutive_intervals` long. Because the canonical ledger does not carry raw
   spot (`settle_ppa_frame`'s output never has a spot column), the caller must join a
@@ -343,8 +344,8 @@ to `net_true_up`:
 `PpaContractMetadata` (`goo_transfer`, `goo_price_per_mwh`, `credit_support_type` /
 `credit_support_amount` / `credit_support_threshold`, `change_in_law_allocation`) is carried
 and validated on `PpaTerms.metadata` but has **zero settlement semantics** — it never enters
-`K_eff`, any ledger component, `component_sum`, or `net_cashflow`, for *any* metadata content
-(Property 85's metadata-only branch covers arbitrary, not just default, metadata).
+`K_eff`, any ledger component, `component_sum`, or `net_cashflow`, for *any* metadata content —
+arbitrary metadata, not just the default, is covered.
 
 ## `quantvolt.risk` — VaR, delta aggregation, stress scenarios
 
@@ -631,7 +632,7 @@ print([w.category.__name__ for w in caught])      # ['BangBangHedgeWarning']
 
 The schedule stays online through the low-price hour so it is already ramped for the later price
 spike — the kind of intertemporal trade-off the DP captures. `time_aggregate`, `horizon_divide`
-and `bang_bang` are the three caller-selectable approximations of Req 21.3; `bang_bang` emits a
+and `bang_bang` are the three caller-selectable dispatch approximations; `bang_bang` emits a
 `BangBangHedgeWarning` because collapsing the output grid distorts hedge sensitivities far more than
 the value itself.
 
@@ -662,7 +663,7 @@ fm = DispatchFactorModel(
     temperatures=(10.0, 10.0, 10.0, 10.0),
 )
 result = dispatch_value(plant, fm, method="lsm", seed=7, path_count=4096)
-print(round(result.value))                        # 7501  (<= perfect-foresight 8750, Property 62)
+print(round(result.value))                        # 7504  (<= perfect-foresight bound 8750)
 ```
 
 The on-peak/off-peak split (two power coordinates plus a per-period peak label) restores the Markov
@@ -698,9 +699,9 @@ print(f"intrinsic {intrinsic.value:.0f}  total {total.total:.0f}  "
 
 The intrinsic value locks in the summer-buy / winter-sell calendar spread. The shipped
 single-factor `StorageFactorModel` moves the whole curve together, so for a monotonic seasonal curve
-the extrinsic (timing) value is ~0; it is reported honestly with its Monte-Carlo standard error
-(Property 64: `extrinsic >= 0`, never clamped) and appears once spot can deviate from the forward
-ordering. `total == intrinsic + extrinsic` by construction.
+the extrinsic (timing) value is ~0; it is reported with its Monte-Carlo standard error rather
+than clamped (`extrinsic >= 0` is theoretical, not enforced) and appears once spot can deviate
+from the forward ordering. `total == intrinsic + extrinsic` by construction.
 
 Long-dated valuation governance keeps forward-covered and projected-spot values strictly separated
 so long-dated risk is never understated:
@@ -824,7 +825,7 @@ print(round(intrinsic.total, 1), round(option.extrinsic, 1))                # 13
 Supplying `vols` and `correlation` (both or neither) adds each period's spread-option extrinsic value
 via the Kirk/Margrabe engine — which requires strictly positive location forwards; the intrinsic path
 handles negative prices. A `BIDIRECTIONAL` right commits each period to the best of A→B, B→A or
-no-flow and is subadditive versus two one-way rights (Property 68). The holder is long the sink hub
+no-flow and is subadditive versus two one-way rights. The holder is long the sink hub
 and short the source hub, so `delta_origin` and `delta_destination` always carry opposite signs.
 
 ## `quantvolt.stats` — statistics for energy price series
@@ -1102,8 +1103,7 @@ dimensionless; a normal vol is an absolute price rate). The paper's rough conver
 `σ_N ≈ σ_BS · F₀` is a *manual* approximation only and is never applied automatically. To price a
 negative-forward book, register a **caller-supplied Bachelier pricer holding explicit normal vols**
 through the `pricers=` seam (below). A vol-type-aware `VolatilitySurface` that would make an
-automatic Black-76 → Bachelier switch safe is a named, severable deferred requirement (spec
-`.kiro/specs/bachelier-negative-forwards/`, Requirement 8).
+automatic Black-76 → Bachelier switch safe is a deferred feature.
 
 Tolling agreements are also priced natively via a `TollingAgreement` instrument (`plant`,
 `power_commodity_id`/`fuel_commodity_id`/`eua_commodity_id`, `schedule`, `capacity`); the pricer
@@ -1115,8 +1115,8 @@ existing book holding an unmodelled PPA keeps landing in `unpriced` rather than 
 
 ### Deferred roadmap: cached asset valuation and cap/floor strips
 
-Two further instrument types are natively priced but scoped as **DEFERRED roadmap** (Phase 3 /
-Requirements 19-20 of the `portfolio-native-pricers` spec) rather than fully-designed features —
+Two further instrument types are natively priced but scoped as **deferred roadmap** items rather
+than fully-designed features —
 they exist so a caller can start using them today, with the noted limitations recorded honestly.
 
 `CachedAssetValuation` folds an expensive, externally-computed LSMC/dispatch valuation (e.g. a
@@ -1126,7 +1126,7 @@ long-dated power plant or storage position) into a book as a frozen, precomputed
 repricing or reusing a stale cache — and re-emits the wrapper's own `npv`/`delta` unchanged. The
 `ValuationSource` provenance tag (`FORWARD`/`PROJECTED` from `assets/long_dated.py`, plus
 `SIMULATED` for this cache) is propagated onto the resulting position's `tags`, the same
-Property-66 pattern `assets.long_dated.var_applicability_guard` reads:
+pattern `assets.long_dated.var_applicability_guard` reads:
 
 ```python
 from datetime import date

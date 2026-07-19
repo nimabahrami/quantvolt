@@ -334,8 +334,7 @@ def _resolve_effective_price(
     intervals cannot be determined from this interval alone (it needs
     neighbouring-row state). This interval pass stays fully stateless for
     such a clause — treating it as if absent — and :func:`reconcile_ppa_ledger`
-    computes the run-based suspension separately as a post-processing true-up
-    (Requirement 11.2).
+    computes the run-based suspension separately as a post-processing true-up.
     """
     terms = contract.terms
     base = contract.fixed_price_per_mwh
@@ -421,8 +420,7 @@ def settle_ppa_interval(
       for it, is genuinely the better outcome when spot is negative — being
       credited for energy priced negatively is a cost, not a benefit). This
       inversion only occurs for ``spot_price_per_mwh < 0``; for ``spot >= 0``,
-      ``DEEMED_GENERATION`` net cash flow is always ``>=`` ``PRODUCER_BEARS``'s
-      (see Property 89, scoped to ``spot >= 0`` accordingly).
+      ``DEEMED_GENERATION`` net cash flow is always ``>=`` ``PRODUCER_BEARS``'s.
 
     A volume tolerance band, if attached, charges ``penalty_per_mwh`` on
     out-of-band MWh only, recorded as the separate, always-non-positive
@@ -430,8 +428,7 @@ def settle_ppa_interval(
 
     When ``contract.terms`` is ``None`` or ``PpaTerms()`` (every field ``None``)
     and ``curtailed_mwh == 0.0``, every shared field is byte-identical to the
-    as-built (no-terms) output; the four new fields take their inert values
-    (Property 85).
+    as-built (no-terms) output; the four new fields take their inert values.
 
     Embedded floor/cap price bounds (``PpaPriceTerms``), a ``hedges=`` overlay
     (:class:`~quantvolt.models.power_hedge.PowerHedgeContract`, settled into
@@ -557,7 +554,7 @@ class PpaReconciliationColumns:
 
     All five columns are ordinary columns of a :func:`settle_ppa_frame` ledger
     **except** ``spot_price_per_mwh``, which that ledger does not carry (the
-    interval pass never records raw spot — see Requirement 5/6). A caller
+    interval pass never records raw spot). A caller
     whose ``contract.terms.negative_price`` carries a consecutive-hour trigger
     length must join a spot-price column onto the ledger themselves (for
     example from the original input frame) before calling
@@ -626,8 +623,8 @@ def _consecutive_hour_corrections(
     """Per-row true-up correction for maximal, **clock-contiguous** runs meeting the
     trigger length.
 
-    Identifies maximal runs of rows with ``negative_price.triggers(spot_price_per_mwh)``
-    (Requirement 11.1); rows in a run whose length is ``>= min_consecutive_intervals``
+    Identifies maximal runs of rows with ``negative_price.triggers(spot_price_per_mwh)``;
+    rows in a run whose length is ``>= min_consecutive_intervals``
     get :func:`_row_correction`, every other row (including rows in a sub-threshold
     run that is too short) gets exactly ``0.0`` (consecutive-hour locality).
 
@@ -686,10 +683,10 @@ def reconcile_ppa_ledger(
 
     A **pure post-processing pass**: it never modifies, re-derives, or
     contradicts a single row of the interval-level ledger produced by
-    :func:`settle_ppa_frame` / :func:`settle_ppa_interval` (Requirement 9.2).
+    :func:`settle_ppa_frame` / :func:`settle_ppa_interval`.
     Requires ``contract.terms.reconciliation`` (a
     :class:`~quantvolt.models.ppa_terms.PpaReconciliationTerms`); returns one
-    row per reconciliation period (Requirement 9.1), sorted chronologically,
+    row per reconciliation period, sorted chronologically,
     with these columns:
 
     - ``period_start_utc`` / ``period_end_utc`` — the bounds of the ledger
@@ -701,18 +698,18 @@ def reconcile_ppa_ledger(
     - ``volume_band_true_up`` — ``0.0`` unless ``reconciliation.volume_band``
       is attached, else ``-volume_band.penalty_per_mwh *
       volume_band.out_of_band_mwh(total_metered, total_contracted)``
-      (Requirement 9; the *aggregate* analogue of the interval-level
+      (the *aggregate* analogue of the interval-level
       ``PpaVolumeTerms.tolerance``, economically distinct from it).
     - ``availability_true_up`` — ``0.0`` unless ``reconciliation.availability``
       is attached, else ``-true_up_price_per_mwh *
       availability.shortfall_fraction(measured) * total_contracted``, where
       ``measured = total_metered / total_contracted`` (``1.0`` when
       ``total_contracted == 0``, a declared decision avoiding division by
-      zero) (Requirement 10).
+      zero).
     - ``consecutive_hour_true_up`` — ``0.0`` unless
       ``contract.terms.negative_price.min_consecutive_intervals`` is set, else
-      the period's sum of :func:`_consecutive_hour_corrections` (Requirement
-      11); a run spanning a period boundary is attributed row-by-row to
+      the period's sum of :func:`_consecutive_hour_corrections`; a run spanning
+      a period boundary is attributed row-by-row to
       whichever period contains each corrected row (a declared design
       decision — it is not specially split or reallocated). "Consecutive"
       means **clock-time contiguous**, not merely row-adjacent (AMENDED
@@ -726,7 +723,7 @@ def reconcile_ppa_ledger(
 
     Each period's ``net_true_up`` is, by construction, exactly the sum of its
     own three stated formulas evaluated over that period's rows only
-    (Requirement 9.3's self-reconciliation).
+    (each period self-reconciles).
     """
     if columns is None:
         columns = PpaReconciliationColumns()

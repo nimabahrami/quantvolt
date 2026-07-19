@@ -1,11 +1,11 @@
-"""Credit VaR — counterparty default / rating migration loss distribution (Task 68, Req 17).
+"""Credit VaR — counterparty default / rating migration loss distribution.
 
 Credit VaR is a *credit* risk measure, not a mark-to-market market-VaR. It asks: over the
 one migration horizon defined by the supplied default/migration probabilities, how large
 could the loss from counterparty **default** be, at the 95% / 99% confidence level? The
 measure is driven by a one-factor Gaussian copula that links every counterparty's default
 event to a single shared systematic *market factor*, so defaults are simulated jointly
-with the market rather than independently (Req 17.2).
+with the market rather than independently.
 
 Request surface
 ---------------
@@ -17,19 +17,19 @@ path_count=100_000, asset_correlation=0.2)``
   instrument without that attribute, or with ``counterparty=None``, is treated as
   credit-risk-free). Counterparty-less positions are **never dropped silently**: they are
   collected into ``CreditVaRResult.credit_risk_free`` and excluded from the loss
-  simulation (Req 17.2).
+  simulation.
 * ``transition: Mapping[str, ArrayLike]`` — per-counterparty one-period **rating-migration
   row**: the probability distribution over next-period rating states, with the **last**
   state being *default* (absorbing). Each row must have entries in ``[0, 1]`` and sum to
-  ``1`` within ``1e-9`` (Req 17.4); the default-state probability driving loss is the last
+  ``1`` within ``1e-9``; the default-state probability driving loss is the last
   entry. A pure survive/default counterparty is expressed as ``[1 - p, p]``. Every supplied
   row is validated (even for counterparties not present on any position); every
   credit-bearing counterparty (one that appears on a position) must have a row, else a
   :class:`~quantvolt.exceptions.ValidationError` naming the counterparty is raised.
 * ``exposures: Mapping[str, float] | None`` — optional per-counterparty exposure. When a
   counterparty is present here, that value is authoritative; otherwise its exposure is
-  derived from the book by **close-out netting** — the sum of its positions' NPVs (Req
-  17.1). Either way the exposure-at-default is floored at zero (see EAD convention below).
+  derived from the book by **close-out netting** — the sum of its positions' NPVs.
+  Either way the exposure-at-default is floored at zero (see EAD convention below).
 * ``recovery: float | Mapping[str, float]`` — recovery rate in ``[0, 1]``, either one
   scalar applied to every counterparty or a per-counterparty mapping (which must cover
   every credit-bearing counterparty). Loss-given-default is ``LGD = 1 - recovery``.
@@ -50,7 +50,7 @@ variable is ``X_c = sqrt(rho)*M + sqrt(1-rho)*eps_c`` (standard normal). Mapping
 the normal CDF gives a uniform ``U_c = Phi(X_c)``, and the counterparty defaults on that
 path iff ``U_c < p_c`` where ``p_c`` is its default probability. This is the standard
 copula-to-uniform construction: the marginal default probability is exactly ``p_c`` while
-the shared ``M`` makes defaults co-move with the market and with one another (Req 17.2).
+the shared ``M`` makes defaults co-move with the market and with one another.
 Using the uniform form (rather than a ``Phi^{-1}(p)`` threshold on ``X``) keeps the
 degenerate probabilities ``p = 0`` (never) and ``p = 1`` (always) exact without infinities.
 
@@ -113,7 +113,7 @@ _ROW_SUM_TOL = 1e-9
 
 @dataclass(frozen=True, slots=True)
 class CounterpartyCreditDetail:
-    """Per-counterparty credit inputs and closed-form expected loss (Req 17.1).
+    """Per-counterparty credit inputs and closed-form expected loss.
 
     ``exposure`` is the exposure-at-default ``EAD = max(net exposure, 0)`` actually used in
     the simulation; ``lgd`` is ``1 - recovery``; ``expected_loss`` is the analytic
@@ -129,7 +129,7 @@ class CounterpartyCreditDetail:
 
 @dataclass(frozen=True, slots=True)
 class CreditVaRResult:
-    """Outcome of a :func:`credit_var` computation (Req 17.1).
+    """Outcome of a :func:`credit_var` computation.
 
     ``credit_var_95`` / ``credit_var_99`` are the (95% / 99% by default) credit-loss
     quantiles and
@@ -138,7 +138,7 @@ class CreditVaRResult:
     ``credit_var_99 >= credit_var_95``. ``per_counterparty`` holds one
     :class:`CounterpartyCreditDetail` per credit-bearing counterparty, ordered by
     counterparty id. ``credit_risk_free`` lists the positions carrying no counterparty,
-    reported rather than dropped silently (Req 17.2). ``seed``, ``path_count`` and
+    reported rather than dropped silently. ``seed``, ``path_count`` and
     ``asset_correlation`` are echoed for reproducibility.
     """
 
@@ -156,7 +156,7 @@ def _default_probability(counterparty: str, row: npt.ArrayLike) -> float:
     """Validate one counterparty's migration row and return its default probability.
 
     The row must be a 1-D probability vector with entries in ``[0, 1]`` summing to ``1``
-    within ``1e-9`` (Req 17.4); the default-state probability is its last entry. Every
+    within ``1e-9``; the default-state probability is its last entry. Every
     violation raises a :class:`~quantvolt.exceptions.ValidationError` naming the
     counterparty and the constraint.
     """
@@ -186,7 +186,7 @@ def _default_probability(counterparty: str, row: npt.ArrayLike) -> float:
 
 
 def _recovery_for(counterparty: str, recovery: float | Mapping[str, float]) -> float:
-    """Resolve and validate the recovery rate for one counterparty (Req 17.1).
+    """Resolve and validate the recovery rate for one counterparty.
 
     A scalar ``recovery`` applies to every counterparty; a mapping must contain the
     counterparty. The value is validated to lie in ``[0, 1]`` with a message naming the
@@ -215,7 +215,7 @@ def credit_var(
     asset_correlation: float = 0.2,
     confidences: Sequence[float] = DEFAULT_CONFIDENCES,
 ) -> CreditVaRResult:
-    """Compute Credit VaR and expected credit loss over the priced book (Req 17).
+    """Compute Credit VaR and expected credit loss over the priced book.
 
     Counterparty-less positions are set aside as credit-risk-free; every credit-bearing
     counterparty's default event is drawn jointly with a shared systematic market factor
@@ -232,7 +232,7 @@ def credit_var(
         exposures: Optional per-counterparty exposure; where absent, exposure is the
             net (summed) NPV of that counterparty's positions. EAD is floored at zero.
         recovery: Recovery rate in ``[0, 1]``, scalar or per-counterparty. ``LGD = 1 - r``.
-        seed: RNG seed (``>= 0``); results are reproducible under it (Req 17.3).
+        seed: RNG seed (``>= 0``); results are reproducible under it.
         path_count: Number of Monte Carlo paths (``>= 1``).
         asset_correlation: Copula systematic-factor loading ``rho in [0, 1]``.
         confidences: The two credit-VaR confidence levels (fractions in ``(0, 1)``,
@@ -247,7 +247,7 @@ def credit_var(
             recovery is outside ``[0, 1]``, a transition row has an out-of-range probability
             or does not sum to 1 within ``1e-9`` (message names the counterparty), a
             supplied exposure is non-finite, a credit-bearing counterparty has no
-            transition row (message names the counterparty) (Req 17.4), or
+            transition row (message names the counterparty), or
             ``confidences`` does not contain exactly 2 strictly ascending levels in
             ``(0, 1)``.
     """

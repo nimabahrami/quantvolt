@@ -1,4 +1,4 @@
-"""Descriptive statistics (Task 20).
+"""Descriptive statistics.
 
 Stateless, module-level functions over a Polars :class:`~polars.Series` of prices (or
 price changes). They validate at the boundary, drop nulls, and hand the remaining values
@@ -93,7 +93,7 @@ def moments(data: pl.Series, order: int = 4) -> dict[int, float]:
     """Compute central moments about the mean up to ``order``.
 
     Returns central moments with the population (``1/n``) normalisation:
-    ``m_k = (1/n) * sum_i (x_i - mean)**k`` for ``k`` in ``1..order``. The first
+    ``m_k = (1/n) * sum_i (x_i - mean)**k`` for ``k`` from 1 to ``order``. The first
     central moment is ~0 by construction and the second is the population variance.
     Nulls are dropped first; the input series is left unchanged.
 
@@ -102,7 +102,7 @@ def moments(data: pl.Series, order: int = 4) -> dict[int, float]:
         order: Highest moment order to compute (default 4, i.e. up to kurtosis).
 
     Returns:
-        A dict mapping each order ``k`` (``1..order``, in ascending order) to its central
+        A dict mapping each order ``k`` (1 to ``order``, ascending) to its central
         moment. The dict has exactly ``order`` entries.
 
     Raises:

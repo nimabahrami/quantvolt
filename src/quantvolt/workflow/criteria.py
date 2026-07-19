@@ -1,4 +1,4 @@
-"""Model-selection criteria (Task 44)."""
+"""Model-selection criteria."""
 
 from __future__ import annotations
 
@@ -20,8 +20,8 @@ class ModelSelectionCriteria:
         max_parameter_drift: Maximum tolerated parameter change over a rolling window,
             as a fraction, in [0, 1].
         require_risk_factor_separation: When True, ``ModelingWorkflow.run`` fails loudly
-            if any model-independent risk factor is left without a static hedge
-            (Property 41); when False the result merely records the failure.
+            if any model-independent risk factor is left without a static hedge;
+            when False the result merely records the failure.
     """
 
     min_observations: int = 252

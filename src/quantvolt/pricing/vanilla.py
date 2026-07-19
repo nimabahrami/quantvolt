@@ -1,16 +1,15 @@
-"""Vanilla options (calls, puts, caps, floors) — Black-76 (Task 27).
+"""Vanilla options (calls, puts, caps, floors) — Black-76.
 
-Thin orchestration over the pure :mod:`quantvolt.numerics.black76` kernel,
-following the pricing skeleton *validate -> kernel -> package* (Reqs 5.4-5.6).
-A cap/floor is the Composite intent: a strip of caplets/floorlets priced
-independently, returning per-period **and** aggregate premium/Greeks
-(Property 16). All real math lives in the kernel; this module only validates
-typed requests and packages results.
+Thin orchestration over the pure ``quantvolt.numerics.black76`` kernel:
+validate the typed request, call the kernel, package the result. A cap/floor
+prices as a strip of caplets/floorlets, each priced independently, returning
+per-period and aggregate premium/Greeks. All real math lives in the kernel;
+this module only validates typed requests and packages results.
 
-Option-type mapping: a caplet *is* a call on the floating price and a floorlet
-*is* a put, so ``"cap"`` prices through the ``"call"`` kernel branch and
+Option-type mapping: a caplet is a call on the floating price and a floorlet
+is a put, so ``"cap"`` prices through the ``"call"`` kernel branch and
 ``"floor"`` through ``"put"``. The mapping is a dispatch dict, not a
-conditional chain (coding-style.md §4, Switch Statements).
+conditional chain.
 """
 
 from __future__ import annotations
@@ -26,6 +25,9 @@ from ..numerics.black76 import black76_greeks, black76_price
 
 @dataclass(frozen=True, slots=True)
 class VanillaOptionRequest:
+    """Complete Black-76 call or put inputs: type, strike, notional, forward, volatility,
+    time to expiry and discount factor."""
+
     option_type: Literal["call", "put", "cap", "floor"]
     strike: float
     notional: float
@@ -37,12 +39,18 @@ class VanillaOptionRequest:
 
 @dataclass(frozen=True, slots=True)
 class VanillaOptionResult:
+    """Vanilla option output containing discounted premium and the complete analytical
+    Greeks object."""
+
     premium: float
     greeks: Greeks
 
 
 @dataclass(frozen=True, slots=True)
 class CapFloorRequest:
+    """Inputs for a cap or floor strip over aligned forward, strike, volatility, expiry and
+    discount-factor sequences."""
+
     option_type: Literal["cap", "floor"]
     strike: float
     notional: float
@@ -51,6 +59,9 @@ class CapFloorRequest:
 
 @dataclass(frozen=True, slots=True)
 class CapFloorResult:
+    """Aggregate cap/floor premium together with the individual caplet or floorlet
+    contributions used to reconcile it."""
+
     premium: float
     greeks: Greeks
     per_period: tuple[VanillaOptionResult, ...]
@@ -77,7 +88,7 @@ def price_vanilla_option(request: VanillaOptionRequest) -> VanillaOptionResult:
 
     Args:
         request: Fully specified option; all domains are validated eagerly
-            before any computation (Req 5.4).
+            before any computation.
 
     Returns:
         The notional-scaled premium and Greeks.
@@ -119,33 +130,33 @@ def price_cap_floor(
 ) -> CapFloorResult:
     """Price a cap/floor as a strip of independently priced caplets/floorlets.
 
-    Composite intent (Req 5.6, Property 16): each period is priced through
-    :func:`price_vanilla_option` with its own forward, volatility,
+    Each period is priced independently through
+    ``price_vanilla_option`` with its own forward, volatility,
     time-to-expiry, discount factor and notional; the result carries both the
     per-period results and their plain sums (aggregate premium via ``sum``,
     aggregate Greeks via ``Greeks.__add__`` from ``Greeks.zero()``), so the
     aggregate equals the sum of the per-period values exactly.
 
     Consistency rule: each caplet's own ``option_type`` must price on the same
-    call/put side as the strip — ``"call"``/``"cap"`` labels inside a ``"cap"``
+    call/put side as the strip: ``"call"``/``"cap"`` labels inside a ``"cap"``
     strip, ``"put"``/``"floor"`` inside a ``"floor"`` strip. A mismatched
-    caplet is rejected with a :class:`ValidationError` rather than silently
-    repriced as the strip side (fail loudly, coding-style.md §7).
+    caplet is rejected with a ``ValidationError`` rather than silently
+    repriced as the strip side.
 
-    Strike/notional consistency (Req 5.6): a cap/floor strip has ONE strike
-    (the cap/floor rate) and ONE notional; per Req 5.6 only ``forward``,
+    Strike/notional consistency: a cap/floor strip has ONE strike
+    (the cap/floor rate) and ONE notional; only ``forward``,
     ``discount_factor`` and ``time_to_expiry`` vary caplet-by-caplet. Every
     caplet's own ``strike`` and ``notional`` fields (each caplet is a full
-    :class:`VanillaOptionRequest`, so it structurally carries them) must
+    ``VanillaOptionRequest``, so it structurally carries them) must
     therefore equal ``request.strike`` / ``request.notional`` exactly; a
-    divergent caplet is rejected with a :class:`ValidationError` naming the
+    divergent caplet is rejected with a ``ValidationError`` naming the
     caplet index rather than silently pricing on its own (ignored) values.
 
     Args:
-        request: The strip; validated eagerly — including the strip-length
-            cap — before any pricing.
+        request: The strip; validated eagerly, including the strip-length
+            cap, before any pricing.
         max_strip_periods: Maximum number of caplets/floorlets in the strip,
-            at least 1 (default 120, Req 5.6).
+            at least 1 (default 120).
 
     Returns:
         Aggregate premium/Greeks plus the per-period results, ordered as the
@@ -157,7 +168,7 @@ def price_cap_floor(
             ``max_strip_periods``, a caplet's ``option_type`` is on the wrong
             side for the strip, a caplet's ``strike``/``notional`` diverges
             from the strip's (naming the caplet index), or any caplet fails
-            the :func:`price_vanilla_option` domain checks.
+            the ``price_vanilla_option`` domain checks.
     """
     require_positive("strike", request.strike)
     require_positive("notional", request.notional)

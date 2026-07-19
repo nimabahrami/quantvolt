@@ -1,4 +1,4 @@
-"""Fixed-for-floating swap pricing (Task 26; Req 4.1-4.5).
+"""Fixed-for-floating swap pricing.
 
 Conventions
 -----------
@@ -18,7 +18,7 @@ Conventions
 
 The pricer stays thin (validate -> vectorised kernel -> package): float prices and
 discount factors are gathered once at the boundary, and the cash-flow arithmetic is
-pure NumPy so a 120-period swap prices well inside the 500 ms budget (Req 4.5).
+pure NumPy so a 120-period swap prices well inside the 500 ms budget.
 """
 
 from __future__ import annotations
@@ -52,7 +52,7 @@ class SwapPricingResult:
 
 
 def _require_no_overlapping_periods(periods: tuple[DeliveryPeriod, ...]) -> None:
-    """Sort-and-scan overlap guard (Req 4.2), reporting *each* offending pair.
+    """Sort-and-scan overlap guard, reporting *each* offending pair.
 
     A valid :class:`~quantvolt.models.schedule.DeliverySchedule` already enforces
     strictly-increasing periods at construction, so overlapping periods cannot reach
@@ -74,7 +74,7 @@ def _require_no_overlapping_periods(periods: tuple[DeliveryPeriod, ...]) -> None
 def _forward_prices(
     periods: tuple[DeliveryPeriod, ...], forward_curve: ForwardCurve
 ) -> npt.NDArray[np.float64]:
-    """Gather the floating forward price per period, in schedule order (Req 4.4).
+    """Gather the floating forward price per period, in schedule order.
 
     Raises :class:`MissingTenorError` naming *every* delivery period the forward
     curve does not cover, rather than extrapolating silently.
@@ -99,7 +99,7 @@ def _discount_factors(
     discount_curve: DiscountCurve,
     settlement_lag_days: int,
 ) -> npt.NDArray[np.float64]:
-    """Gather the discount factor at each period's settlement date (Req 4.4).
+    """Gather the discount factor at each period's settlement date.
 
     Settlement is the period's last calendar day plus ``settlement_lag_days``. Raises
     :class:`MissingTenorError` naming *every* period whose settlement date falls
@@ -123,7 +123,7 @@ def price_swap(
     settlement_lag_days: int = 0,
     rate_bump: float = _BASIS_POINT,
 ) -> SwapPricingResult:
-    """Price a fixed-for-floating swap: NPV, per-period delta, and rho (Req 4.1-4.3).
+    """Price a fixed-for-floating swap: NPV, per-period delta, and rho.
 
     See the module docstring for the cash-flow (payer-of-fixed / receiver-of-floating)
     and rho (per-bp parallel shift of the continuously compounded zero rate) conventions.

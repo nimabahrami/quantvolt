@@ -1,4 +1,4 @@
-"""Open-Meteo (free, keyless) — daily temperatures for the weather module (Task 56).
+"""Open-Meteo (free, keyless) — daily temperatures for the weather module.
 
 Open-Meteo is **keyless**: no token is required and none is ever transmitted. A
 ``Credentials`` object is still accepted (and ``QUANTVOLT_OPEN_METEO_TOKEN`` read) purely for
@@ -8,10 +8,10 @@ constructor uniformity with the other adapters — it is optional and unused.
 2-metre temperature (``daily=temperature_2m_mean``) and returns a ``pl.DataFrame`` with
 columns ``[location, date, temp_celsius]`` — exactly the shape
 :func:`quantvolt.market.weather.degree_days` consumes, so fetched and caller-supplied
-temperature data are interchangeable (Req 12.2).
+temperature data are interchangeable.
 
-Open-Meteo is a weather source: this adapter exposes **no** ``forward_curve`` method
-(Req 12.8). Tests use ``httpx.MockTransport`` — no live calls in CI.
+Open-Meteo is a weather source: this adapter exposes no ``forward_curve`` method.
+Tests use ``httpx.MockTransport`` — no live calls in CI.
 """
 
 from __future__ import annotations
@@ -56,7 +56,7 @@ def _parse_location(location: str) -> tuple[float, float]:
 class OpenMeteoSource:
     """Keyless Open-Meteo adapter: daily mean temperatures as a ``pl.DataFrame``.
 
-    No ``forward_curve`` method — free sources are never forward-curve sources (Req 12.8).
+    No ``forward_curve`` method — free sources are never forward-curve sources.
     """
 
     provider = "open_meteo"

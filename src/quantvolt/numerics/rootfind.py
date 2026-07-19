@@ -1,4 +1,4 @@
-"""Root-finding and finite differences (Task 12).
+"""Root-finding and finite differences.
 
 Pure numeric kernels: ``float`` in, ``float`` out. No domain types and no
 domain validation live here. Numerical precondition and convergence failures use

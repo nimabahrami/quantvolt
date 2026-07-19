@@ -1,42 +1,42 @@
-"""Dispatch heuristics and approximations (Task 74; Req 21.3).
+"""Dispatch heuristics and approximations.
 
-Req 21.3 requires three *caller-selectable* approximations to the dispatch
-optimisation, each trading fidelity for tractability, plus a specific warning when
-the state-aggregation ("bang-bang") one is used. This module implements them as
-**documented input/problem transformations around the exact deterministic solver**
-:func:`quantvolt.assets.dispatch_deterministic.dispatch_deterministic` (eq. B.1) --
-the perfect-foresight optimum that is itself the upper bound the stochastic value
-is measured against (Property 62). Wrapping the deterministic DP (rather than the
-Monte-Carlo :func:`~quantvolt.assets.dispatch_sdp.dispatch_value`) keeps every
-approximation's error *exactly* comparable to a noise-free benchmark: the
+Three caller-selectable approximations to the dispatch optimisation, each trading
+fidelity for tractability, plus a specific warning when the state-aggregation
+("bang-bang") one is used. This module implements them as documented input/problem
+transformations around the exact deterministic solver
+``quantvolt.assets.dispatch_deterministic.dispatch_deterministic``: the
+perfect-foresight optimum that is itself the upper bound the stochastic value
+is measured against. Wrapping the deterministic DP (rather than the
+Monte-Carlo ``quantvolt.assets.dispatch_sdp.dispatch_value``) keeps every
+approximation's error exactly comparable to a noise-free benchmark: the
 block-constant, decoupling, and bias identities below are equalities up to float
 tolerance, not statistical statements. The same three transformations apply
-unchanged to the stochastic solver -- a caller may block-average the factor
+unchanged to the stochastic solver: a caller may block-average the factor
 model's per-step structure, divide the simulated horizon, or feed a bang-bang
-plant to :func:`dispatch_value` -- but the *heuristic itself* is the transform, and
+plant to ``dispatch_value``, but the heuristic itself is the transform, and
 it is cleanest to specify and test against the deterministic optimum.
 
 The three approximations
 ------------------------
-- :func:`time_aggregate` -- **time aggregation** (hourly -> 4/8/16-hour blocks).
+- ``time_aggregate``: time aggregation (hourly -> 4/8/16-hour blocks).
   Averages the price/temperature series into equal blocks, solves the (much
   shorter) coarse dispatch, and rescales the coarse value back to the original
   number of hours. Exact on block-constant prices for a unit that incurs no start
   within the horizon; the intra-block ramp/commitment freedom it drops is the
   approximation.
-- :func:`horizon_divide` -- **horizon division** (weekly / monthly sub-horizons).
-  Splits the horizon into consecutive sub-horizons solved *independently* and sums
-  their values. The boundary-state approximation -- each sub-horizon after the
+- ``horizon_divide``: horizon division (weekly / monthly sub-horizons).
+  Splits the horizon into consecutive sub-horizons solved independently and sums
+  their values. The boundary-state approximation: each sub-horizon after the
   first restarts from a cold, restart-ready offline state, dropping the true
-  carried-over commitment state -- decouples the subproblems. Exact when the
+  carried-over commitment state, decouples the subproblems. Exact when the
   periods decouple (zero start costs and non-binding min-run / min-down / ramp).
-- :func:`bang_bang` -- **state aggregation** for steep heat-rate curves. Collapses
+- ``bang_bang``: state aggregation for steep heat-rate curves. Collapses
   the online output grid to the single full-load level, so the unit is either off
-  or running at ``c_max`` ({0, c_max}). Exact for a *linear* (constant marginal)
+  or running at ``c_max`` ({0, c_max}). Exact for a linear (constant marginal)
   heat rate, where the optimal load is always a corner; a downward-biased lower
   bound for a steep (rising-marginal) curve, where the exact optimum runs at an
   efficient part load the approximation cannot represent. Emits
-  :class:`BangBangHedgeWarning` (Req 21.3): hedges are far more sensitive than
+  ``BangBangHedgeWarning``: hedges are far more sensitive than
   values to the heat-curve approximation.
 
 Direction-of-bias summary (the "documented direction" the tests assert)
@@ -70,17 +70,17 @@ from .plant import MaxCapacityCurve, PlantModel
 
 
 class BangBangHedgeWarning(UserWarning):
-    """Advisory that bang-bang state aggregation biases hedges far more than values (Req 21.3).
+    """Advisory that bang-bang state aggregation biases hedges far more than values.
 
     Collapsing the output grid to {0, c_max} pins the operating point to full load,
     so the plant value loses only the (often small) part-load optionality. The
-    *sensitivities* — the deltas and critical-dispatch surfaces used to hedge — are
+    sensitivities (the deltas and critical-dispatch surfaces used to hedge) are
     a different matter: they read the slope of value against price, and the
     approximation replaces the true, curved heat-rate response with a single kink
     at the on/off boundary. A hedge derived from a bang-bang model can therefore be
     badly wrong even when the headline value looks reasonable. The approximation is
-    not rejected — for a sufficiently steep heat curve the value error is genuinely
-    negligible — but the caller is warned so the choice is deliberate.
+    not rejected: for a sufficiently steep heat curve the value error is genuinely
+    negligible, but the caller is warned so the choice is deliberate.
     """
 
 
@@ -109,7 +109,7 @@ def time_aggregate(
     output_step: float | None = None,
     discount_factors: Sequence[float] | None = None,
 ) -> DispatchSchedule:
-    """Time-aggregation heuristic: solve on ``block_hours``-hour blocks, rescale (Req 21.3).
+    """Time-aggregation heuristic: solve on ``block_hours``-hour blocks, rescale.
 
     Each consecutive run of ``block_hours`` periods is averaged into one coarse
     period (power, fuel, temperature, and — if supplied — discount factor), the
@@ -229,21 +229,21 @@ def horizon_divide(
     output_step: float | None = None,
     discount_factors: Sequence[float] | None = None,
 ) -> DispatchSchedule:
-    """Horizon-division heuristic: solve independent sub-horizons and sum (Req 21.3).
+    """Horizon-division heuristic: solve independent sub-horizons and sum.
 
     The horizon is cut into consecutive sub-horizons of length ``sub_horizon`` (the
-    last may be shorter) that are solved *independently* by the deterministic DP and
+    last may be shorter) that are solved independently by the deterministic DP and
     concatenated; ``total_value`` is the sum of the sub-values. This is the weekly /
     monthly sub-period heuristic that keeps each solve small.
 
-    Boundary-state approximation. Only the **first** sub-horizon sees the caller's
+    Boundary-state approximation. Only the first sub-horizon sees the caller's
     initial condition; every later sub-horizon restarts from a cold, restart-ready
-    *offline* state. Dropping the true carried-over commitment state is exactly what
-    decouples the subproblems — and is the approximation. It is **exact** when the
+    offline state. Dropping the true carried-over commitment state is exactly what
+    decouples the subproblems, and is the approximation. It is exact when the
     periods decouple (zero start costs and non-binding min-run / min-down / ramp),
     because the dispatch is then myopic and the start-up state is immaterial. It
-    **typically understates** value otherwise (each boundary can pay a spurious
-    restart cost), but it *can* overstate value when a binding min-run / min-down
+    typically understates value otherwise (each boundary can pay a spurious
+    restart cost), but it can overstate value when a binding min-run / min-down
     constraint that would span a boundary in the full solve is artificially relaxed
     by the cut.
 
@@ -335,34 +335,34 @@ def bang_bang(
     output_step: float | None = None,
     discount_factors: Sequence[float] | None = None,
 ) -> DispatchSchedule:
-    """Bang-bang state aggregation: run at full load or off, {0, c_max} (Req 21.3).
+    """Bang-bang state aggregation: run at full load or off, {0, c_max}.
 
     Collapses the online output grid to a single full-load level so the unit is
-    either off or running at ``c_max`` — the state aggregation Appendix B recommends
-    for a *sufficiently steep* heat-rate curve, where the optimal load is (almost)
+    either off or running at ``c_max``, recommended for a sufficiently steep
+    heat-rate curve, where the optimal load is (almost)
     always a corner. Implemented by solving the deterministic DP on a derived plant
     whose ``c_min`` and ``c_max`` are both pinned to that full-load level; every
     other operating characteristic (heat-rate curve, start costs, ramp, durations)
-    is unchanged. The input plant is **not** mutated — a new :class:`PlantModel` is
+    is unchanged. The input plant is not mutated: a new ``PlantModel`` is
     derived.
 
-    Full-load level. With a constant capacity the pinned level *is* ``c_max``. With a
+    Full-load level. With a constant capacity the pinned level is ``c_max``. With a
     temperature-dependent ``c_max(temp)`` the level is the horizon-minimum ``c_max``
     (the largest constant full-output level feasible in every period); a period
     whose capacity falls below the plant's own ``c_min`` makes the plant infeasible
     there and is rejected, mirroring the deterministic solver's curve check.
 
-    Exactness and bias. For a **linear** (constant-marginal) heat rate the per-MWh
+    Exactness and bias. For a linear (constant-marginal) heat rate the per-MWh
     margin is output-independent, so the exact optimum is a corner and bang-bang is
-    exact. For a **steep** (rising-marginal) curve the exact optimum may run at an
+    exact. For a steep (rising-marginal) curve the exact optimum may run at an
     efficient part load that bang-bang cannot represent, so the value is a
-    **downward-biased lower bound**: whenever the full-load level is reachable in one
+    downward-biased lower bound: whenever the full-load level is reachable in one
     step (ramp rate >= operating range) the bang-bang on/off policy set is a strict
     subset of the exact one, and restricting the load choice can only lose value.
 
-    Warning (Req 21.3). Emits :class:`BangBangHedgeWarning`: hedges (sensitivities
+    Warning. Emits ``BangBangHedgeWarning``: hedges (sensitivities
     and critical-dispatch surfaces) are far more sensitive than the value itself to
-    the heat-rate-curve approximation, because they read the *slope* of value
+    the heat-rate-curve approximation, because they read the slope of value
     against price, which the single on/off kink distorts even where the value error
     is negligible.
 

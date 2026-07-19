@@ -1,31 +1,31 @@
-"""Gas storage valuation — intrinsic + extrinsic (Task 75; Req 22.1-22.4; Properties 64-65).
+"""Gas storage valuation: intrinsic + extrinsic.
 
 A gas store is injection/withdrawal optionality against a term structure: buy and inject
 when the curve is cheap, withdraw and sell when it is dear, subject to physical inventory
-bounds, injection/withdrawal *ratchets* (rate limits that may vary with the fill level),
+bounds, injection/withdrawal ratchets (rate limits that may vary with the fill level),
 per-unit throughput costs, fuel-in-kind losses, a carry/financing cost on the stored gas,
 and a terminal-inventory condition. This module supplies the value object and two
 valuations at increasing fidelity, mirroring the physical-asset workflow used by
-:mod:`quantvolt.assets.dispatch_deterministic`:
+``quantvolt.assets.dispatch_deterministic``:
 
-- :func:`storage_intrinsic` — the *intrinsic* value: the optimal **forward-locked**
+- ``storage_intrinsic``: the intrinsic value: the optimal forward-locked
   injection/withdrawal schedule priced against today's forward curve, computed by exact
-  backward-induction dynamic programming over a discretised inventory grid (Req 22.1).
+  backward-induction dynamic programming over a discretised inventory grid.
   Because the schedule is fixed today it carries no re-optimisation (time) value; it is the
   deterministic baseline every stochastic policy is measured against.
-- :func:`storage_value` — the *total* value (intrinsic + extrinsic) via Least-Squares
+- ``storage_value``: the total value (intrinsic + extrinsic) via Least-Squares
   Monte Carlo (LSM): spot-price paths are simulated with the single-factor forward-consistent
-  model of :class:`StorageFactorModel` (a documented one-factor reduction of the correlated
-  engine in :mod:`quantvolt.numerics.monte_carlo`), and a backward induction over
-  ``(time, inventory)`` with regression continuation values finds the optimal *adaptive*
-  policy. The extrinsic component is ``total - intrinsic`` (Req 22.2, Property 64).
+  model of ``StorageFactorModel`` (a documented one-factor reduction of the correlated
+  engine in ``quantvolt.numerics.monte_carlo``), and a backward induction over
+  ``(time, inventory)`` with regression continuation values finds the optimal adaptive
+  policy. The extrinsic component is ``total - intrinsic``.
 
 Conventions fixed by this module (documented; the idealized-case relations depend on them)
 -----------------------------------------------------------------------------------------
-- **Undiscounted.** Cash flows are summed at the forward/spot delivery prices with no
-  present-value discounting, exactly as :func:`quantvolt.pricing.spreads.calendar_spread`
+- Undiscounted. Cash flows are summed at the forward/spot delivery prices with no
+  present-value discounting, exactly as ``quantvolt.pricing.spreads.calendar_spread``
   does. Discounting, if wanted, is folded into the supplied forward prices by the caller.
-  Keeping the intrinsic undiscounted is what makes the Property-65 identity *exact*.
+  Keeping the intrinsic undiscounted is what makes the ``total >= intrinsic`` identity exact.
 - **Inventory is working gas.** The inventory state and the ``injection``/``withdrawal``
   amounts in a result are volumes of *working* gas (what is added to / removed from the
   cavern). Fuel-in-kind losses act on the *cash* (market throughput) leg only, so the
@@ -86,17 +86,17 @@ _LSM_BASIS_DEGREE = 2
 
 @dataclass(frozen=True, slots=True)
 class StorageModel:
-    """Physical + commercial parameters of a gas store (Req 22.1, 22.3).
+    """Physical + commercial parameters of a gas store.
 
-    Inventory bounds are time-invariant scalars — the lightest faithful representation;
-    time-varying bounds would be a strictly heavier model with no bearing on the Task-75
-    properties and are deferred until a requirement needs them. Ratchets carry the only
-    state-dependence that matters here, as callables of the current fill level.
+    Inventory bounds are time-invariant scalars, the lightest faithful representation;
+    time-varying bounds would be a strictly heavier model and are deferred until a
+    caller needs them. Ratchets carry the only state-dependence that matters here,
+    as callables of the current fill level.
 
-    All consistency constraints are validated eagerly in :meth:`__post_init__` (rate-curve
+    All consistency constraints are validated eagerly in ``__post_init__`` (rate-curve
     non-negativity, which cannot be checked over all inventories for an opaque callable, is
     checked at every grid level when a valuation runs). Inconsistent bounds raise a
-    :class:`~quantvolt.exceptions.ValidationError` naming the offending fields (Req 22.3).
+    ``ValidationError`` naming the offending fields.
 
     Attributes:
         min_inventory: Minimum working-gas inventory (volume).
@@ -167,7 +167,7 @@ class StorageModel:
 
 @dataclass(frozen=True, slots=True)
 class IntrinsicResult:
-    """The optimal forward-locked injection/withdrawal schedule and its value (Req 22.1).
+    """The optimal forward-locked injection/withdrawal schedule and its value.
 
     Every per-period tuple is in delivery-period order with the horizon's length ``T``;
     ``inventory`` has length ``T + 1`` (level entering each period, then the terminal level).
@@ -196,7 +196,7 @@ class IntrinsicResult:
 
 @dataclass(frozen=True, slots=True)
 class StorageFactorModel:
-    """Single-factor forward-consistent spot model for the extrinsic (LSM) leg (Req 20.5, 22.2).
+    """Single-factor forward-consistent spot model for the extrinsic (LSM) leg.
 
     A documented one-factor reduction of the correlated forward engine
     (:func:`quantvolt.numerics.monte_carlo.simulate_correlated_forwards`): a single Brownian
@@ -209,10 +209,10 @@ class StorageFactorModel:
       (today's prompt price is known);
     * ``E[spot_t] = F(0, t)`` — the forward is the risk-neutral spot mean, so the deterministic
       intrinsic schedule earns exactly the intrinsic value in expectation, which is what
-      guarantees ``extrinsic >= 0`` (Property 64).
+      guarantees ``extrinsic >= 0``.
 
     The model is *structured to admit* mean-reverting/OU dynamics without touching the
-    valuation (only the simulated factor changes), per Req 20.5; GBM is the shipped default.
+    valuation (only the simulated factor changes); GBM is the shipped default.
 
     Attributes:
         volatility: Annualised log-volatility ``sigma`` of the driving factor (``> 0``).
@@ -234,11 +234,11 @@ class StorageFactorModel:
 
 @dataclass(frozen=True, slots=True)
 class StorageValueResult:
-    """Total, intrinsic and extrinsic storage value with the MC standard error (Req 22.2).
+    """Total, intrinsic and extrinsic storage value with the MC standard error.
 
     ``total == intrinsic + extrinsic`` by construction (``total`` is anchored on the exact
     intrinsic value plus the control-variate extrinsic estimate). ``extrinsic`` is
-    theoretically non-negative (Property 64); it is reported honestly rather than clamped, and
+    theoretically non-negative; it is reported honestly rather than clamped, and
     ``standard_error`` — the Monte Carlo standard error of the extrinsic estimate — is the
     natural yardstick for the ``extrinsic >= -epsilon`` tolerance floor (a few standard errors)
     within which a small negative sampling value is acceptable.
@@ -277,7 +277,7 @@ def _build_grid(
     """Uniform inventory grid over ``[min, max]`` plus the initial-inventory index.
 
     Validates that ``inventory_step > 0`` and that both ``initial_inventory`` and
-    ``terminal_inventory`` land on the grid (Req 22.3 exactness); a degenerate store
+    ``terminal_inventory`` land on the grid; a degenerate store
     (``max == min``) collapses to the single level ``{min}``.
 
     ``grid_steps`` sets the number of grid intervals when ``inventory_step`` is not
@@ -337,7 +337,7 @@ def _feasible_transitions(
     """Every price-independent feasible transition from each grid level (rates + bounds).
 
     Ratchets depend only on the fill level (not on time or price), so the feasible move set is
-    computed once. Rate curves are checked ``>= 0`` here (Req 22.3); the bounds are enforced by
+    computed once. Rate curves are checked ``>= 0`` here; the bounds are enforced by
     construction because every ``level_to`` is a grid point inside ``[min, max]``.
     """
     n = len(levels)
@@ -386,13 +386,13 @@ def storage_intrinsic(
     inventory_step: float | None = None,
     grid_steps: int = _DEFAULT_GRID_STEPS,
 ) -> IntrinsicResult:
-    """Optimal forward-locked injection/withdrawal schedule and its value (Req 22.1).
+    """Optimal forward-locked injection/withdrawal schedule and its value.
 
     Exact backward-induction dynamic program over the discretised inventory grid: with the
     forward curve's per-period prices known, it finds the injection/withdrawal schedule that
     maximises total cash flow subject to the inventory bounds, the injection/withdrawal
     ratchets and the terminal-inventory condition — all enforced at *every* step by the
-    feasible-transition set (Req 22.3). See the module docstring for the discretisation,
+    feasible-transition set. See the module docstring for the discretisation,
     the cash-flow conventions and the exactness statement.
 
     Args:
@@ -561,7 +561,7 @@ def storage_value(
     lsm_basis_degree: int = _LSM_BASIS_DEGREE,
     antithetic: bool = True,
 ) -> StorageValueResult:
-    """Total (intrinsic + extrinsic) storage value via Least-Squares Monte Carlo (Req 22.2).
+    """Total (intrinsic + extrinsic) storage value via Least-Squares Monte Carlo.
 
     Simulates forward-consistent spot paths with ``factor_model`` (see
     :class:`StorageFactorModel`) and runs a backward induction over ``(time, inventory)`` that
@@ -572,9 +572,9 @@ def storage_value(
     (Longstaff-Schwartz). The regression is used only to choose the action; the value is then
     accumulated from the *realised* pathwise continuation to limit foldback bias. All the
     inventory-bound, ratchet and terminal constraints are enforced by the same
-    feasible-transition set as the intrinsic DP (Req 22.3).
+    feasible-transition set as the intrinsic DP.
 
-    Extrinsic value via a control variate (Property 64)
+    Extrinsic value via a control variate
     ---------------------------------------------------
     The extrinsic component is estimated as the mean pathwise difference between the adaptive
     policy value and the *fixed intrinsic schedule* evaluated on the **same** simulated paths
@@ -591,7 +591,7 @@ def storage_value(
         model: The storage parameters.
         forward_curve: The forward curve (its node prices are the per-period forward means).
         factor_model: The single-factor spot model and MC controls.
-        seed: RNG seed; identical inputs and seed give identical results (Req 11.2).
+        seed: RNG seed; identical inputs and seed give identical results.
         inventory_step: Inventory-grid spacing, shared with :func:`storage_intrinsic`.
         grid_steps: Number of inventory-grid intervals used to derive the default
             ``inventory_step`` when it is not supplied, shared with :func:`storage_intrinsic`

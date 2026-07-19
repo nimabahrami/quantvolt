@@ -1,7 +1,7 @@
-"""Thermal-plant operational model (Task 72; Req 21.1 partial).
+"""Thermal-plant operational model.
 
 ``PlantModel`` is the value object consumed by the dispatch optimizers
-(:mod:`quantvolt.assets.dispatch_deterministic` now, ``dispatch_sdp`` later).
+(``quantvolt.assets.dispatch_deterministic`` and ``dispatch_sdp``).
 It carries the operating characteristics of Appendix B eq. B.1: the marginal
 heat-rate curve ``HR(q, temp)``, minimum stable generation ``c_min``, the
 temperature-dependent maximum capacity ``c_max(temp)``, variable O&M, the three
@@ -9,7 +9,7 @@ start-cost buckets ``SC``/``FSC``/``PSC`` keyed by cold/warm/hot state, ramp
 rate ``RR``, the minimum-run / minimum-down / start-up durations, and the
 forced-outage rate ``λ``.
 
-Construct choices (kept as light as faithful, per ``coding-style.md`` §0)
+Construct choices (kept as light as faithful)
 -----------------------------------------------------------------------
 - ``HR(q, temp)`` and ``c_max(temp)`` are **caller-supplied pure callables**
   (``heat_rate`` and ``c_max`` fields). A constant heat rate is only an
@@ -32,7 +32,7 @@ buckets present, and each start-cost component ``≥ 0``. The curve constraints
 temperatures for an opaque callable, so they are checked (a) eagerly at each
 temperature in the optional ``representative_temperatures`` smoke set, and
 (b) exhaustively at dispatch time for every temperature actually supplied
-(see :func:`quantvolt.assets.dispatch_deterministic.dispatch_deterministic`).
+(see ``quantvolt.assets.dispatch_deterministic.dispatch_deterministic``).
 """
 
 from __future__ import annotations

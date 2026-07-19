@@ -1,58 +1,57 @@
-"""Tolling-agreement valuation (Task 31; Req 8.1-8.5; Properties 19, 20).
+"""Tolling-agreement valuation.
 
-A tolling agreement is the Composite intent: a strip of clean spark
+A tolling agreement is priced as a strip of clean spark
 (``fuel_type == "gas"``) or clean dark (``fuel_type == "coal"``) spread
 options, one per delivery period, each priced independently through
-:func:`quantvolt.pricing.spread_option.price_spread_option`, returned with
-per-period AND aggregate values/deltas. ``fuel_type`` only labels the strip:
+``quantvolt.pricing.spread_option.price_spread_option``, returned with
+per-period and aggregate values/deltas. ``fuel_type`` only labels the strip:
 gas and coal tolling share the same mathematics, with the fuel curve
 supplying the prices either way.
 
 Conventions fixed by this module
 --------------------------------
-- **Unit chain**: ``heat_rate`` is MWh_fuel/MWh_power and
+- Unit chain: ``heat_rate`` is MWh_fuel/MWh_power and
   ``emissions_intensity`` is tCO2/MWh_fuel. Per MWh of power, the fuel cost
   is ``heat_rate x fuel_price`` and the carbon cost is
   ``emissions_intensity x heat_rate x eua_price``
   ([tCO2/MWh_fuel] x [MWh_fuel/MWh_power] x [EUR/tCO2] = EUR/MWh_power).
-- **Leg composition**: each period is a call on ``power - (heat_rate x fuel
+- Leg composition: each period is a call on ``power - (heat_rate x fuel
   + emissions_intensity x heat_rate x eua) - variable_om_cost``, i.e.
   ``forward1`` = the power forward, ``forward2`` = the combined fuel+carbon
   leg, ``strike = variable_om_cost`` (EUR/MWh_power). A zero O&M cost thus
-  prices through Margrabe, a positive one through Kirk (Property 18).
-- **Notional**: the request carries no capacity/notional concept, so every
-  period prices with notional 1.0 — a unit-capacity (1 MWh per period)
+  prices through Margrabe, a positive one through Kirk.
+- Notional: the request carries no capacity/notional concept, so every
+  period prices with notional 1.0, a unit-capacity (1 MWh per period)
   tolling agreement. Callers scale results for real capacities.
-- **Volatility**: the design supplies ONE volatility surface, so
-  ``sigma_at(period)`` serves both legs (``sigma1 == sigma2``) — a
-  documented simplification; scaling a lognormal forward by constants
-  leaves its lognormal volatility unchanged, so the composite fuel+carbon
-  leg reuses the same annualised vol.
-- **Correlation**: ``correlation_matrix`` rows/columns follow the Req 8.1
-  ordering ``[power, fuel, eua]``; the pricing rho for every period is the
+- Volatility: ONE volatility surface is supplied, so ``sigma_at(period)``
+  serves both legs (``sigma1 == sigma2``); scaling a lognormal forward by
+  constants leaves its lognormal volatility unchanged, so the composite
+  fuel+carbon leg reuses the same annualised vol.
+- Correlation: ``correlation_matrix`` rows/columns follow the
+  ``[power, fuel, eua]`` ordering; the pricing rho for every period is the
   power-fuel entry ``correlation_matrix[0, 1]``.
-- **Discounting**: the discount factor at each period's settlement
-  (``DeliveryPeriod.last_day``, the swap-module convention) is passed INTO
-  the :class:`~quantvolt.pricing.spread_option.SpreadOptionRequest`, so the
+- Discounting: the discount factor at each period's settlement
+  (``DeliveryPeriod.last_day``, the swap-module convention) is passed into
+  the ``quantvolt.pricing.spread_option.SpreadOptionRequest``, so the
   kernel premium is already discounted and is used as the per-period value
-  unchanged — it is never discounted a second time.
-- **Time to expiry**: actual/365 from ``discount_curve.reference_date`` to
-  ``period.last_day`` — the option's decision horizon (the plant either runs
-  or does not over the delivery period). ``settlement_lag_days`` shifts ONLY
+  unchanged; it is never discounted a second time.
+- Time to expiry: actual/365 from ``discount_curve.reference_date`` to
+  ``period.last_day``, the option's decision horizon (the plant either runs
+  or does not over the delivery period). ``settlement_lag_days`` shifts only
   the discount-factor lookup date (a payment-timing convention); it never
   enters the time-to-expiry / volatility horizon.
-- **Intrinsic value** (Req 8.2): ``sum(max(0, forward_spread_i) x 1.0)``
-  with ``forward_spread_i = power_i - heat_rate x fuel_i -
-  emissions_intensity x heat_rate x eua_i - variable_om_cost`` — computed
-  from current forwards with zero time value and, per the Req 8.2 formula,
-  undiscounted. ``time_value = npv - intrinsic_value``.
-- **Deltas** (Req 8.3): the per-period power delta is the spread option's
-  ``delta1`` (df-consistent — the kernel premium is discounted). Fuel and
-  EUA deltas are chain-rule scalings of ``delta2``:
+- Intrinsic value: ``sum(max(0, forward_spread_i) x 1.0)`` with
+  ``forward_spread_i = power_i - heat_rate x fuel_i -
+  emissions_intensity x heat_rate x eua_i - variable_om_cost``, computed
+  from current forwards with zero time value and undiscounted.
+  ``time_value = npv - intrinsic_value``.
+- Deltas: the per-period power delta is the spread option's ``delta1``
+  (discount-factor consistent, since the kernel premium is discounted).
+  Fuel and EUA deltas are chain-rule scalings of ``delta2``:
   ``d(forward2)/d(fuel) = heat_rate`` and
   ``d(forward2)/d(eua) = emissions_intensity x heat_rate``. Aggregate
   deltas are the plain sums of the per-period tuples, so the aggregate
-  equals the sum of the per-period values exactly (Property 20).
+  equals the sum of the per-period values exactly.
 """
 
 from __future__ import annotations
@@ -93,7 +92,7 @@ class TollingResult:
     ``per_period_values`` are the discounted per-period spread-option values in
     schedule order; ``npv`` is their sum. ``per_period_deltas`` and
     ``aggregate_deltas`` are keyed ``"power"``/``"fuel"``/``"eua"``, and each
-    aggregate equals the sum of its per-period tuple exactly (Property 20).
+    aggregate equals the sum of its per-period tuple exactly.
     """
 
     npv: float
@@ -105,7 +104,7 @@ class TollingResult:
 
 
 def _validate_schedule_length(periods: tuple[DeliveryPeriod, ...]) -> None:
-    """A tolling schedule carries 1-1200 delivery periods (Req 8.1)."""
+    """A tolling schedule carries 1-1200 delivery periods."""
     if not 1 <= len(periods) <= _MAX_SCHEDULE_PERIODS:
         raise ValidationError(
             f"schedule must contain between 1 and {_MAX_SCHEDULE_PERIODS} delivery "
@@ -114,10 +113,11 @@ def _validate_schedule_length(periods: tuple[DeliveryPeriod, ...]) -> None:
 
 
 def _validate_correlation_matrix(matrix: np.ndarray, matrix_tolerance: float) -> None:
-    """Req 8.1: at least 3x3 ``[power, fuel, eua]``, symmetric, unit diagonal.
+    """Validate ``correlation_matrix``: at least 3x3 ``[power, fuel, eua]``, symmetric,
+    unit diagonal.
 
-    Off-diagonal entries must lie strictly inside ``(-1, 1)`` (Property 19);
-    symmetry and the unit diagonal are enforced within ``matrix_tolerance``.
+    Off-diagonal entries must lie strictly inside ``(-1, 1)``; symmetry and the
+    unit diagonal are enforced within ``matrix_tolerance``.
     """
     if not isinstance(matrix, np.ndarray):
         raise ValidationError(
@@ -157,10 +157,9 @@ def _schedule_prices(
 ) -> tuple[tuple[float, ...], ...]:
     """Gather each curve's price per schedule period, in curve then schedule order.
 
-    Coverage is validated for ALL curves before returning: every curve missing
-    any schedule period is reported — commodity and missing periods — in one
-    :class:`InsufficientDataError`, rather than pricing a covered portion
-    silently (Req 8.4).
+    Coverage is validated for all curves before returning: every curve missing
+    any schedule period is reported, commodity and missing periods, in one
+    ``InsufficientDataError``, rather than pricing a covered portion silently.
     """
     gathered: list[tuple[float, ...]] = []
     shortfalls: list[str] = []
@@ -185,10 +184,10 @@ def _schedule_prices(
 def _schedule_sigmas(
     vol_surface: VolatilitySurface, periods: tuple[DeliveryPeriod, ...]
 ) -> tuple[float, ...]:
-    """Gather the implied vol per schedule period, never extrapolating (Req 8.5).
+    """Gather the implied vol per schedule period, never extrapolating.
 
-    Raises :class:`InsufficientDataError` naming the surface's commodity and
-    EVERY missing tenor when the surface does not cover the whole schedule.
+    Raises ``InsufficientDataError`` naming the surface's commodity and every
+    missing tenor when the surface does not cover the whole schedule.
     """
     sigmas: list[float] = []
     missing: list[DeliveryPeriod] = []
@@ -213,7 +212,7 @@ def _schedule_discount_factors(
 ) -> tuple[float, ...]:
     """Gather the discount factor at each period's settlement (``last_day`` + lag).
 
-    Raises :class:`MissingTenorError` naming every period whose settlement date
+    Raises ``MissingTenorError`` naming every period whose settlement date
     falls outside the discount curve's tenor range (the swap-module convention).
     """
     return tuple(
@@ -244,10 +243,10 @@ def price_tolling_agreement(
     day_count: Callable[[date, date], float] = actual_365,
     settlement_lag_days: int = 0,
 ) -> TollingResult:
-    """Value a tolling agreement as a strip of clean spread options (Req 8.1-8.5).
+    """Value a tolling agreement as a strip of clean spread options.
 
     One clean spark (gas) / clean dark (coal) spread option per delivery
-    period — see the module docstring for the leg composition, unit chain,
+    period; see the module docstring for the leg composition, unit chain,
     single-surface volatility, correlation-indexing and discounting
     conventions. Validation is eager and complete before any pricing:
     schedule length, correlation matrix, full forward-curve / vol-surface /
@@ -274,8 +273,7 @@ def price_tolling_agreement(
             (a non-positive or NaN tolerance would silently disable or
             misreport those checks).
         day_count: Year-fraction convention for each period's time-to-expiry,
-            taking ``(start, end)`` (default
-            :func:`~quantvolt.numerics.daycount.actual_365`).
+            taking ``(start, end)`` (default ``quantvolt.numerics.daycount.actual_365``).
         settlement_lag_days: Calendar days added to each period's last day to
             get the settlement date used for the discount-factor lookup
             (default 0, non-negative). Does NOT affect the option's
@@ -286,22 +284,21 @@ def price_tolling_agreement(
     Returns:
         NPV, intrinsic/time value decomposition, per-period values, and
         per-period plus aggregate deltas for ``"power"``/``"fuel"``/``"eua"``
-        (aggregate == sum of per-period exactly, Property 20).
+        (aggregate equals the sum of per-period values exactly).
 
     Raises:
         ValidationError: If the schedule has more than 1200 periods; if the
             correlation matrix is not a square ndarray of size >= 3x3,
             symmetric with unit diagonal (within ``matrix_tolerance``) and
-            off-diagonals strictly inside (-1, 1) (Property 19); if
+            off-diagonals strictly inside (-1, 1); if
             ``capacity`` is not > 0, ``settlement_lag_days`` is negative, or
             ``matrix_tolerance`` is not > 0 (including ``NaN``); or
             if any per-period spread-option input violates
-            :func:`price_spread_option`'s domain (e.g. a non-positive power or
+            ``price_spread_option``'s domain (e.g. a non-positive power or
             fuel+carbon leg forward).
         InsufficientDataError: If any forward curve misses any schedule period
-            (naming the commodity and the missing periods, Req 8.4), or the
-            vol surface (or ``fuel_sigma``) misses any tenor (naming them,
-            Req 8.5).
+            (naming the commodity and the missing periods), or the vol
+            surface (or ``fuel_sigma``) misses any tenor (naming them).
         MissingTenorError: If the discount curve does not cover every
             period's settlement date.
     """

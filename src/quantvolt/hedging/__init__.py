@@ -1,11 +1,10 @@
-"""quantvolt.hedging — incomplete-market hedging (Requirement 18).
+"""quantvolt.hedging — incomplete-market hedging.
 
 Variance-minimizing and cross-commodity hedges for positions whose risk is not
 fully spanned by traded instruments (Chapter 10, "Hedging in Incomplete
 Markets"). The correct hedge in an incomplete market depends on the hedging
-entity's risk appetite, so these kernels require an *explicit* corporate risk
-adjustment (Requirement 18.6 / Requirement 19) rather than silently assuming
-risk-neutrality.
+entity's risk appetite, so these kernels require an explicit corporate risk
+adjustment rather than silently assuming risk-neutrality.
 """
 
 from __future__ import annotations

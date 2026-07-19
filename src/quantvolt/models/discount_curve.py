@@ -1,4 +1,4 @@
-"""Discount curve with linear interpolation (Task 6)."""
+"""Discount curve with linear interpolation."""
 
 from __future__ import annotations
 

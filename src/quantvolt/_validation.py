@@ -1,5 +1,5 @@
 """Reusable boundary-validation guards. Public entry points validate through these before any
-computation (fail loudly; see .kiro/steering/coding-style.md). All raise ValidationError."""
+computation, raising ``ValidationError`` on the first violated constraint."""
 
 from __future__ import annotations
 

@@ -176,7 +176,7 @@ def spread_section() -> None:
 
 
 def mc_convergence_section() -> None:
-    """One seeded analytic-vs-MC convergence check (Requirement 8a; test_mc_convergence.py),
+    """One seeded analytic-vs-MC convergence check (mirrors test_mc_convergence.py),
     reproduced here because the fixtures cover closed-form-vs-QuantLib only, not MC."""
     print("\n=== Analytic-vs-Monte-Carlo convergence sample (test_mc_convergence.py) ===")
     forward, strike, sigma, t, df = 100.0, 100.0, 0.20, 1.0, 0.97

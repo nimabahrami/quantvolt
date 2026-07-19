@@ -64,7 +64,7 @@ Explicitly excluded: negative-price optionality
 ------------------------------------------------
 A PPA's negative-price clause (:class:`~quantvolt.models.ppa_terms.NegativePriceClause`)
 is **spot optionality** — its trigger depends on a future spot price outcome, not a
-deterministic identity — and is **never** consulted here (Req 15.5). Modelling it would
+deterministic identity — and is **never** consulted here. Modelling it would
 require an option-pricing kernel with a market-index choice this spec is not authorised
 to make; silently folding it into ``K_t`` would misstate the intrinsic MtM as if the
 clause were certain to (or never to) trigger.
@@ -89,7 +89,7 @@ from ..models.schedule import DeliveryPeriod
 
 @dataclass(frozen=True, slots=True)
 class PpaPeriodVolume:
-    """Expected delivered energy and capture factor for one delivery period (Req 15.1).
+    """Expected delivered energy and capture factor for one delivery period.
 
     ``expected_mwh`` is the forecast delivered energy for the period (non-negative — a
     period with no expected generation is a legitimate, zero-value input, not an error).
@@ -109,7 +109,7 @@ class PpaPeriodVolume:
 
 @dataclass(frozen=True, slots=True)
 class PpaVolumeProfile:
-    """A non-empty, strictly period-increasing run of :class:`PpaPeriodVolume` (Req 15.1)."""
+    """A non-empty, strictly period-increasing run of :class:`PpaPeriodVolume`."""
 
     volumes: tuple[PpaPeriodVolume, ...]
 
@@ -129,7 +129,7 @@ class PpaVolumeProfile:
 
 @dataclass(frozen=True, slots=True)
 class PpaPeriodValuation:
-    """One period's detail behind the aggregate :class:`PpaValuationResult` (Req 15.2)."""
+    """One period's detail behind the aggregate :class:`PpaValuationResult`."""
 
     period: DeliveryPeriod
     forward: float
@@ -143,7 +143,7 @@ class PpaPeriodValuation:
 @dataclass(frozen=True, slots=True)
 class PpaValuationResult:
     """Producer-side intrinsic mark-to-market: aggregate NPV plus per-period detail
-    and per-period producer delta, keyed ``(contract.bidding_zone, period)`` (Req 15.3)."""
+    and per-period producer delta, keyed ``(contract.bidding_zone, period)``."""
 
     npv: float
     per_period: tuple[PpaPeriodValuation, ...]
@@ -221,7 +221,7 @@ def price_ppa(
     valuation_date: date,
     price_terms: PpaPriceTerms | None = None,
 ) -> PpaValuationResult:
-    """Producer-side intrinsic mark-to-market of an unexpired PPA (Req 15.2).
+    """Producer-side intrinsic mark-to-market of an unexpired PPA.
 
     ``npv = sum_t DF(t) * V_t * (K_t - capture_t * F_t)``, where ``DF(t)`` is
     ``discount_curve.discount_factor(period.last_day)``, ``F_t`` is
@@ -238,7 +238,7 @@ def price_ppa(
     identifier).
 
     The PPA's negative-price clause (spot optionality) is **excluded** from this
-    intrinsic MtM and never consulted (Req 15.5) — see the module docstring.
+    intrinsic MtM and never consulted — see the module docstring.
 
     Args:
         contract: The PPA whose fixed price (and, if attached, ``terms.price``
@@ -302,23 +302,21 @@ def price_ppa(
 
 
 def make_ppa_pricer(profiles: Mapping[str, PpaVolumeProfile]) -> Callable[[Any, Any], Any]:
-    """Build a ``pricers=`` entry that opts ``PpaContract`` positions into ``value_portfolio``
-    (Req 16).
+    """Build a ``pricers=`` entry that opts ``PpaContract`` positions into ``value_portfolio``.
 
     Returned as a plain closure (typed loosely as ``Callable[[Any, Any], Any]`` here to
-    keep this module's dependencies to ``models/*`` and ``_validation``, per this spec's
-    acyclic dependency design — it is never imported by ``portfolio/model.py`` or
-    ``portfolio/valuation.py``); at the call site it has exactly the shape
-    ``portfolio.valuation.Pricer`` expects: ``(Position, MarketData) -> PricedPosition``.
-    Register it explicitly:
+    keep this module's dependencies to ``models/*`` and ``_validation`` — it is never
+    imported by ``portfolio/model.py`` or ``portfolio/valuation.py``); at the call site it
+    has exactly the shape ``portfolio.valuation.Pricer`` expects: ``(Position, MarketData)
+    -> PricedPosition``. Register it explicitly:
 
         ``value_portfolio(book, market, pricers={PpaContract: make_ppa_pricer(profiles)})``
 
-    ``PpaContract`` is deliberately **NOT** added to ``DEFAULT_PRICERS`` (Req 16.2): a
+    ``PpaContract`` is deliberately **NOT** added to ``DEFAULT_PRICERS``: a
     raise-on-missing-profile default pricer would silently break every existing mixed
-    book that holds an unmodelled PPA (base-spec Req 13.3's "lands in unpriced"
-    semantics). Only callers who explicitly opt in via this factory get a missing-profile
-    error instead of a silent ``unpriced`` landing (Req 16.3).
+    book that holds an unmodelled PPA that otherwise lands in the portfolio's
+    unpriced set. Only callers who explicitly opt in via this factory get a
+    missing-profile error instead of a silent ``unpriced`` landing.
 
     Args:
         profiles: Maps a PPA's ``contract_id`` to the :class:`PpaVolumeProfile` to value

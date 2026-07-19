@@ -1,4 +1,4 @@
-"""quantvolt.curvemodels — stochastic forward-curve models (Req 25)."""
+"""quantvolt.curvemodels — stochastic forward-curve models."""
 
 from __future__ import annotations
 

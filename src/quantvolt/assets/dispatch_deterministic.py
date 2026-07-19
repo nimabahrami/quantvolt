@@ -1,13 +1,12 @@
-"""Perfect-foresight thermal dispatch (Task 72; Req 21.1 partial, 21.4; Property 62).
+"""Perfect-foresight thermal dispatch.
 
 ``dispatch_deterministic`` solves the deterministic optimization of Appendix B
 eq. B.1: with all prices, fuel costs and temperatures known in advance, it finds
 the commitment-and-output schedule that maximizes total margin subject to the
 operational and state-transition constraints. Because it optimizes over the
-*fully known* path, its value is the **upper bound** that any non-anticipating
-(stochastic) policy is tested against — the ``dispatch_value ≤
-dispatch_deterministic`` guarantee of Property 62 (validated with the Task-73
-stochastic engine). ``total_value`` is therefore the headline field.
+fully known path, its value is the upper bound that any non-anticipating
+(stochastic) policy is tested against: the ``dispatch_value <=
+dispatch_deterministic`` guarantee. ``total_value`` is therefore the headline field.
 
 Objective (eq. B.1), per period ``t`` when producing ``q_t``::
 
@@ -61,8 +60,8 @@ Conventions (documented, standard unit-commitment)
   lag is not itself a "start".
 - **Full availability.** The deterministic perfect-foresight benchmark assumes
   no forced outages (derate multiplier ``M ≡ 1``); the plant's ``outage_rate``
-  ``λ`` is consumed only by the stochastic model (Task 73). Perfect foresight
-  *and* no outages is exactly the upper bound Property 62 needs.
+  ``λ`` is consumed only by the stochastic model. Perfect foresight
+  and no outages is exactly what the upper-bound property needs.
 - **Terminal condition.** No salvage or penalty at the horizon end: the unit may
   finish online without having completed its min-run (finite-window truncation).
 - **Discounting.** ``discount_factors`` (default all 1.0, matching eq. B.1's
@@ -112,8 +111,7 @@ class DispatchSchedule:
         stopped: Whether the unit shuts down in the period.
         margins: Per-period contribution to ``total_value`` (discounted cash
             flow, net of any start cost); ``sum(margins) == total_value``.
-        total_value: The optimal total value — the perfect-foresight upper bound
-            (Property 62).
+        total_value: The optimal total value, the perfect-foresight upper bound.
     """
 
     outputs: tuple[float, ...]
@@ -335,8 +333,8 @@ def dispatch_deterministic(
         discount_factors: Per-period discount factors (default all 1.0).
 
     Returns:
-        The optimal :class:`DispatchSchedule`; ``total_value`` is the
-        perfect-foresight upper bound of Property 62.
+        The optimal ``DispatchSchedule``; ``total_value`` is the
+        perfect-foresight upper bound.
 
     Raises:
         ValidationError: If the series are empty or of unequal length; if a

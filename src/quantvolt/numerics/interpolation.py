@@ -90,7 +90,7 @@ def cubic_spline(
             or mismatched periodic endpoints) — mirroring
             :func:`~quantvolt.numerics.rootfind.brent_root`'s wrapping of scipy
             errors, so no raw ``ValueError`` escapes this package's exception
-            hierarchy (``coding-style.md`` §7).
+            hierarchy.
     """
     if bc_type not in _BC_TYPES:
         raise NumericalError(f"bc_type must be one of {sorted(_BC_TYPES)}, got {bc_type!r}")

@@ -20,29 +20,39 @@ function renderModuleNav() {
 }
 
 const GUIDE_NAV = [
-  ['models','Domain models',[['commodities','Commodities & hubs'],['periods','Periods & schedules'],['curves-models','Curve models'],['volatility-models','Volatility surfaces'],['instruments-models','Instruments'],['physical-models','Physical contracts'],['serialization-models','Serialization']]],
-  ['numerics','Numerical kernels',[['black76-kernels','Black–76'],['spread-kernels','Spread models'],['exotic-kernels','Exotic kernels'],['simulation-kernels','Simulation'],['interpolation-kernels','Interpolation'],['root-kernels','Roots & bumps'],['measure-kernels','Risk adjustment']]],
-  ['curves','Forward curves',[['construction','Construction'],['interpolation','Interpolation'],['arbitrage','Arbitrage checks'],['models','Stochastic models']]],
-  ['pricing','Pricing derivatives',[['futures','Futures'],['forwards','Forwards'],['swaps','Swaps'],['vanilla','Vanilla options'],['caps-floors','Caps & floors'],['exotics','Exotic options'],['spread-options','Spread options'],['spreads','Physical spreads'],['tolling','Tolling agreements'],['rights','Transmission rights'],['implied-vol','Implied volatility'],['mark-to-market','Mark to market']]],
-  ['portfolio-risk','Portfolio & risk',[['instruments','Create instruments'],['positions','Create positions'],['market-data','Market data'],['valuation','Valuation'],['risk-engine','Risk engine'],['stress','Stress scenarios'],['delta-aggregation','Delta aggregation'],['parametric-risk','Parametric VaR'],['covariance-risk','Covariance'],['cfar-risk','CFaR'],['credit-risk','Credit VaR']]],
-  ['ppa','PPAs & settlement',[['contract','Contract'],['settlement','Interval data'],['financial-ppa','Physical vs CfD'],['hedges','Power hedges'],['portfolio-settlement','Portfolio settlement'],['nomination','Nomination'],['validation-ppa','Validation']]],
-  ['assets','Physical assets',[['plant','Thermal plant'],['stochastic','Stochastic dispatch'],['storage','Gas storage'],['governance','Governance']]],
-  ['curve-models','Stochastic curve models',[['schwartz-smith','Schwartz–Smith'],['ss-simulation','Factor simulation'],['multifactor','Multifactor model'],['induced','Induced covariance'],['model-simulation','Forward simulation'],['power-warning','Power warning']]],
-  ['hedging','Hedging',[['variance','Variance minimum'],['cross','Cross-commodity'],['decomposed-delta','Decomposed delta'],['mean-variance','Mean-variance'],['ppa-nomination','PPA objectives'],['walk-forward','Walk forward']]],
-  ['rust-monte-carlo','Rust & Monte Carlo',[['native-architecture','Architecture'],['native-build','Build & install'],['asian-native','Asian MC'],['ou-native','OU simulation'],['correlated-native','Correlated forwards'],['term-native','Term structure'],['mc-var-native','Monte Carlo VaR'],['mc-validation','Validation & errors'],['mc-performance','Performance']]],
-  ['statistics','Statistics',[['descriptive','Descriptive'],['stationarity','Stationarity'],['mean-reversion','Mean reversion'],['normality','Normality']]],
-  ['market-utils','Market utilities',[['transmission-utils','Transmission'],['weather-utils','Weather'],['outage-records','Outage records'],['reliability-kpis','Reliability KPIs']]],
-  ['workflow-guide','Model-selection workflow',[['workflow-product','Product definition'],['workflow-criteria','Criteria'],['workflow-steps','Seven steps'],['workflow-result','Result & audit']]],
-  ['data','Data & datasets',[['dataset-catalog','Optional datasets'],['dataset-fetch','Fetch & verify'],['dataset-cache','Cache & offline'],['providers','Providers'],['fetch','Provider mapping'],['snapshots','Snapshots']]],
+  // Quickstart-adjacent: read these first.
   ['conventions','Conventions',[['units','Units'],['position-sign','Position signs'],['time','Dates & intervals'],['randomness','Randomness'],['precision','Tolerances']]],
-  ['errors','Errors & validation',[['hierarchy','Hierarchy'],['validation','Validation'],['missing-data','Missing data'],['recovery','Recovery']]],
-  ['testing','Testing workflows',[['unchanged','Non-mutation'],['deterministic','Determinism'],['round-trip','Serialization']]],
+  ['validation','External validation',[['black76','Black-76 vs QuantLib'],['capfloor','Cap/floor strip'],['spread','Spread options'],['mc-convergence','MC convergence'],['caveats','Caveats & limits']]],
   ['end-to-end','End-to-end tutorials',[['tutorial-map','Tutorial map'],['curve-to-var','Curve to VaR'],['reproducibility','Reproducibility']]],
   ['tutorial-spark','Tutorial: spark spread to hedge',[['setup','Clean spark spread'],['spread-option','Spread option'],['tolling-position','Tolling position'],['hedge','Variance-min hedge']]],
   ['tutorial-ppa','Tutorial: renewable PPA to CFaR',[['weather','Weather'],['scenarios','Scenarios'],['settlement','Settlement with terms'],['cfar','CFaR']]],
   ['tutorial-storage','Tutorial: storage intrinsic to hedge',[['curve','Seasonal curve'],['intrinsic','Intrinsic'],['extrinsic','Extrinsic'],['forward-hedge','Forward hedge']]],
+  // Domain guides.
+  ['models','Domain models',[['commodities','Commodities & hubs'],['periods','Periods & schedules'],['curves-models','Curve models'],['volatility-models','Volatility surfaces'],['instruments-models','Instruments'],['physical-models','Physical contracts'],['serialization-models','Serialization']]],
+  ['curves','Forward curves',[['construction','Construction'],['interpolation','Interpolation'],['arbitrage','Cost-of-carry checks'],['models','Stochastic models']]],
+  ['pricing','Pricing derivatives',[['futures','Futures'],['forwards','Forwards'],['swaps','Swaps'],['vanilla','Vanilla options'],['caps-floors','Caps & floors'],['exotics','Exotic options'],['spread-options','Spread options'],['spreads','Physical spreads'],['tolling','Tolling agreements'],['rights','Transmission rights'],['implied-vol','Implied volatility'],['mark-to-market','Mark to market']]],
+  ['portfolio-risk','Portfolio & risk',[['instruments','Create instruments'],['positions','Create positions'],['market-data','Market data'],['valuation','Valuation'],['risk-engine','Risk engine'],['stress','Stress scenarios'],['delta-aggregation','Delta aggregation'],['parametric-risk','Parametric VaR'],['covariance-risk','Covariance'],['cfar-risk','CFaR'],['credit-risk','Credit VaR']]],
+  ['ppa','PPAs & settlement',[['contract','Contract'],['settlement','Interval data'],['financial-ppa','Physical vs CfD'],['hedges','Power hedges'],['portfolio-settlement','Portfolio settlement'],['nomination','Nomination'],['validation-ppa','Validation']]],
+  ['assets','Physical assets',[['plant','Thermal plant'],['stochastic','Stochastic dispatch'],['storage','Gas storage'],['governance','Governance']]],
+  ['hedging','Hedging',[['variance','Variance minimum'],['cross','Cross-commodity'],['decomposed-delta','Decomposed delta'],['mean-variance','Mean-variance'],['ppa-nomination','PPA objectives'],['walk-forward','Walk forward']]],
+  ['curve-models','Stochastic curve models',[['schwartz-smith','Schwartz–Smith'],['ss-simulation','Factor simulation'],['multifactor','Multifactor model'],['induced','Induced covariance'],['model-simulation','Forward simulation'],['power-warning','Power warning']]],
+  ['rust-monte-carlo','Rust & Monte Carlo',[['native-architecture','Architecture'],['native-build','Build & install'],['asian-native','Asian MC'],['ou-native','OU simulation'],['correlated-native','Correlated forwards'],['term-native','Term structure'],['mc-var-native','Monte Carlo VaR'],['mc-validation','Validation & errors'],['mc-performance','Performance']]],
+  ['data','Data & datasets',[['dataset-catalog','Optional datasets'],['dataset-fetch','Fetch & verify'],['dataset-cache','Cache & offline'],['providers','Providers'],['fetch','Provider mapping'],['snapshots','Snapshots']]],
+  ['errors','Errors & validation',[['hierarchy','Hierarchy'],['validation','Validation'],['missing-data','Missing data'],['recovery','Recovery']]],
+  ['testing','Testing workflows',[['unchanged','Non-mutation'],['deterministic','Determinism'],['round-trip','Serialization']]],
+  // Advanced.
+  ['numerics','Numerical kernels',[['black76-kernels','Black–76'],['spread-kernels','Spread models'],['exotic-kernels','Exotic kernels'],['simulation-kernels','Simulation'],['interpolation-kernels','Interpolation'],['root-kernels','Roots & bumps'],['measure-kernels','Risk adjustment']]],
+  ['statistics','Statistics',[['descriptive','Descriptive'],['stationarity','Stationarity'],['mean-reversion','Mean reversion'],['normality','Normality']]],
+  ['market-utils','Market utilities',[['transmission-utils','Transmission'],['weather-utils','Weather'],['outage-records','Outage records'],['reliability-kpis','Reliability KPIs']]],
+  ['workflow-guide','Experimental: model selection',[['workflow-product','Product definition'],['workflow-criteria','Criteria'],['workflow-steps','Seven steps'],['workflow-result','Result & audit']]],
 ];
 function renderGuideNav(){document.querySelector('#guide-nav').innerHTML=GUIDE_NAV.map(([route,label,children])=>`<details class="nav-group"><summary><a href="#/guide/${route}">${label}</a></summary><div>${children.map(([id,name])=>`<a href="#/guide/${route}" data-section="${id}">${name}</a>`).join('')}</div></details>`).join('')}
+
+const metaDescriptionTag = document.querySelector('meta[name="description"]');
+function setMeta(title, description) {
+  document.title = title ? `${title} — QuantVolt` : 'QuantVolt documentation';
+  if (metaDescriptionTag && description) metaDescriptionTag.setAttribute('content', description);
+}
 
 function pageFrame(title, description, body, breadcrumb='User guide') {
   return `<div class="breadcrumbs"><a href="#/overview">Docs</a><span>/</span><span>${esc(breadcrumb)}</span></div><header class="page-head"><h1>${esc(title)}</h1><p>${esc(description)}</p></header><article class="prose">${body}</article><footer class="page-footer"><span>QuantVolt v${API.version}</span><a href="https://github.com/nimabahrami/quantvolt">Edit or report an issue ↗</a></footer>`;
@@ -51,6 +61,8 @@ function pageFrame(title, description, body, breadcrumb='User guide') {
 function renderGuide(key) {
   const guide = window.DOC_GUIDES[key] || window.DOC_GUIDES.overview;
   content.innerHTML = pageFrame(guide.title, guide.description, guide.body, key === 'overview' ? 'Overview' : 'User guide');
+  if (key === 'overview') { document.title = guide.title; if (metaDescriptionTag) metaDescriptionTag.setAttribute('content', guide.description); }
+  else setMeta(guide.title, guide.description);
   finishRender();
 }
 
@@ -99,7 +111,9 @@ function renderDoc(doc){
 }
 function renderApiIndex() {
   const groups = API.modules.map((module) => `<a class="module-card" href="#/api/${module.name}"><div><code>${module.qualified}</code><span>${module.symbols.length} symbols</span></div><p>${esc(module.description)}</p><i>→</i></a>`).join('');
-  content.innerHTML = pageFrame('API reference', `Complete source-generated reference for ${API.symbolCount} public symbols across ${API.modules.length} modules.`, `<div class="reference-note">Generated from each package's <code>__all__</code>, signatures and docstrings. Run <code>python3 site/build_api.py</code> after API changes.</div><div class="module-grid">${groups}</div>`, 'API reference');
+  const description = `Complete source-generated reference for ${API.symbolCount} public symbols across ${API.modules.length} modules.`;
+  content.innerHTML = pageFrame('API reference', description, `<div class="reference-note">Generated from each package's <code>__all__</code>, signatures and docstrings. Run <code>python3 site/build_api.py</code> after API changes.</div><div class="module-grid">${groups}</div>`, 'API reference');
+  setMeta('API reference', description);
   finishRender();
 }
 
@@ -111,6 +125,7 @@ function renderModule(name) {
   const summary = byKind.map((group)=>`<section><h2 id="${group.kind}s">${group.kind[0].toUpperCase()+group.kind.slice(1)}s <span>${group.symbols.length}</span></h2>${group.symbols.map((symbol)=>`<a class="api-chip" href="#/api/${name}/${encodeURIComponent(symbol.name)}"><code>${esc(symbol.name)}</code><span>→</span></a>`).join('')}</section>`).join('');
   const guide=MODULE_GUIDES[name]?`<div class="admonition note"><b>Looking for examples?</b><p>See the <a href="#/guide/${MODULE_GUIDES[name]}">${name} user guide</a> for complete workflows and result output.</p></div>`:'';
   content.innerHTML = pageFrame(module.qualified, module.description, `<div class="module-meta"><span>Module</span><code>from quantvolt import ${name}</code><button data-copy="from quantvolt import ${name}">Copy</button></div>${guide}${summary}<h2 id="all-symbols">All public symbols</h2><div class="symbol-table">${rows}</div>`, 'API reference');
+  setMeta(module.qualified, module.description);
   finishRender();
 }
 
@@ -123,10 +138,11 @@ function renderSymbol(moduleName, symbolName) {
   const sourceUrl = `https://github.com/nimabahrami/quantvolt/blob/main/${symbol.source}#L${symbol.line}`;
   const doc = symbol.doc ? renderDoc(symbol.doc) : `<div class="api-description"><p>This public ${symbol.kind} is exported by <code>${moduleByName(moduleName)?.qualified}</code>. See the source for implementation details and validation behavior.</p></div>`;
   content.innerHTML = pageFrame(symbol.name, symbol.summary, `<div class="signature"><div>${kindBadge(symbol.kind)}<span>${esc(symbol.qualified)}</span><button data-copy="${esc(symbol.signature)}">Copy signature</button></div><pre><code>${esc(symbol.signature)}</code></pre></div><h2 id="description">Description</h2>${doc}${fields}${members}${methods}<h2 id="source">Source</h2><p>Defined in <a href="${sourceUrl}"><code>${esc(symbol.source)}:${symbol.line}</code> ↗</a></p><div class="prev-next"><a href="#/api/${moduleName}"><span>Module</span>← ${moduleByName(moduleName)?.qualified}</a><a href="#/api"><span>Reference</span>API index →</a></div>`, moduleByName(moduleName)?.qualified);
+  setMeta(symbol.name, symbol.summary);
   finishRender();
 }
 
-function renderNotFound(){ content.innerHTML=pageFrame('Page not found','The requested documentation page does not exist.',`<div class="admonition error" role="alert"><b>Documentation error</b><p>The requested route does not match a generated guide or API symbol.</p><a href="#/overview">Return to the overview →</a></div>`,'404'); finishRender(); }
+function renderNotFound(){ const description='The requested documentation page does not exist.'; content.innerHTML=pageFrame('Page not found',description,`<div class="admonition error" role="alert"><b>Documentation error</b><p>The requested route does not match a generated guide or API symbol.</p><a href="#/overview">Return to the overview →</a></div>`,'404'); setMeta('Page not found', description); finishRender(); }
 function finishRender(){ content.focus({preventScroll:true}); window.scrollTo(0,0); buildToc(); bindCopy(); updateActiveNav(); sidebar.classList.remove('open'); document.querySelector('#backdrop').classList.remove('show'); const pending=sessionStorage.getItem('qv-section');if(pending){sessionStorage.removeItem('qv-section');requestAnimationFrame(()=>scrollSection(pending))} }
 
 function scrollSection(id){const target=document.getElementById(id);if(target)target.scrollIntoView({behavior:'smooth',block:'start'})}

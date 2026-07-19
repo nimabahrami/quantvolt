@@ -1,4 +1,4 @@
-"""Validated price-unit value object and energy-unit conversion utilities (Req 1-5).
+"""Validated price-unit value object and energy-unit conversion utilities.
 
 Introduces no new layer and no numerics kernel: unit conversion is deterministic
 fixed-constant arithmetic. Everything here is a pure, immutable value object plus a
@@ -58,7 +58,7 @@ _CURRENCY_RE = re.compile(r"^[A-Z]{3}$")
 
 @dataclass(frozen=True, slots=True)
 class PriceUnit:
-    """A validated ``currency/denominator`` price unit (Req 1).
+    """A validated ``currency/denominator`` price unit.
 
     ``currency`` is either three uppercase ASCII letters (ISO 4217, e.g. ``"EUR"``,
     ``"GBP"``, ``"USD"``) or the literal ``"GBp"`` (pence sterling). ``denominator``
@@ -90,7 +90,7 @@ class PriceUnit:
 
     @classmethod
     def parse(cls, text: str) -> PriceUnit:
-        """Parse ``"CCY/denominator"`` into a validated :class:`PriceUnit` (Req 2).
+        """Parse ``"CCY/denominator"`` into a validated :class:`PriceUnit`.
 
         Splits on a single ``/``; rejects strings with no ``/``, more than one ``/``,
         or empty currency/denominator parts, each raising :class:`ValidationError`
@@ -116,25 +116,25 @@ class PriceUnit:
 
 
 def therms_to_mwh(value: float) -> float:
-    """Convert an energy quantity from therm to MWh (Req 4)."""
+    """Convert an energy quantity from therm to MWh."""
     require_finite("value", value)
     return value * MWH_PER_THERM
 
 
 def mwh_to_therms(value: float) -> float:
-    """Convert an energy quantity from MWh to therm (Req 4)."""
+    """Convert an energy quantity from MWh to therm."""
     require_finite("value", value)
     return value / MWH_PER_THERM
 
 
 def mmbtu_to_mwh(value: float) -> float:
-    """Convert an energy quantity from MMBtu to MWh (Req 4)."""
+    """Convert an energy quantity from MMBtu to MWh."""
     require_finite("value", value)
     return value * MWH_PER_MMBTU
 
 
 def mwh_to_mmbtu(value: float) -> float:
-    """Convert an energy quantity from MWh to MMBtu (Req 4)."""
+    """Convert an energy quantity from MWh to MMBtu."""
     require_finite("value", value)
     return value / MWH_PER_MMBTU
 
@@ -166,7 +166,7 @@ def _minor_scale(currency: str) -> float:
 
 
 def convert_price(value: float, from_unit: PriceUnit | str, to_unit: PriceUnit | str) -> float:
-    """Convert a *per-unit price* from ``from_unit`` to ``to_unit`` (Req 5).
+    """Convert a *per-unit price* from ``from_unit`` to ``to_unit``.
 
     Same-currency energy-denominator conversion multiplies by the reciprocal of the
     quantity factor: a price per therm converted to per MWh is *divided* by
@@ -184,7 +184,7 @@ def convert_price(value: float, from_unit: PriceUnit | str, to_unit: PriceUnit |
     (parsed via :meth:`PriceUnit.parse`, so a malformed string raises the same
     :class:`ValidationError` it would anywhere else).
 
-    Worked example (Req 5.7): ``convert_price(85.0, "GBp/therm", "GBp/MWh")
+    Worked example: ``convert_price(85.0, "GBp/therm", "GBp/MWh")
     == 85.0 / MWH_PER_THERM ~= 2900.32`` GBp/MWh.
     """
     require_finite("value", value)
