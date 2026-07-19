@@ -8,11 +8,13 @@ from __future__ import annotations
 import ast
 import json
 import re
+import tomllib
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = ROOT / "src" / "quantvolt"
+PYPROJECT = ROOT / "pyproject.toml"
 OUT = ROOT / "site" / "api-data.js"
 COVERAGE_OUT = ROOT / "site" / "api-coverage.json"
 MODULE_ORDER = [
@@ -86,6 +88,16 @@ AUTHORED_DOCS = {
     "MWH_PER_MMBTU": "MWh per MMBtu, derived from THERMS_PER_MMBTU * MWH_PER_THERM (0.293071).",
     "PENCE_PER_POUND": "Pence sterling per pound (100.0); the GBp/GBP factor for convert_price.",
 }
+
+
+def project_version() -> str:
+    """Read the single package version source used by builds and documentation."""
+    with PYPROJECT.open("rb") as handle:
+        project = tomllib.load(handle)["project"]
+    version = project.get("version")
+    if not isinstance(version, str) or not version:
+        raise ValueError("pyproject.toml must define a non-empty project.version")
+    return version
 
 
 def parse_source(path: Path) -> ast.Module:
@@ -296,7 +308,7 @@ def build() -> dict[str, Any]:
                 "symbols": symbols,
             }
         )
-    return {"version": "0.1.0", "modules": modules, "symbolCount": symbol_count}
+    return {"version": project_version(), "modules": modules, "symbolCount": symbol_count}
 
 
 if __name__ == "__main__":

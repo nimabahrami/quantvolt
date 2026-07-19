@@ -1,5 +1,5 @@
 window.API_DATA = {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "modules": [
     {
       "name": "quantvolt",

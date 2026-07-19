@@ -1,6 +1,6 @@
 window.DOC_GUIDES = {
   overview: {
-    title: "QuantVolt documentation", eyebrow: "QuantVolt v0.1.0",
+    title: "QuantVolt documentation", eyebrow: `QuantVolt v${window.API_DATA.version}`,
     description: "Quantitative analysis for European power, gas and carbon markets.",
     body: `
       <div class="hero-doc"><div><p>QuantVolt is a pure-computation Python library for reproducible pricing, risk, hedging, forward-curve and physical-asset experiments. You provide immutable market assumptions; QuantVolt returns typed results.</p><div class="button-row"><a class="primary-button" href="#/guide/quickstart">Get started</a><a class="secondary-button" href="#/api">Browse the API</a></div></div><div class="install-card"><span>Install with pip</span><code>pip install quantvolt</code><button data-copy="pip install quantvolt">Copy</button><small>Requires Python 3.11+</small></div></div>
@@ -33,11 +33,11 @@ window.DOC_GUIDES = {
   `},
   installation: {title:"Installation", description:"Install QuantVolt and its optional data layer.", body:`
     <h2 id="requirements">Requirements</h2><p>QuantVolt requires Python 3.11 or newer. The core depends on NumPy, SciPy, Polars and statsmodels; Monte Carlo path simulation uses the included native Rust extension.</p>
-    <h2 id="pip">pip</h2>${codeBlock(`pip install quantvolt`, `Successfully installed quantvolt-0.1.0`, "shell")}
+    <h2 id="pip">pip</h2>${codeBlock(`pip install quantvolt`, `Successfully installed quantvolt-${window.API_DATA.version}`, "shell")}
     <h2 id="uv">uv</h2>${codeBlock(`uv add quantvolt`, `Resolved and installed quantvolt`, "shell")}
     <h2 id="data-extra">Optional data adapters</h2>${codeBlock(`pip install "quantvolt[data]"`, `Adds httpx-powered provider adapters`, "shell")}
     <div class="admonition note"><b>Core/data separation</b><p>The analytics core performs no I/O. The optional adapters fetch external observations, but every calculation also accepts caller-owned data.</p></div>
-    <h2 id="verify">Verify the installation</h2>${codeBlock(`import quantvolt as qv\nprint(qv.__version__)`, `0.1.0`)}
+    <h2 id="verify">Verify the installation</h2>${codeBlock(`import quantvolt as qv\nprint(qv.__version__)`, window.API_DATA.version)}
   `},
   quickstart: {title:"Quickstart", description:"Build a curve, price an option and measure portfolio risk.", body:`
     <p>This end-to-end example uses one market date and a small set of observed TTF contracts.</p>

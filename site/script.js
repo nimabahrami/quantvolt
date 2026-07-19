@@ -7,6 +7,7 @@ const searchInput = document.querySelector('#search-input');
 const searchResults = document.querySelector('#search-results');
 const toast = document.querySelector('#toast');
 const API = window.API_DATA || { modules: [], symbolCount: 0 };
+document.querySelector('.version-row option').textContent = `v${API.version || 'development'}`;
 
 const esc = (value='') => String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const slug = (value) => value.toLowerCase().replaceAll('_','-').replace(/[^a-z0-9-]/g,'');
