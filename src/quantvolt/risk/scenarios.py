@@ -33,12 +33,13 @@ set it.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TypeAlias
 
 from .._validation import require_non_empty
 from ..exceptions import ScenarioNotFoundError
 from ..models.schedule import DeliveryPeriod
 
-type ShockKey = tuple[str, DeliveryPeriod | None]
+ShockKey: TypeAlias = tuple[str, DeliveryPeriod | None]
 """``(commodity_id, period)`` — ``period=None`` means the shock is commodity-wide."""
 
 

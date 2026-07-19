@@ -11,14 +11,41 @@ are real market outcomes.
 
 from __future__ import annotations
 
+import math
+from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import date
 from enum import StrEnum
 from typing import Literal
 
-from .._validation import require_non_negative, require_positive
+from .._validation import require_non_empty, require_non_negative, require_positive
 from ..exceptions import ValidationError
 from .commodity import CommodityConfig
 from .schedule import DeliveryPeriod, DeliverySchedule, Granularity
+
+
+class ValuationSource(StrEnum):
+    """Provenance tag for a valuation regime -- the single shared vocabulary a caller
+    propagates onto a :class:`~quantvolt.portfolio.model.Position`'s ``tags`` so that
+    downstream risk/portfolio code can tell how a number was produced.
+
+    Defined here (not in ``assets/long_dated.py``, which produces two of its three
+    values) because this leaf-ish module is importable from both ``assets/long_dated.py``
+    (via ``portfolio/model.py``) and from :class:`CachedAssetValuation` below without
+    creating an import cycle -- see this module's own dependency-direction note in the
+    ``portfolio-native-pricers`` design.
+
+    - ``FORWARD`` / ``PROJECTED``: the long-dated valuation-governance regimes produced by
+      :func:`quantvolt.assets.long_dated.valuation_benchmark` (base design Req 23.1-23.2).
+    - ``SIMULATED``: a precomputed LSMC/dispatch valuation cache, produced by
+      :class:`CachedAssetValuation` (portfolio-native-pricers spec, Req 19 roadmap) -- neither
+      a liquid forward quote nor a simple projected-spot-plus-premium figure, so it is tagged
+      as its own third regime rather than folded into ``PROJECTED``.
+    """
+
+    FORWARD = "forward"  # liquid forward curve covers the period (Req 23.1)
+    PROJECTED = "projected"  # projected from a spot model + corporate premium (Req 23.2)
+    SIMULATED = "simulated"  # precomputed LSMC/dispatch cache (Req 19.1, portfolio-native-pricers)
 
 
 class SettlementType(StrEnum):
@@ -64,9 +91,38 @@ class InstrumentPriceRecord:
     price: float  # may be negative (negative power prices are real)
 
 
+class OptionType(StrEnum):
+    """Whether a vanilla option is a call or a put (portfolio-native-pricers spec, Req 4)."""
+
+    CALL = "call"
+    PUT = "put"
+
+
+class OptionSide(StrEnum):
+    """Direction of a position, expressed only through ``side`` (never a signed notional):
+    notional is always positive; ``LONG`` is a holder/buyer, ``SHORT`` a writer/seller.
+
+    First introduced for the option contracts, this enum now also governs the direction of
+    the forward-like instruments (:class:`FuturesContract`, :class:`ForwardContract`,
+    :class:`SwapContract`) — see the ``short-side-instruments`` spec. It is deliberately
+    named ``OptionSide`` (not a generic ``Side``) to keep the public facade export unchanged;
+    the members are the plain ``LONG``/``SHORT`` pair, correct for any two-sided position.
+    """
+
+    LONG = "long"
+    SHORT = "short"
+
+
 @dataclass(frozen=True, slots=True)
 class FuturesContract:
-    """Exchange-traded futures — standardised, margined, typically financial settlement."""
+    """Exchange-traded futures — standardised, margined, typically financial settlement.
+
+    Direction lives only in :attr:`side` (``short-side-instruments`` spec); :attr:`notional`
+    is always strictly positive. A ``SHORT`` future prices to the exact negation of the ``LONG``
+    position (``portfolio.valuation._price_forward_like`` sign-flips npv and delta), exactly as
+    :class:`VanillaOptionContract` does. ``side`` defaults to ``LONG`` so every existing
+    construction site is byte-identical.
+    """
 
     commodity: CommodityConfig
     delivery_period: DeliveryPeriod
@@ -74,6 +130,7 @@ class FuturesContract:
     notional: float
     granularity: Granularity = Granularity.MONTHLY
     settlement_type: SettlementType = SettlementType.FINANCIAL
+    side: OptionSide = OptionSide.LONG
 
     def __post_init__(self) -> None:
         require_positive("notional", self.notional)
@@ -83,7 +140,9 @@ class FuturesContract:
 class ForwardContract:
     """Bilateral forward — customisable, OTC, physical or financial settlement.
 
-    ``counterparty`` is retained for credit-risk tracking.
+    ``counterparty`` is retained for credit-risk tracking. Direction lives only in
+    :attr:`side` (``short-side-instruments`` spec); :attr:`notional` is always strictly
+    positive and ``side`` defaults to ``LONG`` (byte-identical to the pre-side behaviour).
     """
 
     commodity: CommodityConfig
@@ -93,6 +152,7 @@ class ForwardContract:
     granularity: Granularity = Granularity.MONTHLY
     settlement_type: SettlementType = SettlementType.PHYSICAL
     counterparty: str | None = None
+    side: OptionSide = OptionSide.LONG
 
     def __post_init__(self) -> None:
         require_positive("notional", self.notional)
@@ -100,7 +160,13 @@ class ForwardContract:
 
 @dataclass(frozen=True, slots=True)
 class SwapContract:
-    """Fixed-for-floating swap — OTC, customisable, financial settlement."""
+    """Fixed-for-floating swap — OTC, customisable, financial settlement.
+
+    Direction lives only in :attr:`side` (``short-side-instruments`` spec): ``LONG`` is the
+    pay-fixed / receive-floating leg (the pricer's native perspective), ``SHORT`` its exact
+    negation (receive-fixed / pay-floating). :attr:`notional` is always strictly positive and
+    ``side`` defaults to ``LONG`` (byte-identical to the pre-side behaviour).
+    """
 
     commodity: CommodityConfig
     fixed_rate: float  # may be negative
@@ -108,9 +174,75 @@ class SwapContract:
     notional: float
     schedule: DeliverySchedule
     granularity: Granularity = Granularity.MONTHLY
+    side: OptionSide = OptionSide.LONG
 
     def __post_init__(self) -> None:
         require_positive("notional", self.notional)
+
+
+@dataclass(frozen=True, slots=True)
+class VanillaOptionContract:
+    """A European vanilla option on one commodity's forward (Req 4).
+
+    Priced natively by ``portfolio.valuation._price_vanilla_option``, which delegates to
+    :func:`quantvolt.pricing.vanilla.price_vanilla_option` (Black-76, base design §2.7).
+    Direction lives only in :attr:`side`; :attr:`notional` is always strictly positive.
+
+    ``expiry`` defaults to ``None``, in which case the pricer treats expiry as
+    ``delivery_period.last_day`` — the same decision-horizon convention
+    :mod:`quantvolt.pricing.tolling` uses (the option is exercised over the whole
+    delivery period, not before it).
+
+    Black-76 requires a strictly positive forward. A delivery period whose observed
+    forward is ``<= 0`` (a real occurrence for European power) makes this contract
+    unpriceable under Black-76: the pricer propagates the kernel's ``ValidationError``
+    rather than clamping or flooring the forward (Req 12; no Bachelier/normal-model
+    kernel exists in this library — deferred roadmap).
+    """
+
+    commodity: CommodityConfig
+    delivery_period: DeliveryPeriod
+    option_type: OptionType
+    strike: float
+    notional: float
+    side: OptionSide = OptionSide.LONG
+    expiry: date | None = None
+
+    def __post_init__(self) -> None:
+        require_positive("strike", self.strike)
+        require_positive("notional", self.notional)
+
+
+@dataclass(frozen=True, slots=True)
+class SpreadOptionContract:
+    """A spread (or spark-spread) option between two forward-curve commodities (Req 5).
+
+    Priced natively by ``portfolio.valuation._price_spread_option``, which delegates to
+    :func:`quantvolt.pricing.spread_option.price_spread_option` (``leg2_weight == 1.0``,
+    Margrabe/Kirk selection by strike) or
+    :func:`quantvolt.pricing.spread_option.price_spark_spread_option` (``leg2_weight !=
+    1.0``, e.g. a heat rate), base design §2.9.
+
+    ``commodity_1`` / ``commodity_2`` are forward-curve keys (``MarketData.curve_for``),
+    not :class:`CommodityConfig` objects — the two legs may live on different curves
+    (e.g. power vs. gas). ``strike == 0.0`` selects the exact Margrabe exchange-option
+    branch; any other non-negative strike selects Kirk's approximation. ``expiry``
+    defaults to ``delivery_period.last_day``, exactly as :class:`VanillaOptionContract`.
+    """
+
+    commodity_1: str
+    commodity_2: str
+    delivery_period: DeliveryPeriod
+    strike: float
+    notional: float
+    leg2_weight: float = 1.0
+    side: OptionSide = OptionSide.LONG
+    expiry: date | None = None
+
+    def __post_init__(self) -> None:
+        require_non_negative("strike", self.strike)
+        require_positive("notional", self.notional)
+        require_positive("leg2_weight", self.leg2_weight)
 
 
 @dataclass(frozen=True, slots=True)
@@ -219,3 +351,164 @@ class PipelineRight:
         _validate_transport_right(
             self.quantity, self.tariff, self.loss, self.capacity, self.reverse_tariff
         )
+
+
+@dataclass(frozen=True, slots=True)
+class TollingAgreement:
+    """A tolling (conversion) agreement, priced as a strip of clean spread options
+    (portfolio-native-pricers spec, Req 14; base design section 2.10).
+
+    Grounding note (Task 0/16): no tolling *instrument* value object existed before this
+    spec -- only the stateless kernel :func:`quantvolt.pricing.tolling.price_tolling_agreement`,
+    which takes curves/vol-surface/correlation-matrix as loose positional arguments. This
+    type is therefore ADDED (not reused) so a tolling position can sit in a ``Portfolio``
+    like any other instrument.
+
+    Priced natively by ``portfolio.valuation._price_tolling_agreement``, which assembles the
+    3x3 ``[power, fuel, eua]`` correlation matrix from three pairwise
+    ``MarketData.correlations`` entries (via ``correlation_for``, failing loud if any of
+    ``(power, fuel)``, ``(power, eua)``, ``(fuel, eua)`` is missing) and delegates to
+    :func:`~quantvolt.pricing.tolling.price_tolling_agreement`.
+
+    ``power_commodity_id`` / ``fuel_commodity_id`` / ``eua_commodity_id`` are forward-curve
+    keys (``MarketData.curve_for``). Following the kernel's documented "ONE volatility
+    surface serves both legs" simplification, the adapter uses
+    ``market_data.surface_for(power_commodity_id)`` for every period of the strip.
+
+    Fields:
+        plant: Heat rate, variable O&M cost, emissions intensity, fuel type.
+        power_commodity_id: Forward-curve key for the power leg.
+        fuel_commodity_id: Forward-curve key for the fuel (gas/coal) leg.
+        eua_commodity_id: Forward-curve key for the EUA (carbon) leg.
+        schedule: The delivery periods the strip covers (1-1200 periods, kernel-enforced).
+        capacity: Per-period notional in MWh, strictly positive (default 1.0 -- unit
+            capacity, the kernel's historical default).
+        settlement_lag_days: Calendar days added to each period's last day to get the
+            discount-factor settlement date (default 0, non-negative); does not affect
+            the option's time-to-expiry (the kernel's decision-horizon convention).
+    """
+
+    plant: PlantConfig
+    power_commodity_id: str
+    fuel_commodity_id: str
+    eua_commodity_id: str
+    schedule: DeliverySchedule
+    capacity: float = 1.0
+    settlement_lag_days: int = 0
+
+    def __post_init__(self) -> None:
+        require_positive("capacity", self.capacity)
+        require_non_negative("settlement_lag_days", self.settlement_lag_days)
+
+
+@dataclass(frozen=True, slots=True)
+class CachedAssetValuation:
+    """A precomputed, staleness-checked LSMC/dispatch valuation cache (DEFERRED roadmap,
+    portfolio-native-pricers spec Req 19).
+
+    Folds an expensive Monte-Carlo/dispatch-priced asset (a long-dated power plant,
+    storage position, ...) into a ``Portfolio`` as an already-computed number.
+    ``portfolio.valuation._price_cached_asset_valuation`` -- the pricer registered for this
+    type -- never runs an LSMC or dispatch engine itself (Req 19.2); it only re-emits this
+    wrapper's ``npv``/``delta`` as a ``PricedPosition``, after checking that ``valuation_date``
+    still matches ``MarketData.valuation_date``. A mismatch means the cache is stale relative
+    to the book being valued and the pricer raises a :class:`ValidationError` naming both
+    dates rather than silently repricing or reusing it (Req 19.2).
+
+    The pricer also propagates :attr:`source` onto the re-emitted position's ``tags`` (the
+    :class:`ValuationSource` Property-66 pattern of ``assets/long_dated.py``: downstream risk
+    code, e.g. ``var_applicability_guard``, reads the tag from ``position.position.tags``), so
+    a cached/simulated valuation is as visibly tagged as a projected-spot one.
+
+    Fields:
+        asset_id: Identifier for the underlying asset the cache was computed for -- an audit
+            trail back to the LSMC/dispatch run that produced ``npv``/``delta``.
+        npv: The precomputed net present value as of ``valuation_date``. Must be finite.
+        delta: Precomputed per-``(commodity_id, delivery period)`` exposure, in the same
+            convention as every other native pricer's ``PricedPosition.delta``. Defensively
+            copied at construction.
+        valuation_date: The date the cache was computed as of. Must equal
+            ``MarketData.valuation_date`` when priced (Req 19.2) or the pricer raises.
+        source: The :class:`ValuationSource` provenance tag for this cache -- ordinarily
+            :attr:`ValuationSource.SIMULATED` (an LSMC/dispatch cache is neither a liquid
+            forward quote nor a simple projected-spot figure); accepted as a field rather than
+            hard-coded so a caller with a different provenance can still state it explicitly.
+        standard_error: Optional Monte-Carlo standard error of ``npv``, carried through for
+            audit. ``None`` for a deterministic dispatch valuation. Must be finite and >= 0
+            when given.
+    """
+
+    asset_id: str
+    npv: float
+    delta: Mapping[tuple[str, DeliveryPeriod], float]
+    valuation_date: date
+    source: ValuationSource
+    standard_error: float | None = None
+
+    def __post_init__(self) -> None:
+        require_non_empty("asset_id", self.asset_id)
+        if not math.isfinite(self.npv):
+            raise ValidationError(f"npv must be finite, got {self.npv!r}")
+        if self.standard_error is not None:
+            require_non_negative("standard_error", self.standard_error)
+        object.__setattr__(self, "delta", dict(self.delta))
+
+
+class CapFloorType(StrEnum):
+    """Whether a cap/floor strip prices call-side (``CAP``) or put-side (``FLOOR``)
+    caplets/floorlets (DEFERRED roadmap, portfolio-native-pricers spec Req 20).
+
+    Mirrors the existing ``Literal["cap", "floor"]`` vocabulary of
+    :class:`~quantvolt.pricing.vanilla.CapFloorRequest` / ``VanillaOptionRequest`` as a typed
+    enum field on the instrument -- exactly as :class:`OptionType` does for
+    :class:`VanillaOptionContract`'s ``Literal["call", "put"]``.
+    """
+
+    CAP = "cap"
+    FLOOR = "floor"
+
+
+@dataclass(frozen=True, slots=True)
+class CapFloorStripContract:
+    """A cap or floor strip on one commodity's forward curve (DEFERRED roadmap,
+    portfolio-native-pricers spec Req 20).
+
+    Priced natively by ``portfolio.valuation._price_cap_floor_strip``, which builds one
+    ``VanillaOptionRequest`` caplet per :attr:`schedule` period -- forward/vol/discount-factor
+    sourced exactly like :class:`VanillaOptionContract`'s adapter (``actual_365(valuation_date,
+    period.last_day)`` time-to-expiry, discount factor at that same date, premium already
+    discounted -- never twice) -- and delegates the assembled strip to
+    :func:`quantvolt.pricing.vanilla.price_cap_floor`.
+
+    **Declared design decision** (Task-24 grounding, Requirement 20 is roadmap-thin): ONE
+    ``strike`` and ONE ``notional`` apply to every caplet/floorlet in the strip. This mirrors
+    the kernel's own ``CapFloorRequest`` invariant exactly (Req 5.6: "a cap/floor strip has ONE
+    strike ... and ONE notional"; only forward, discount factor and time-to-expiry vary
+    caplet-by-caplet) -- a per-period notional would let this value object represent a request
+    the kernel itself rejects, so it is not offered. There is also no separate ``expiry``
+    override field (unlike :class:`VanillaOptionContract`): each caplet's decision horizon is
+    always its own period's ``last_day``, the convention every per-period strip in this library
+    already uses (:class:`TollingAgreement`, ``pricing/tolling.py``).
+
+    Fields:
+        commodity: The single underlying commodity every caplet/floorlet strikes against.
+        schedule: The delivery periods the strip covers (kernel-enforced 1-120 caplets by
+            default -- ``price_cap_floor``'s ``max_strip_periods``).
+        cap_floor_type: :attr:`CapFloorType.CAP` (call side) or :attr:`CapFloorType.FLOOR`
+            (put side); feeds the kernel's ``option_type`` literal via ``.value``.
+        strike: The strip's single cap/floor rate, strictly positive.
+        notional: The strip's single per-period notional, strictly positive.
+        side: Direction, exactly as :class:`VanillaOptionContract` / :class:`SpreadOptionContract`
+            -- never a signed notional.
+    """
+
+    commodity: CommodityConfig
+    schedule: DeliverySchedule
+    cap_floor_type: CapFloorType
+    strike: float
+    notional: float
+    side: OptionSide = OptionSide.LONG
+
+    def __post_init__(self) -> None:
+        require_positive("strike", self.strike)
+        require_positive("notional", self.notional)

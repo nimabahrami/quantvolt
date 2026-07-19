@@ -10,13 +10,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from ..exceptions import ValidationError
+from .units import PriceUnit
 
 
 @dataclass(frozen=True, slots=True)
 class Hub:
     hub_id: str  # e.g. "TTF", "EEX_PHELIX_DE"
     exchange: str  # e.g. "ICE_ENDEX", "EEX"
-    price_unit: str  # e.g. "EUR/MWh", "EUR/MBtu"
+    price_unit: str  # e.g. "EUR/MWh", "GBp/therm"
+
+    def __post_init__(self) -> None:
+        PriceUnit.parse(self.price_unit)
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,6 +28,9 @@ class CommodityConfig:
     commodity_id: str
     price_unit: str
     hub: Hub
+
+    def __post_init__(self) -> None:
+        PriceUnit.parse(self.price_unit)
 
 
 # Default registry (design §3.4). A module-level constant — NOT a Singleton and
@@ -40,8 +47,16 @@ BUILT_IN_COMMODITIES: dict[str, CommodityConfig] = {
     "EPEX_NL": CommodityConfig("EPEX_NL", "EUR/MWh", Hub("EPEX_NL", "EPEX_SPOT", "EUR/MWh")),
     "EPEX_BE": CommodityConfig("EPEX_BE", "EUR/MWh", Hub("EPEX_BE", "EPEX_SPOT", "EUR/MWh")),
     "EPEX_GB": CommodityConfig("EPEX_GB", "GBP/MWh", Hub("EPEX_GB", "EPEX_SPOT", "GBP/MWh")),
-    "TTF": CommodityConfig("TTF", "EUR/MBtu", Hub("TTF", "ICE_ENDEX", "EUR/MBtu")),
-    "NBP": CommodityConfig("NBP", "GBP/MBtu", Hub("NBP", "ICE_ENDEX", "GBP/MBtu")),
+    "TTF": CommodityConfig("TTF", "EUR/MWh", Hub("TTF", "ICE_ENDEX", "EUR/MWh")),
+    "NBP": CommodityConfig("NBP", "GBp/therm", Hub("NBP", "ICE_ENDEX", "GBp/therm")),
+    # THE (Germany), PEG (France), ZTP (Belgium), PSV (Italy): additional liquid European
+    # gas hubs (Req 7, deferred). All quoted EUR/MWh on ICE Endex, their native venue
+    # quotation -- see docs/market_conventions.json and design.md References for the
+    # verbatim ICE product-specification citations (fetched 2026-07-18).
+    "THE": CommodityConfig("THE", "EUR/MWh", Hub("THE", "ICE_ENDEX", "EUR/MWh")),
+    "PEG": CommodityConfig("PEG", "EUR/MWh", Hub("PEG", "ICE_ENDEX", "EUR/MWh")),
+    "ZTP": CommodityConfig("ZTP", "EUR/MWh", Hub("ZTP", "ICE_ENDEX", "EUR/MWh")),
+    "PSV": CommodityConfig("PSV", "EUR/MWh", Hub("PSV", "ICE_ENDEX", "EUR/MWh")),
     "EUA": CommodityConfig("EUA", "EUR/tCO2", Hub("EUA", "EEX", "EUR/tCO2")),
 }
 

@@ -39,9 +39,7 @@ def _normalise_header(value: str) -> str:
 
 def _parse_decimal(value: str | None, *, row_number: int, column: str) -> float:
     if value is None or not value.strip():
-        raise DataUnavailableError(
-            f"{_PROVIDER}: missing {column} at CSV row {row_number}"
-        )
+        raise DataUnavailableError(f"{_PROVIDER}: missing {column} at CSV row {row_number}")
     try:
         parsed = float(value.strip().replace(".", "").replace(",", "."))
     except ValueError as exc:
@@ -84,13 +82,9 @@ def parse_rebap_csv(text: str) -> pl.DataFrame:
         field = row.__getitem__
 
         if field("zeitzone").upper() != "UTC":
-            raise DataSourceError(
-                f"{_PROVIDER}: timezone must be UTC at CSV row {row_number}"
-            )
+            raise DataSourceError(f"{_PROVIDER}: timezone must be UTC at CSV row {row_number}")
         if field("einheit").upper() != "EUR/MWH":
-            raise DataSourceError(
-                f"{_PROVIDER}: unit must be EUR/MWh at CSV row {row_number}"
-            )
+            raise DataSourceError(f"{_PROVIDER}: unit must be EUR/MWh at CSV row {row_number}")
         try:
             day = datetime.strptime(field("datum"), "%d.%m.%Y").date()
             start_clock = time.fromisoformat(field("von"))
@@ -109,9 +103,7 @@ def parse_rebap_csv(text: str) -> pl.DataFrame:
             )
         key = (start, end)
         if key in seen:
-            raise DataSourceError(
-                f"{_PROVIDER}: duplicate interval beginning {start.isoformat()}"
-            )
+            raise DataSourceError(f"{_PROVIDER}: duplicate interval beginning {start.isoformat()}")
         seen.add(key)
         rows.append(
             {

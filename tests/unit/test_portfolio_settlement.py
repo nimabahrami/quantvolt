@@ -40,9 +40,7 @@ _FLOOR = PowerHedgeContract(
     2.0,
     80.0,
 )
-_FUTURE = FuturesContract(
-    BUILT_IN_COMMODITIES["TTF"], DeliveryPeriod(2026, 1), 30.0, 10.0
-)
+_FUTURE = FuturesContract(BUILT_IN_COMMODITIES["TTF"], DeliveryPeriod(2026, 1), 30.0, 10.0)
 
 
 def _ppa_data() -> pl.DataFrame:
@@ -106,9 +104,7 @@ def test_interval_positions_require_unique_ids_and_complete_exact_data_mapping()
     with pytest.raises(ValidationError, match="missing position_id"):
         settle_energy_portfolio(portfolio, {})
     with pytest.raises(ValidationError, match="unknown position_id"):
-        settle_energy_portfolio(
-            portfolio, {"ppa-pos": _ppa_data(), "typo": _ppa_data()}
-        )
+        settle_energy_portfolio(portfolio, {"ppa-pos": _ppa_data(), "typo": _ppa_data()})
 
 
 def test_settled_position_defensively_copies_ledger() -> None:
@@ -122,9 +118,7 @@ def test_settled_position_defensively_copies_ledger() -> None:
 
 def test_portfolio_accepts_caller_column_mapping_for_hedge_data() -> None:
     position = Position(_FLOOR, position_id="floor-pos")
-    caller_data = pl.DataFrame(
-        {"from": [_START], "to": [_END], "day_ahead": [50.0]}
-    )
+    caller_data = pl.DataFrame({"from": [_START], "to": [_END], "day_ahead": [50.0]})
     result = settle_energy_portfolio(
         Portfolio((position,)),
         {"floor-pos": caller_data},

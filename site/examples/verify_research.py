@@ -17,11 +17,10 @@ from quantvolt.stats import (
     test_stationarity,
 )
 from quantvolt.workflow import (
-    ModelSelectionCriteria,
     ModelingWorkflow,
+    ModelSelectionCriteria,
     StructuredProduct,
 )
-
 
 rng = np.random.default_rng(42)
 innovations = rng.normal(0.0, 0.65, 300)

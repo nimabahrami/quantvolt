@@ -8,24 +8,34 @@ acceptance of negative prices/rates, enum values, and immutability.
 from __future__ import annotations
 
 import dataclasses
+from datetime import date
 
 import pytest
 
 from quantvolt.exceptions import ValidationError
 from quantvolt.models.commodity import CommodityConfig, Hub
 from quantvolt.models.instruments import (
+    CachedAssetValuation,
+    CapFloorStripContract,
+    CapFloorType,
     ForwardContract,
     FuturesContract,
     InstrumentPriceRecord,
+    OptionSide,
+    OptionType,
     PlantConfig,
     RiskType,
     SettlementType,
+    SpreadOptionContract,
     SwapContract,
+    TollingAgreement,
+    ValuationSource,
+    VanillaOptionContract,
 )
 from quantvolt.models.schedule import DeliveryPeriod, DeliverySchedule, Granularity
 
-_HUB = Hub("TTF", "ICE_ENDEX", "EUR/MBtu")
-_COMMODITY = CommodityConfig("TTF", "EUR/MBtu", _HUB)
+_HUB = Hub("TTF", "ICE_ENDEX", "EUR/MWh")
+_COMMODITY = CommodityConfig("TTF", "EUR/MWh", _HUB)
 _PERIOD = DeliveryPeriod(2024, 6)
 _SCHEDULE = DeliverySchedule(
     (DeliveryPeriod(2024, 1), DeliveryPeriod(2024, 2), DeliveryPeriod(2024, 3))
@@ -244,3 +254,261 @@ class TestImmutability:
         record = InstrumentPriceRecord("id", _COMMODITY, _PERIOD, 10.0)
         with pytest.raises(dataclasses.FrozenInstanceError):
             record.price = 11.0  # type: ignore[misc]
+
+
+# --- portfolio-native-pricers spec: OptionType/OptionSide, VanillaOptionContract,
+# SpreadOptionContract, TollingAgreement (Reqs 4, 5, 14) --------------------------------
+
+
+class TestOptionType:
+    def test_values(self) -> None:
+        assert OptionType.CALL == "call"
+        assert OptionType.PUT == "put"
+
+    def test_members(self) -> None:
+        assert {t.value for t in OptionType} == {"call", "put"}
+
+
+class TestOptionSide:
+    def test_values(self) -> None:
+        assert OptionSide.LONG == "long"
+        assert OptionSide.SHORT == "short"
+
+    def test_members(self) -> None:
+        assert {s.value for s in OptionSide} == {"long", "short"}
+
+
+class TestVanillaOptionContract:
+    def test_defaults(self) -> None:
+        contract = VanillaOptionContract(
+            commodity=_COMMODITY,
+            delivery_period=_PERIOD,
+            option_type=OptionType.CALL,
+            strike=40.0,
+            notional=1000.0,
+        )
+        assert contract.side is OptionSide.LONG
+        assert contract.expiry is None
+
+    def test_overrides(self) -> None:
+        expiry = DeliveryPeriod(2024, 5).last_day
+        contract = VanillaOptionContract(
+            commodity=_COMMODITY,
+            delivery_period=_PERIOD,
+            option_type=OptionType.PUT,
+            strike=40.0,
+            notional=1000.0,
+            side=OptionSide.SHORT,
+            expiry=expiry,
+        )
+        assert contract.option_type is OptionType.PUT
+        assert contract.side is OptionSide.SHORT
+        assert contract.expiry == expiry
+
+    @pytest.mark.parametrize("strike", [0.0, -1.0, -40.0])
+    def test_non_positive_strike_rejected(self, strike: float) -> None:
+        with pytest.raises(ValidationError, match="strike"):
+            VanillaOptionContract(_COMMODITY, _PERIOD, OptionType.CALL, strike, 1000.0)
+
+    @pytest.mark.parametrize("notional", [0.0, -1.0])
+    def test_non_positive_notional_rejected(self, notional: float) -> None:
+        with pytest.raises(ValidationError, match="notional"):
+            VanillaOptionContract(_COMMODITY, _PERIOD, OptionType.CALL, 40.0, notional)
+
+    def test_is_frozen(self) -> None:
+        contract = VanillaOptionContract(_COMMODITY, _PERIOD, OptionType.CALL, 40.0, 1000.0)
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            contract.strike = 50.0  # type: ignore[misc]
+
+
+class TestSpreadOptionContract:
+    def test_defaults(self) -> None:
+        contract = SpreadOptionContract(
+            commodity_1="EEX_PHELIX_DE",
+            commodity_2="TTF",
+            delivery_period=_PERIOD,
+            strike=5.0,
+            notional=1000.0,
+        )
+        assert contract.leg2_weight == 1.0
+        assert contract.side is OptionSide.LONG
+        assert contract.expiry is None
+
+    def test_zero_strike_accepted_margrabe_selector(self) -> None:
+        contract = SpreadOptionContract("EEX_PHELIX_DE", "TTF", _PERIOD, 0.0, 1000.0)
+        assert contract.strike == 0.0
+
+    @pytest.mark.parametrize("strike", [-1.0, -40.0])
+    def test_negative_strike_rejected(self, strike: float) -> None:
+        with pytest.raises(ValidationError, match="strike"):
+            SpreadOptionContract("EEX_PHELIX_DE", "TTF", _PERIOD, strike, 1000.0)
+
+    @pytest.mark.parametrize("notional", [0.0, -1.0])
+    def test_non_positive_notional_rejected(self, notional: float) -> None:
+        with pytest.raises(ValidationError, match="notional"):
+            SpreadOptionContract("EEX_PHELIX_DE", "TTF", _PERIOD, 5.0, notional)
+
+    @pytest.mark.parametrize("leg2_weight", [0.0, -2.0])
+    def test_non_positive_leg2_weight_rejected(self, leg2_weight: float) -> None:
+        with pytest.raises(ValidationError, match="leg2_weight"):
+            SpreadOptionContract(
+                "EEX_PHELIX_DE", "TTF", _PERIOD, 5.0, 1000.0, leg2_weight=leg2_weight
+            )
+
+    def test_is_frozen(self) -> None:
+        contract = SpreadOptionContract("EEX_PHELIX_DE", "TTF", _PERIOD, 5.0, 1000.0)
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            contract.strike = 10.0  # type: ignore[misc]
+
+
+_PLANT = PlantConfig(heat_rate=2.0, variable_om_cost=3.0, emissions_intensity=0.2, fuel_type="gas")
+
+
+class TestTollingAgreement:
+    def test_defaults(self) -> None:
+        agreement = TollingAgreement(
+            plant=_PLANT,
+            power_commodity_id="EEX_PHELIX_DE",
+            fuel_commodity_id="TTF",
+            eua_commodity_id="EUA",
+            schedule=_SCHEDULE,
+        )
+        assert agreement.capacity == 1.0
+        assert agreement.settlement_lag_days == 0
+
+    def test_overrides(self) -> None:
+        agreement = TollingAgreement(
+            plant=_PLANT,
+            power_commodity_id="EEX_PHELIX_DE",
+            fuel_commodity_id="TTF",
+            eua_commodity_id="EUA",
+            schedule=_SCHEDULE,
+            capacity=50.0,
+            settlement_lag_days=2,
+        )
+        assert agreement.capacity == 50.0
+        assert agreement.settlement_lag_days == 2
+
+    @pytest.mark.parametrize("capacity", [0.0, -1.0])
+    def test_non_positive_capacity_rejected(self, capacity: float) -> None:
+        with pytest.raises(ValidationError, match="capacity"):
+            TollingAgreement(_PLANT, "EEX_PHELIX_DE", "TTF", "EUA", _SCHEDULE, capacity=capacity)
+
+    def test_negative_settlement_lag_days_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="settlement_lag_days"):
+            TollingAgreement(
+                _PLANT, "EEX_PHELIX_DE", "TTF", "EUA", _SCHEDULE, settlement_lag_days=-1
+            )
+
+    def test_is_frozen(self) -> None:
+        agreement = TollingAgreement(_PLANT, "EEX_PHELIX_DE", "TTF", "EUA", _SCHEDULE)
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            agreement.capacity = 10.0  # type: ignore[misc]
+
+
+class TestValuationSource:
+    """DEFERRED-roadmap extension (portfolio-native-pricers Req 19): a third value,
+    ``SIMULATED``, alongside the two base-spec values ``FORWARD``/``PROJECTED``
+    (see ``tests/unit/test_long_dated.py::TestValuationSource`` for those two)."""
+
+    def test_simulated_value(self) -> None:
+        assert ValuationSource.SIMULATED == "simulated"
+
+    def test_three_values(self) -> None:
+        assert {s.value for s in ValuationSource} == {"forward", "projected", "simulated"}
+
+
+class TestCachedAssetValuation:
+    def test_construction_and_defaults(self) -> None:
+        wrapper = CachedAssetValuation(
+            asset_id="plant-1",
+            npv=1_000.0,
+            delta={("EEX_PHELIX_DE", _PERIOD): 25.0},
+            valuation_date=date(2026, 1, 1),
+            source=ValuationSource.SIMULATED,
+        )
+        assert wrapper.asset_id == "plant-1"
+        assert wrapper.npv == 1_000.0
+        assert wrapper.delta == {("EEX_PHELIX_DE", _PERIOD): 25.0}
+        assert wrapper.standard_error is None
+
+    def test_standard_error_override(self) -> None:
+        wrapper = CachedAssetValuation(
+            "plant-1", 1_000.0, {}, date(2026, 1, 1), ValuationSource.SIMULATED, standard_error=12.5
+        )
+        assert wrapper.standard_error == 12.5
+
+    def test_empty_asset_id_rejected(self) -> None:
+        with pytest.raises(ValidationError, match="asset_id"):
+            CachedAssetValuation("", 1_000.0, {}, date(2026, 1, 1), ValuationSource.SIMULATED)
+
+    @pytest.mark.parametrize("npv", [float("nan"), float("inf"), float("-inf")])
+    def test_non_finite_npv_rejected(self, npv: float) -> None:
+        with pytest.raises(ValidationError, match="npv"):
+            CachedAssetValuation("plant-1", npv, {}, date(2026, 1, 1), ValuationSource.SIMULATED)
+
+    @pytest.mark.parametrize("standard_error", [-1.0, float("nan"), float("inf")])
+    def test_invalid_standard_error_rejected(self, standard_error: float) -> None:
+        with pytest.raises(ValidationError, match="standard_error"):
+            CachedAssetValuation(
+                "plant-1",
+                1_000.0,
+                {},
+                date(2026, 1, 1),
+                ValuationSource.SIMULATED,
+                standard_error=standard_error,
+            )
+
+    def test_delta_is_defensively_copied(self) -> None:
+        source_delta = {("EEX_PHELIX_DE", _PERIOD): 25.0}
+        wrapper = CachedAssetValuation(
+            "plant-1", 1_000.0, source_delta, date(2026, 1, 1), ValuationSource.SIMULATED
+        )
+        source_delta[("EEX_PHELIX_DE", _PERIOD)] = 999.0
+        assert wrapper.delta == {("EEX_PHELIX_DE", _PERIOD): 25.0}
+
+    def test_is_frozen(self) -> None:
+        wrapper = CachedAssetValuation(
+            "plant-1", 1_000.0, {}, date(2026, 1, 1), ValuationSource.SIMULATED
+        )
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            wrapper.npv = 0.0  # type: ignore[misc]
+
+
+class TestCapFloorType:
+    def test_values(self) -> None:
+        assert CapFloorType.CAP == "cap"
+        assert CapFloorType.FLOOR == "floor"
+
+
+class TestCapFloorStripContract:
+    def test_defaults(self) -> None:
+        strip = CapFloorStripContract(
+            commodity=_COMMODITY,
+            schedule=_SCHEDULE,
+            cap_floor_type=CapFloorType.CAP,
+            strike=40.0,
+            notional=1_000.0,
+        )
+        assert strip.side == OptionSide.LONG
+
+    def test_side_override(self) -> None:
+        strip = CapFloorStripContract(
+            _COMMODITY, _SCHEDULE, CapFloorType.FLOOR, 40.0, 1_000.0, side=OptionSide.SHORT
+        )
+        assert strip.side == OptionSide.SHORT
+
+    @pytest.mark.parametrize("strike", [0.0, -5.0])
+    def test_non_positive_strike_rejected(self, strike: float) -> None:
+        with pytest.raises(ValidationError, match="strike"):
+            CapFloorStripContract(_COMMODITY, _SCHEDULE, CapFloorType.CAP, strike, 1_000.0)
+
+    @pytest.mark.parametrize("notional", [0.0, -1.0])
+    def test_non_positive_notional_rejected(self, notional: float) -> None:
+        with pytest.raises(ValidationError, match="notional"):
+            CapFloorStripContract(_COMMODITY, _SCHEDULE, CapFloorType.CAP, 40.0, notional)
+
+    def test_is_frozen(self) -> None:
+        strip = CapFloorStripContract(_COMMODITY, _SCHEDULE, CapFloorType.CAP, 40.0, 1_000.0)
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            strip.strike = 10.0  # type: ignore[misc]

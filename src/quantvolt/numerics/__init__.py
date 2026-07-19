@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .bachelier import bachelier_greeks, bachelier_implied_vol, bachelier_price
 from .black76 import black76_greeks, black76_implied_vol, black76_price
 from .daycount import actual_360, actual_365
 from .exotic import (
@@ -46,6 +47,9 @@ __all__ = [
     "actual_360",
     "actual_365",
     "asian_monte_carlo",
+    "bachelier_greeks",
+    "bachelier_implied_vol",
+    "bachelier_price",
     "barrier_analytic",
     "black76_greeks",
     "black76_implied_vol",

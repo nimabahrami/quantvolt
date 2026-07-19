@@ -25,6 +25,7 @@ from typing import Literal
 
 from ..exceptions import NumericalError
 from ..models.greeks import Greeks
+from ._degenerate import _degenerate_greeks
 from ._normal import norm_cdf as _norm_cdf
 from ._normal import norm_pdf as _norm_pdf
 from .rootfind import brent_root
@@ -134,25 +135,12 @@ def _black76_greeks_degenerate(
       time decay to speak of.
     - ``rho`` = ``-T*price``, unchanged from the normal branch's formula (already
       well-defined, and exactly ``0`` at ``T == 0``).
+
+    Delegates the shared arithmetic to :func:`~quantvolt.numerics._degenerate._degenerate_greeks`
+    (model-specific framing only lives in this docstring; Black-76's degenerate limit is
+    numerically identical to Bachelier's).
     """
-    price = black76_price(option_type, forward, strike, 0.0, time_to_expiry, discount_factor)
-    if option_type == "call":
-        if forward > strike:
-            delta = discount_factor
-        elif forward < strike:
-            delta = 0.0
-        else:
-            delta = 0.5 * discount_factor
-    else:
-        if forward < strike:
-            delta = -discount_factor
-        elif forward > strike:
-            delta = 0.0
-        else:
-            delta = -0.5 * discount_factor
-    theta = -math.log(discount_factor) / time_to_expiry * price if time_to_expiry > 0.0 else 0.0
-    rho = -time_to_expiry * price
-    return Greeks(delta=delta, gamma=0.0, vega=0.0, theta=theta, rho=rho)
+    return _degenerate_greeks(option_type, forward, strike, time_to_expiry, discount_factor)
 
 
 def black76_greeks(

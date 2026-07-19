@@ -358,7 +358,7 @@ def test_property_65_storage_dominates_replicable_calendar_spread(
 # Property 66: Projected-Spot Tagging and VaR Inapplicability.
 # ---------------------------------------------------------------------------------------
 
-_GAS = CommodityConfig("TTF", "EUR/MBtu", Hub("TTF", "ICE_ENDEX", "EUR/MBtu"))
+_GAS = CommodityConfig("TTF", "EUR/MWh", Hub("TTF", "ICE_ENDEX", "EUR/MWh"))
 _POWER = CommodityConfig("EEX_PHELIX_DE", "EUR/MWh", Hub("EEX_PHELIX_DE", "EEX", "EUR/MWh"))
 _LIQUID = DeliveryPeriod(2027, 1)
 _ILLIQUID = DeliveryPeriod(2035, 6)

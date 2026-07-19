@@ -21,7 +21,7 @@ from quantvolt.models.schedule import DeliveryPeriod
 from quantvolt.testing import assert_input_unchanged
 
 MARKET_DATE = date(2025, 1, 1)
-TTF = CommodityConfig("TTF", "EUR/MBtu", Hub("TTF", "ICE_ENDEX", "EUR/MBtu"))
+TTF = CommodityConfig("TTF", "EUR/MWh", Hub("TTF", "ICE_ENDEX", "EUR/MWh"))
 
 JAN = DeliveryPeriod(2025, 1)
 FEB = DeliveryPeriod(2025, 2)
@@ -188,7 +188,7 @@ def test_reprice_residual_exceeding_tolerance_raises(monkeypatch: pytest.MonkeyP
 
 
 def test_instrument_commodity_mismatch_raises_validation_error() -> None:
-    other = CommodityConfig("NBP", "GBP/MBtu", Hub("NBP", "ICE_ENDEX", "GBP/MBtu"))
+    other = CommodityConfig("NBP", "GBp/therm", Hub("NBP", "ICE_ENDEX", "GBp/therm"))
     instruments = [_instrument(JAN, 20.0), _instrument(FEB, 21.0, other)]
     with pytest.raises(ValidationError) as excinfo:
         CurveBuilder().build(TTF, MARKET_DATE, instruments)

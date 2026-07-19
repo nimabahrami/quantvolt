@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from .bachelier import (
+    BachelierOptionRequest,
+    BachelierOptionResult,
+    price_bachelier_option,
+)
 from .exotic import (
     AsianOptionRequest,
     BarrierOptionRequest,
@@ -31,10 +36,20 @@ from .ppa import (
     MissingImbalancePricePolicy,
     PpaDataColumns,
     PpaIntervalSettlement,
+    PpaReconciliationColumns,
     power_cap_payoff,
     power_floor_payoff,
+    reconcile_ppa_ledger,
     settle_ppa_frame,
     settle_ppa_interval,
+)
+from .ppa_valuation import (
+    PpaPeriodValuation,
+    PpaPeriodVolume,
+    PpaValuationResult,
+    PpaVolumeProfile,
+    make_ppa_pricer,
+    price_ppa,
 )
 from .spread_option import (
     SpreadOptionRequest,
@@ -72,6 +87,8 @@ from .vanilla import (
 
 __all__ = [
     "AsianOptionRequest",
+    "BachelierOptionRequest",
+    "BachelierOptionResult",
     "BarrierOptionRequest",
     "BasisResult",
     "CalendarSpreadResult",
@@ -93,6 +110,11 @@ __all__ = [
     "PowerHedgeSettlement",
     "PpaDataColumns",
     "PpaIntervalSettlement",
+    "PpaPeriodValuation",
+    "PpaPeriodVolume",
+    "PpaReconciliationColumns",
+    "PpaValuationResult",
+    "PpaVolumeProfile",
     "SpreadOptionRequest",
     "SpreadOptionResult",
     "SpreadResult",
@@ -114,19 +136,23 @@ __all__ = [
     "futures_delta",
     "implied_heat_rate",
     "implied_vol",
+    "make_ppa_pricer",
     "mark_to_market",
     "power_cap_payoff",
     "power_floor_payoff",
     "price_asian",
+    "price_bachelier_option",
     "price_barrier",
     "price_cap_floor",
     "price_futures",
     "price_lookback",
+    "price_ppa",
     "price_spark_spread_option",
     "price_spread_option",
     "price_swap",
     "price_tolling_agreement",
     "price_vanilla_option",
+    "reconcile_ppa_ledger",
     "settle_power_hedge_interval",
     "settle_power_hedges_frame",
     "settle_ppa_frame",

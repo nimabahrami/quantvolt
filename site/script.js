@@ -36,7 +36,10 @@ const GUIDE_NAV = [
   ['conventions','Conventions',[['units','Units'],['position-sign','Position signs'],['time','Dates & intervals'],['randomness','Randomness'],['precision','Tolerances']]],
   ['errors','Errors & validation',[['hierarchy','Hierarchy'],['validation','Validation'],['missing-data','Missing data'],['recovery','Recovery']]],
   ['testing','Testing workflows',[['unchanged','Non-mutation'],['deterministic','Determinism'],['round-trip','Serialization']]],
-  ['end-to-end','End-to-end tutorials',[['tutorial-map','Tutorial map'],['curve-to-var','Curve to VaR'],['spark-to-hedge','Spark spread'],['ppa-to-cfar','PPA to CFaR'],['reproducibility','Reproducibility']]],
+  ['end-to-end','End-to-end tutorials',[['tutorial-map','Tutorial map'],['curve-to-var','Curve to VaR'],['reproducibility','Reproducibility']]],
+  ['tutorial-spark','Tutorial: spark spread to hedge',[['setup','Clean spark spread'],['spread-option','Spread option'],['tolling-position','Tolling position'],['hedge','Variance-min hedge']]],
+  ['tutorial-ppa','Tutorial: renewable PPA to CFaR',[['weather','Weather'],['scenarios','Scenarios'],['settlement','Settlement with terms'],['cfar','CFaR']]],
+  ['tutorial-storage','Tutorial: storage intrinsic to hedge',[['curve','Seasonal curve'],['intrinsic','Intrinsic'],['extrinsic','Extrinsic'],['forward-hedge','Forward hedge']]],
 ];
 function renderGuideNav(){document.querySelector('#guide-nav').innerHTML=GUIDE_NAV.map(([route,label,children])=>`<details class="nav-group"><summary><a href="#/guide/${route}">${label}</a></summary><div>${children.map(([id,name])=>`<a href="#/guide/${route}" data-section="${id}">${name}</a>`).join('')}</div></details>`).join('')}
 

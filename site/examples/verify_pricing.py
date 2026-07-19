@@ -1,11 +1,12 @@
 """Execute representative examples from every major pricing family."""
+
 from __future__ import annotations
 
 from datetime import date
 
-import quantvolt as qv
-
 from shared_setup import DEC_26, MARKET_DATE, POWER, TTF, example_market
+
+import quantvolt as qv
 
 
 def main() -> None:
@@ -32,8 +33,16 @@ def main() -> None:
 
     asian = qv.price_asian(
         qv.AsianOptionRequest(
-            "call", "arithmetic", 38.0, 36.85, 0.55, 0.4, 0.99,
-            method="monte_carlo", seed=7, path_count=10_000,
+            "call",
+            "arithmetic",
+            38.0,
+            36.85,
+            0.55,
+            0.4,
+            0.99,
+            method="monte_carlo",
+            seed=7,
+            path_count=10_000,
         )
     )
     barrier = qv.price_barrier(

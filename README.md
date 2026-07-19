@@ -14,9 +14,24 @@ Covered markets: EEX Phelix DE/AT power, EPEX SPOT power (DE, FR, NL, BE, GB), T
 natural gas (ICE Endex), and EUA carbon allowances — extensible by the caller without editing
 library source. See [docs/european-markets.md](docs/european-markets.md).
 
+## Why QuantVolt?
+
+A typical desk assembles a curve spreadsheet, a standalone options pricer, a storage/dispatch
+optimizer and a bolted-on VaR tool, each with its own units, sign conventions and delivery-period
+identity — hand-reconciling between them is slow and a recurring source of quiet errors. QuantVolt
+instead moves the same immutable `ForwardCurve` / `DeliveryPeriod` / `MarketData` / `Greeks` value
+objects through curve construction, pricing, portfolio valuation, risk, realized settlement and
+physical-asset valuation, with determinism, eager validation and serializability enforced
+structurally rather than left to convention. It is equally explicit about scope: a PPA stays
+`unpriced` until you register a forward-looking pricer, storage/dispatch results are brought into
+a portfolio explicitly, no market data ships with the package, and approximations (Kirk,
+Turnbull-Wakeman, `bang_bang`) are labelled, never hidden. See
+[the "Why QuantVolt?" page](https://nimabahrami.github.io/quantvolt/#/guide/why) and the
+[external validation evidence](docs/validation.md) for the checkable version of these claims.
+
 ## Install
 
-Requires Python 3.12+.
+Requires Python 3.11+.
 
 ```bash
 uv add quantvolt            # or: pip install quantvolt
@@ -258,7 +273,7 @@ specialised names stay on their sub-package. Full reference with a runnable exam
 | `quantvolt.stats` | Descriptive statistics, normality tests, ADF/KPSS stationarity with Samuelson-effect detection, correlation, Ornstein-Uhlenbeck mean reversion |
 | `quantvolt.market` | Transmission cost, temperature/degree-day utilities, generation outage / reliability KPIs |
 | `quantvolt.workflow` | 7-step model-selection workflow for structured products |
-| `quantvolt.portfolio` | `Portfolio`/`Position` book assembly, forward-looking `value_portfolio`, and realized interval `settle_energy_portfolio` aggregation |
+| `quantvolt.portfolio` | `Portfolio`/`Position` book assembly; `value_portfolio` natively prices futures, forwards, swaps, transmission/pipeline rights, vanilla options, spread options and tolling agreements via the caller-extensible `DEFAULT_PRICERS` registry (PPAs and realized hedges are valued via a caller-registered pricer, e.g. `make_ppa_pricer` — deliberately not a default); realized interval `settle_energy_portfolio` aggregation is kept structurally separate from that forward-looking NPV |
 | `quantvolt.data` | Optional (`quantvolt[data]`): provider adapters behind a `DataSource` protocol — the only package that performs I/O |
 | `quantvolt.testing` | `assert_input_unchanged` — shipped test utility for the no-mutation invariant |
 | `quantvolt.exceptions` | The `EnergyQuantError` hierarchy (`ValidationError`, `ArbitrageError`, `MissingTenorError`, …) |
@@ -280,11 +295,20 @@ positions. See [docs/risk-and-assets.md](docs/risk-and-assets.md).
 
 ## Documentation
 
+- [Why QuantVolt?](https://nimabahrami.github.io/quantvolt/#/guide/why) — the integration problem,
+  the shared computational model, the extensible pricer registry, and an honest "what QuantVolt is
+  not" section
 - [docs/api.md](docs/api.md) — module-by-module API reference with runnable examples
 - [docs/risk-and-assets.md](docs/risk-and-assets.md) — the VaR family, the physical-vs-risk-neutral
   drift rule, incomplete-market hedging, dispatch & storage, and the long-dated / liquidity caveats
 - [docs/european-markets.md](docs/european-markets.md) — market coverage, power-vs-gas
   statistics, negative prices, Samuelson effect, carbon costs, data-source policy
+- [docs/validation.md](docs/validation.md) — external validation evidence: QuantVolt's pricers
+  checked against QuantLib 1.43 golden fixtures, with honest caveats and regeneration instructions
+- Three complete, runnable end-to-end tutorials (site, each backed by a `site/examples/
+  verify_tutorial_*.py` script): [spark spread to hedge](https://nimabahrami.github.io/quantvolt/#/guide/tutorial-spark),
+  [renewable PPA to CFaR](https://nimabahrami.github.io/quantvolt/#/guide/tutorial-ppa), and
+  [storage intrinsic to hedge](https://nimabahrami.github.io/quantvolt/#/guide/tutorial-storage)
 - `.kiro/steering/` — product, tech, structure, and coding-style standards
 - `.kiro/specs/power-energy-quant-analysis/` — requirements, design, and task breakdown
   (the library is spec-driven; the design document is the source of truth for the maths)

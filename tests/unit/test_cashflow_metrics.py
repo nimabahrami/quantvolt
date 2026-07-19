@@ -8,9 +8,7 @@ from quantvolt.exceptions import ValidationError
 
 
 def test_hand_computed_strategy_comparison() -> None:
-    data = pl.DataFrame(
-        {"merchant": [0.0, 100.0, 200.0], "hedged": [50.0, 100.0, 150.0]}
-    )
+    data = pl.DataFrame({"merchant": [0.0, 100.0, 200.0], "hedged": [50.0, 100.0, 150.0]})
     result = compare_cashflow_strategies(
         data,
         {"merchant": "merchant", "hedged": "hedged"},
@@ -32,9 +30,7 @@ def test_rejects_nonfinite_and_ambiguous_data() -> None:
     with pytest.raises(ValidationError, match="finite"):
         compare_cashflow_strategies(data, {"a": "a"}, benchmark="a")
     with pytest.raises(ValidationError, match="distinct"):
-        compare_cashflow_strategies(
-            data.select("b"), {"one": "b", "two": "b"}, benchmark="one"
-        )
+        compare_cashflow_strategies(data.select("b"), {"one": "b", "two": "b"}, benchmark="one")
     with pytest.raises(ValidationError, match="not in"):
         compare_cashflow_strategies(data.select("b"), {"one": "b"}, benchmark="missing")
 

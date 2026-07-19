@@ -150,9 +150,7 @@ def calibrate_ppa_nomination(
         raise ValidationError("confidence_level must be in (0, 1)")
     require_integer_at_least("grid_steps", grid_steps, 1)
     columns = columns or PpaNominationColumns()
-    interval_minutes = _validate_calibration_data(
-        calibration_data, columns, calibration_end_utc
-    )
+    interval_minutes = _validate_calibration_data(calibration_data, columns, calibration_end_utc)
 
     generation = calibration_data[columns.metered_generation_mwh].to_numpy().astype(float)
     shortfall_price = calibration_data[columns.shortfall_price_per_mwh].to_numpy().astype(float)
@@ -183,9 +181,7 @@ def calibrate_ppa_nomination(
             value -= risk_aversion * cfar
         for name, result in (("mean_cashflow", mean), ("objective_value", value)):
             require_finite(name, result)
-        diagnostics.append(
-            PpaNominationCandidate(float(volume), mean, lower, cfar, value)
-        )
+        diagnostics.append(PpaNominationCandidate(float(volume), mean, lower, cfar, value))
     selected = max(diagnostics, key=lambda item: (item.objective_value, -item.contracted_mwh))
     return PpaNominationFit(
         contract_id=contract.contract_id,
@@ -215,9 +211,7 @@ def apply_ppa_nomination(
     require_non_empty("interval_start_column", interval_start_column)
     require_non_empty("interval_end_column", interval_end_column)
     require_non_empty("output_column", output_column)
-    missing = sorted(
-        {interval_start_column, interval_end_column} - set(evaluation_data.columns)
-    )
+    missing = sorted({interval_start_column, interval_end_column} - set(evaluation_data.columns))
     if missing:
         raise ValidationError(f"evaluation data is missing columns: {', '.join(missing)}")
     if interval_start_column == interval_end_column:
@@ -243,6 +237,4 @@ def apply_ppa_nomination(
                 )
     except TypeError as exc:
         raise ValidationError("evaluation timestamps must be timezone-compatible") from exc
-    return evaluation_data.with_columns(
-        pl.lit(fit.selected_mwh_per_interval).alias(output_column)
-    )
+    return evaluation_data.with_columns(pl.lit(fit.selected_mwh_per_interval).alias(output_column))

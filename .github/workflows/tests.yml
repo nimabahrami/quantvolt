@@ -1,0 +1,100 @@
+name: Tests
+
+# Lint, strict type-check, and pytest on every push to main and every pull request, across the
+# supported interpreter matrix (Python 3.11-3.13). Performance-SLA benchmarks are gated in their
+# own job so wall-clock-sensitive pytest-benchmark thresholds don't multiply across the matrix or
+# block ordinary correctness runs. See .kiro/specs/py311-floor-and-ci/ for the spec this
+# implements.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          # Pinned to the mypy [tool.mypy] python_version floor (3.11), not left to uv's
+          # default discovery: at least one recent numpy release (2.5.x, resolved under
+          # 3.12+) ships a __init__.pyi that uses PEP 695 `type` statements unconditionally,
+          # which mypy --python-version 3.11 cannot parse. Under 3.11 uv.lock resolves the
+          # older numpy 2.4.x branch, whose stub has no such construct.
+          python-version: "3.11"
+      - run: uv sync --extra dev --extra data
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - name: mypy --strict
+        # Type-checks against the checked-in src/quantvolt/_core.pyi stub (PEP 561 py.typed
+        # package) -- does not need the compiled Rust extension to be built.
+        run: uv run mypy
+      - name: Provenance gates
+        # Stdlib-only static checks (no quantvolt import): constants carry '# source:'
+        # citations, the commodity registry matches docs/market_conventions.json, and every
+        # public pricing kernel is in tests/validation/coverage_manifest.json. See
+        # .kiro/steering/provenance.md and scripts/ci/check_provenance.py.
+        run: python scripts/ci/check_provenance.py
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: test-${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync
+      - name: Build native extension (release)
+        # Release, not debug: the Rust Monte Carlo kernels are 10-50x slower in debug builds,
+        # which would risk CI timeouts on convergence/standard-error tests.
+        run: uv run maturin develop --release
+      - run: uv run pytest --ignore=tests/benchmarks -q --durations=20
+
+  benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: benchmarks
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          python-version: "3.12"
+      - run: uv sync
+      - run: uv run maturin develop --release
+      - run: uv run pytest tests/benchmarks -q
+
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: rust-lint
+      - run: cargo fmt --check
+      - run: cargo clippy -- -D warnings
+      - run: cargo test

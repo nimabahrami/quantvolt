@@ -20,8 +20,7 @@ from quantvolt.exceptions import (
 )
 
 _HEADER = (
-    "Datum;Zeitzone;von;bis;Datenkategorie;Datentyp;Einheit;"
-    "reBAP unterdeckt;reBAP ueberdeckt\n"
+    "Datum;Zeitzone;von;bis;Datenkategorie;Datentyp;Einheit;reBAP unterdeckt;reBAP ueberdeckt\n"
 )
 _CSV = _HEADER + (
     "10.06.2023;UTC;23:45;00:00;reBAP;Qualitätsgesichert;EUR/MWh;103,97;98,12\n"
@@ -121,9 +120,7 @@ def test_source_uses_oauth_bearer_and_official_date_path() -> None:
             )
             return httpx.Response(200, json={"access_token": "ephemeral-token"})
         assert request.headers["Authorization"] == "Bearer ephemeral-token"
-        assert request.url.raw_path.endswith(
-            b"/2023-06-10T23%3A45%3A00/2023-06-11T00%3A15%3A00"
-        )
+        assert request.url.raw_path.endswith(b"/2023-06-10T23%3A45%3A00/2023-06-11T00%3A15%3A00")
         return httpx.Response(200, text=_CSV)
 
     source = NetztransparenzSource(
@@ -142,6 +139,4 @@ def test_source_uses_oauth_bearer_and_official_date_path() -> None:
 def test_source_fails_before_network_without_credentials() -> None:
     source = NetztransparenzSource(OAuthClientCredentials())
     with pytest.raises(AuthenticationError, match="CLIENT_ID"):
-        source.rebap(
-            datetime(2023, 6, 10, tzinfo=UTC), datetime(2023, 6, 11, tzinfo=UTC)
-        )
+        source.rebap(datetime(2023, 6, 10, tzinfo=UTC), datetime(2023, 6, 11, tzinfo=UTC))

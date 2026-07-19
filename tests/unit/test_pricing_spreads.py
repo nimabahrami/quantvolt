@@ -327,7 +327,6 @@ def test_basis_percentile_and_ddof_validation(kwargs: dict[str, float], match: s
 
 # --- crack_spread (Task 34; Property 42) ----------------------------------------
 
-
 CRUDE = make_curve("BRENT", {JAN: 70.0, FEB: 80.0, MAR: 90.0}, unit="USD/bbl")
 GASOLINE = make_curve("RBOB", {FEB: 100.0, MAR: 105.0, APR: 110.0}, unit="USD/bbl")
 DIESEL = make_curve("ULSD", {FEB: 95.0, MAR: 100.0}, unit="USD/bbl")

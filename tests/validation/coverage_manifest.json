@@ -1,0 +1,210 @@
+{
+  "$comment": "Honesty ledger for every public pricing/valuation kernel (see scripts/ci/check_provenance.py and .kiro/steering/provenance.md). Enumerated from pricing/__init__.py __all__ (functions only -- Request/Result dataclasses are not kernels), the closed-form kernels named in numerics/*.py, and the three physical-asset kernels. category in {external-fixture, internal-closed-form, internal-anchor, blocked}; external-fixture/internal-closed-form must give a 'ref' that exists on disk, internal-anchor a free-text 'justification', blocked a free-text 'reason'. This is a record of what validation actually exists today, not an aspirational target -- gaps are named, not hidden.",
+
+  "black76_price": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/black76.json"
+  },
+  "black76_greeks": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/black76.json"
+  },
+  "black76_implied_vol": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/black76.json"
+  },
+  "bachelier_price": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/bachelier.json"
+  },
+  "bachelier_greeks": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/bachelier.json"
+  },
+  "bachelier_implied_vol": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/bachelier.json"
+  },
+  "kirk": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/spread.json"
+  },
+  "margrabe": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/spread.json"
+  },
+  "kemna_vorst": {
+    "category": "internal-closed-form",
+    "ref": "tests/unit/test_monte_carlo.py",
+    "note": "No external fixture exists for the geometric-average Asian closed form; validated only against QuantVolt's own Monte Carlo kernel (test_geometric_mc_within_three_standard_errors_of_kemna_vorst)."
+  },
+  "turnbull_wakeman": {
+    "category": "internal-closed-form",
+    "ref": "tests/validation/test_mc_convergence.py",
+    "note": "Validated against QuantVolt's own arithmetic-averaging Monte Carlo kernel (test (d): Turnbull-Wakeman vs arithmetic-Asian MC), not an external reference library."
+  },
+
+  "price_vanilla_option": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/black76.json",
+    "note": "Thin validate/package wrapper over black76_price/black76_greeks (module docstring: 'All real math lives in the kernel'); the fixture that validates the kernel validates this wrapper's math."
+  },
+  "price_bachelier_option": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/bachelier.json",
+    "note": "Thin validate/package wrapper over bachelier_price/bachelier_greeks (module docstring: 'All real math lives in the kernel'); the fixture that validates the kernel validates this wrapper's math. Differs from price_vanilla_option only in validating forward/strike for finiteness (not positivity) so negative/zero underlyings price."
+  },
+  "price_cap_floor": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/capfloor.json"
+  },
+  "price_spread_option": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/spread.json",
+    "note": "Thin validate/package wrapper over kirk/margrabe (module docstring: 'Thin pricer over the pure kernels'); no added equation of its own."
+  },
+  "price_spark_spread_option": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/spread.json",
+    "note": "Spark-spread convenience wrapper that scales forward2 by heat_rate before delegating to price_spread_option (kirk/margrabe); no added equation of its own."
+  },
+  "implied_vol": {
+    "category": "external-fixture",
+    "ref": "tests/validation/fixtures/black76.json",
+    "note": "Thin wrapper over numerics.black76_implied_vol; own added logic is OptionQuote/period packaging, not a new equation."
+  },
+  "build_volatility_surface": {
+    "category": "internal-anchor",
+    "justification": "Grid-construction and nearest-ATM-strike-selection logic over implied_vol nodes (itself external-fixture, black76.json); the surface-building logic itself is unit-tested (tests/unit/test_implied_vol.py: test_surface_matches_inversion_at_quoted_periods, test_missing_months_are_linearly_interpolated, test_multiple_strikes_per_period_pick_nearest_atm_vol) but has no external reference of its own."
+  },
+
+  "price_asian": {
+    "category": "internal-closed-form",
+    "ref": "tests/validation/test_mc_convergence.py",
+    "note": "Dispatches to turnbull_wakeman (arithmetic) or kemna_vorst (geometric), both validated against QuantVolt's own Monte Carlo kernel (test_mc_convergence.py test (d); tests/unit/test_monte_carlo.py). No external fixture for either averaging convention."
+  },
+  "price_barrier": {
+    "category": "blocked",
+    "reason": "No analytic-vs-discrete-MC comparison exists for the Reiner-Rubinstein continuous-monitoring closed form: a Broadie-Glasserman-Kou discretisation correction is required to make it comparable to a discretely-monitored Monte Carlo, and that correction is not implemented (Requirement 8.8, documented limitation in docs/validation.md)."
+  },
+  "price_lookback": {
+    "category": "blocked",
+    "reason": "No analytic-vs-discrete-MC comparison exists for the Goldman-Sosin-Gatto / Conze-Viswanathan continuous-monitoring closed forms, for the same Broadie-Glasserman-Kou reason as price_barrier (Requirement 8.8, documented limitation in docs/validation.md)."
+  },
+
+  "storage_intrinsic": {
+    "category": "blocked",
+    "reason": "cmdty-storage cross-check needs a .NET/pythonnet runtime unavailable in this environment; tests/validation/fixtures/storage.json does not exist and tests/validation/test_storage_fixtures.py collects zero cases as a result. An internal grid-refinement study exists instead (scripts/studies/storage_grid_refinement_study.py, .kiro/specs/external-validation/storage_grid_refinement.md) which pre-sizes the tolerances the (not yet generated) fixture would use."
+  },
+  "storage_value": {
+    "category": "blocked",
+    "reason": "Same as storage_intrinsic: cmdty-storage cross-check is BLOCKED on this environment (no .NET/pythonnet). Internal validation is analytic-vs-Monte-Carlo convergence (storage extrinsic -> 0 as sigma -> 1e-4, tests/validation/test_mc_convergence.py test (f)) plus the grid-refinement study, not an external reference library."
+  },
+  "dispatch_value": {
+    "category": "internal-anchor",
+    "justification": "Property 63 (dispatch-tolling reconciliation): with every binding constraint removed (c_min=0, full ramp, zero start costs/durations) the optimal dispatch policy is myopic and dispatch_value must equal c_max times the price_tolling_agreement strip built on matching inputs -- tests/unit/test_dispatch_sdp.py, tests/property/test_asset_properties.py. This anchors dispatch_value to an independently-validated closed form in the unconstrained limit; it is not itself checked against an external optimizer."
+  },
+
+  "price_futures": {
+    "category": "internal-anchor",
+    "justification": "NPV = discount_factor(settlement) * (forward_price - contract_price) * notional is a linear cash-flow identity, hand-anchored and unit-tested against hand-computed values -- tests/unit/test_pricing_futures.py (test_npv_matches_hand_computed_value)."
+  },
+  "futures_delta": {
+    "category": "internal-anchor",
+    "justification": "Exact analytic derivative of the linear price_futures NPV identity (delta = discount_factor * notional); tests/unit/test_pricing_futures.py (test_delta_equals_discount_factor_times_notional, test_delta_is_exact_for_any_bump_size)."
+  },
+  "price_swap": {
+    "category": "internal-anchor",
+    "justification": "Fixed-for-floating cash-flow identity summed per period, hand-anchored and unit-tested against hand-computed NPV/rho -- tests/unit/test_pricing_swap.py (test_two_period_npv_hand_computed, test_rho_matches_hand_computed_per_bp_formula)."
+  },
+  "value_transport_right": {
+    "category": "internal-anchor",
+    "justification": "Intrinsic PV is a per-period spread-payoff identity (Property 67/68); extrinsic value delegates to price_spread_option (external-fixture, spread.json) when volatilities/correlation are supplied. Hand-anchored and property-tested -- tests/property/test_extended_properties.py."
+  },
+  "price_tolling_agreement": {
+    "category": "internal-anchor",
+    "justification": "Strip of clean spark/dark spread options, each priced through price_spread_option (external-fixture, spread.json); reconciled against unconstrained dispatch_value under Property 63 -- tests/unit/test_dispatch_sdp.py, tests/property/test_asset_properties.py."
+  },
+  "price_ppa": {
+    "category": "internal-anchor",
+    "justification": "npv = sum_t DF(t) * V_t * (K_t - capture_t * F_t) is a linear cash-flow identity over a caller-supplied volume profile; hand-recomputed during the validation review of 2026-07-18 (no independent numerical method applies to a linear identity) and property-tested for linearity/delta consistency -- tests/property/test_portfolio_native_pricers_properties.py (test_ppa_mtm_is_linear_in_volume_and_forward_with_matching_finite_difference_delta)."
+  },
+
+  "settle_ppa_interval": {
+    "category": "internal-anchor",
+    "justification": "Deterministic realised-cash-flow accounting for one delivery interval (indexation -> clamp -> negative-price clause -> cap/floor overlay), no probability model; unit-tested against hand-computed settlements -- tests/unit/test_ppa.py."
+  },
+  "reconcile_ppa_ledger": {
+    "category": "internal-anchor",
+    "justification": "Pure post-processing pass over an already-settled ledger (never modifies/re-derives settle_ppa_frame's rows): volume-band, availability, and consecutive-hour true-up cash flows, each a deterministic accounting identity (Requirements 9-11). Hand-computed and unit-tested -- tests/unit/test_ppa.py (test_reconcile_ppa_ledger_hand_computed_volume_band_and_availability_true_up, test_reconcile_ppa_ledger_consecutive_hour_true_up_hand_computed_physical)."
+  },
+  "settle_ppa_frame": {
+    "category": "internal-anchor",
+    "justification": "Vectorised per-row application of settle_ppa_interval's accounting over a Polars frame; unit-tested including caller column-mapping and reconciliation -- tests/unit/test_ppa.py (test_frame_settlement_accepts_caller_column_mapping_and_reconciles)."
+  },
+  "settle_power_hedge_interval": {
+    "category": "internal-anchor",
+    "justification": "Deterministic realised power-hedge settlement identity for one interval; unit-tested against hand-computed payoffs -- tests/unit/test_power_hedge.py (test_realized_hedge_payoffs_by_hand)."
+  },
+  "settle_power_hedges_frame": {
+    "category": "internal-anchor",
+    "justification": "Vectorised per-row application of settle_power_hedge_interval over a Polars frame; unit-tested for order-preservation and validation -- tests/unit/test_power_hedge.py."
+  },
+  "mark_to_market": {
+    "category": "internal-anchor",
+    "justification": "Settlement-price / forward-curve fallback resolution plus daily/cumulative P&L bookkeeping; no new pricing equation. Unit-tested against hand-computed P&L -- tests/unit/test_mark_to_market.py (test_settled_position_hand_computed_pnl)."
+  },
+  "make_ppa_pricer": {
+    "category": "internal-anchor",
+    "justification": "Pure factory/composition function (no independent equation): closes over a PpaVolumeProfile mapping and returns a (Position, MarketData) -> PricedPosition callable for portfolio.valuation.value_portfolio. GAP: as of 2026-07-18 no test wires it into value_portfolio end to end -- flagged here rather than invented; price_ppa itself (the function it composes) is separately covered above."
+  },
+  "power_cap_payoff": {
+    "category": "internal-anchor",
+    "justification": "max(spot_price - strike, 0) * volume_mwh payoff identity; unit-tested against hand-computed values -- tests/unit/test_ppa.py."
+  },
+  "power_floor_payoff": {
+    "category": "internal-anchor",
+    "justification": "max(strike - spot_price, 0) * volume_mwh payoff identity; unit-tested against hand-computed values -- tests/unit/test_ppa.py."
+  },
+
+  "spark_spread": {
+    "category": "internal-anchor",
+    "justification": "power_price - heat_rate * gas_price per shared period; linear arithmetic identity, hand-computed and unit-tested -- tests/unit/test_pricing_spreads.py (test_spark_spread_matches_hand_computed_values)."
+  },
+  "dark_spread": {
+    "category": "internal-anchor",
+    "justification": "power_price - heat_rate * coal_price per shared period; linear arithmetic identity, hand-computed and unit-tested -- tests/unit/test_pricing_spreads.py (test_dark_spread_matches_hand_computed_values)."
+  },
+  "clean_spread": {
+    "category": "internal-anchor",
+    "justification": "uncleaned spread minus emissions_intensity * EUA_price; linear arithmetic identity, unit-tested -- tests/unit/test_pricing_spreads.py (test_clean_spark_deducts_emissions_intensity_times_eua_price)."
+  },
+  "crack_spread": {
+    "category": "internal-anchor",
+    "justification": "input:outputs ratio-normalised refining-margin identity, unit-tested against hand-computed values -- tests/unit/test_pricing_spreads.py (test_crack_spread_3_2_1_matches_hand_computed_values)."
+  },
+  "forward_spread": {
+    "category": "internal-anchor",
+    "justification": "Identical formula to spark_spread (Property 43), differing only in time-horizon interpretation; unit-tested -- tests/unit/test_pricing_spreads.py (test_forward_spread_equals_spark_spread_on_identical_inputs)."
+  },
+  "calendar_spread": {
+    "category": "internal-anchor",
+    "justification": "Later-tenor minus earlier-tenor forward price, adjusted for storage cost; linear identity, unit-tested -- tests/unit/test_pricing_spreads.py (test_calendar_spread_is_later_minus_earlier_adjusted_for_storage)."
+  },
+  "basis": {
+    "category": "internal-anchor",
+    "justification": "Per-period A-minus-B difference plus descriptive statistics (mean/std/percentile) over that vector; cross-checked directly against numpy -- tests/unit/test_pricing_spreads.py (test_basis_statistics_match_numpy_on_the_per_period_vector)."
+  },
+  "implied_heat_rate": {
+    "category": "internal-anchor",
+    "justification": "power_price / gas_price per shared period (algebraic rearrangement of the spark-spread relation), unit-tested -- tests/unit/test_pricing_spreads.py (test_implied_heat_rate_is_power_over_gas_per_shared_period)."
+  },
+  "classify_moneyness": {
+    "category": "internal-anchor",
+    "justification": "Deterministic |strike - forward| / forward banding rule (Property 32), no external convention beyond the tolerance band itself; unit-tested for every boundary -- tests/unit/test_implied_vol.py (test_atm_boundary_at_exactly_two_percent_is_inclusive)."
+  },
+  "cumulative_historical_vol": {
+    "category": "internal-anchor",
+    "justification": "Standard rolling-window annualised realised-volatility estimator (log-return std * sqrt(periods_per_year)); recovers a known simulated sigma within tolerance -- tests/unit/test_implied_vol.py (test_gbm_sample_recovers_annualised_sigma_loosely). No external reference series is used."
+  }
+}

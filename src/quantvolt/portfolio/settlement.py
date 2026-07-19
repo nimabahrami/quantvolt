@@ -87,9 +87,7 @@ def settle_energy_portfolio(
     invalid_hedge_column_keys = sorted(set(hedge_columns_by_id) - required_keys)
     invalid_policy_keys = sorted(set(policies_by_id) - required_keys)
     if invalid_column_keys or invalid_hedge_column_keys or invalid_policy_keys:
-        invalid = sorted(
-            set(invalid_column_keys + invalid_hedge_column_keys + invalid_policy_keys)
-        )
+        invalid = sorted(set(invalid_column_keys + invalid_hedge_column_keys + invalid_policy_keys))
         raise ValidationError(
             f"PPA configuration has unknown position_id values: {', '.join(invalid)}"
         )
@@ -110,9 +108,7 @@ def settle_energy_portfolio(
                 instrument,
                 data,
                 columns=columns_by_id.get(key),
-                imbalance_policy=policies_by_id.get(
-                    key, MissingImbalancePricePolicy.ERROR
-                ),
+                imbalance_policy=policies_by_id.get(key, MissingImbalancePricePolicy.ERROR),
             )
         else:
             if key in columns_by_id or key in policies_by_id:

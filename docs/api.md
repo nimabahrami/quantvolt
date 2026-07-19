@@ -55,7 +55,8 @@ over `BUILT_IN_COMMODITIES` (caller wins on id collision).
 Module-level functions on `float`/`np.ndarray` only — no domain types, no validation. Every
 pricer orchestrates these; use them directly when you have raw numbers.
 
-**Public names**: `black76_price`, `black76_greeks`, `black76_implied_vol` · `kirk`, `margrabe` ·
+**Public names**: `black76_price`, `black76_greeks`, `black76_implied_vol` ·
+`bachelier_price`, `bachelier_greeks`, `bachelier_implied_vol` · `kirk`, `margrabe` ·
 `turnbull_wakeman`, `kemna_vorst`, `barrier_analytic`, `lookback_fixed`, `lookback_floating` ·
 `asian_monte_carlo` · `build_covariance`, `simulate_correlated_forwards` · `price_of_risk`,
 `tradable_price_of_risk`, `risk_adjusted_drift`, `require_physical_drift`, `PriceOfRiskKind`,
@@ -75,6 +76,17 @@ mc_premium, std_err = asian_monte_carlo(  # Rust kernel; same seed -> identical 
     averaging_points=12, option_type="call", geometric=False, seed=7, path_count=50_000,
 )
 ```
+
+The `bachelier_*` kernels are the **normal (arithmetic-Brownian) model** — the counterpart to
+Black-76 for forwards that can go **negative or zero** (power, and — since 2020 — oil). Unlike
+Black-76 (lognormal, needs `F, K > 0`), `bachelier_price("call", forward=-25.0, strike=-30.0,
+normal_sigma=20.0, time_to_expiry=0.25, discount_factor=0.97)` prices a negative forward without
+error. `normal_sigma` is the **absolute** normal volatility (price-units per √year) — **not** the
+dimensionless lognormal Black-76 `sigma`; the two are not interchangeable. `bachelier_greeks`
+returns the same `Greeks` object with matching sign/carry conventions, and `bachelier_implied_vol`
+inverts for `normal_sigma` (checking only the `σ_N → 0` discounted-intrinsic lower bound — the
+Bachelier call premium is unbounded above). See the negative-forward note under
+`quantvolt.portfolio` below for why there is deliberately no automatic Black-76 → Bachelier switch.
 
 `asian_monte_carlo` returns `(premium, standard_error)` and is the thin wrapper over the native
 `quantvolt._core` extension — the only non-Python code in the library.
@@ -123,7 +135,8 @@ Orchestration layer: a request object (or typed arguments) in, a frozen result o
 
 **Public names**: `price_futures`, `futures_delta`, `FuturesPricingResult` · `price_swap`,
 `SwapPricingResult` · `price_vanilla_option`, `price_cap_floor`, `VanillaOptionRequest`,
-`VanillaOptionResult`, `CapFloorRequest`, `CapFloorResult` · `price_asian`, `price_barrier`,
+`VanillaOptionResult`, `CapFloorRequest`, `CapFloorResult` · `price_bachelier_option`,
+`BachelierOptionRequest`, `BachelierOptionResult` · `price_asian`, `price_barrier`,
 `price_lookback`, `AsianOptionRequest`, `BarrierOptionRequest`, `LookbackOptionRequest`,
 `ExoticOptionResult` · `price_spread_option`, `price_spark_spread_option`,
 `SpreadOptionRequest`, `SpreadOptionResult` · `price_tolling_agreement`, `TollingResult` ·
@@ -146,6 +159,16 @@ option = price_vanilla_option(VanillaOptionRequest(
 ))
 print(f"premium {option.premium:,.0f} EUR, vega {option.greeks.vega:,.0f}")
 
+# For a forward that can go NEGATIVE (power, or oil since 2020), price under the Bachelier
+# (normal) model with an explicit ABSOLUTE normal vol -- NOT the lognormal Black-76 sigma:
+from quantvolt import BachelierOptionRequest, price_bachelier_option  # noqa: E402
+
+neg = price_bachelier_option(BachelierOptionRequest(
+    option_type="call", strike=-30.0, notional=10_000.0,
+    forward=-25.0, normal_sigma=20.0, time_to_expiry=0.25, discount_factor=0.97,
+))
+print(f"negative-forward premium {neg.premium:,.0f} EUR")  # Black-76 would raise here
+
 def curve(commodity_id: str, price: float) -> ForwardCurve:
     return ForwardCurve(
         BUILT_IN_COMMODITIES[commodity_id], date(2026, 7, 15),
@@ -159,10 +182,169 @@ print(spread.per_period)   # {2026-12: 14.80}  power - heat_rate*gas - variable_
 print(clean.per_period)    # {2026-12: -14.06} after deducting 0.37 tCO2/MWh * 78 EUR/tCO2
 ```
 
-Vanilla options and caps/floors are Black-76 with full Greeks; spread options use Kirk (Margrabe
-when `strike == 0`); Asians select Turnbull-Wakeman / Kemna-Vorst / Monte Carlo by request.
-`mark_to_market` marks positions against exchange settlement prices, falling back to a forward
-curve with the result flagged `"estimated"`.
+Vanilla options and caps/floors are Black-76 with full Greeks; `price_bachelier_option` prices the
+same European call/put under the **Bachelier (normal) model** for forwards that can be negative or
+zero (its `normal_sigma` is the absolute normal vol, not the lognormal Black-76 `sigma`); spread
+options use Kirk (Margrabe when `strike == 0`); Asians select Turnbull-Wakeman / Kemna-Vorst /
+Monte Carlo by request. `mark_to_market` marks positions against exchange settlement prices,
+falling back to a forward curve with the result flagged `"estimated"`.
+
+## PPA settlement — explicit contract terms
+
+`quantvolt.pricing.ppa` computes **realised** producer cash flow for a power-purchase
+agreement (`PpaContract`): it settles already-observed metered generation and market prices
+into an auditable ledger, it does not value an unexpired PPA (no probability model is
+involved). `settle_ppa_interval` settles one delivery interval; `settle_ppa_frame` settles a
+whole Polars frame of intervals (caller-owned; columns may be remapped with
+`PpaDataColumns`). Every ledger reconciles: `component_sum == net_cashflow` to `1e-9`.
+
+**Public names**: `PpaContract`, `PpaSettlementType`, `PpaVolumeBasis` ·
+`PpaTerms`, `PpaPriceTerms`, `IndexationStep`, `NegativePriceClause`,
+`NegativePriceTreatment`, `PpaVolumeTerms`, `CurtailmentTreatment`, `PpaToleranceBand` ·
+`settle_ppa_interval`, `settle_ppa_frame`, `PpaIntervalSettlement`, `PpaDataColumns`,
+`MissingImbalancePricePolicy`
+
+`PpaContract.terms` is an optional `PpaTerms` bundle — a **framework for explicit
+settlement mechanics**, not a legal model of any specific European PPA. Every field
+defaults to `None`; a caller composes only the rules needed. `PpaTerms()` (every field
+`None`) is byte-identical to attaching no terms at all:
+
+```python
+from datetime import UTC, datetime, timedelta
+
+from quantvolt import (
+    IndexationStep, NegativePriceClause, NegativePriceTreatment,
+    PowerDeliveryInterval, PpaContract, PpaPriceTerms, PpaSettlementType,
+    PpaTerms, PpaVolumeBasis, settle_ppa_interval,
+)
+
+start = datetime(2026, 1, 1, tzinfo=UTC)
+step_time = start + timedelta(days=180)     # a caller-precomputed CPI restatement date
+
+contract = PpaContract(
+    contract_id="wind-de-2026", bidding_zone="DE-LU", fixed_price_per_mwh=55.0,
+    start_utc=start, end_utc=start + timedelta(days=365),
+    volume_basis=PpaVolumeBasis.BASELOAD, settlement_type=PpaSettlementType.FINANCIAL_CFD,
+    terms=PpaTerms(
+        price=PpaPriceTerms(
+            floor_price_per_mwh=40.0,
+            indexation=(IndexationStep(step_time, fixed_price_per_mwh=35.0),),
+        ),
+        negative_price=NegativePriceClause(
+            treatment=NegativePriceTreatment.PRICE_AT_ZERO, threshold_per_mwh=0.0
+        ),
+    ),
+)
+
+interval = PowerDeliveryInterval(step_time, step_time + timedelta(hours=1))
+result = settle_ppa_interval(
+    contract, interval, contracted_mwh=100.0, metered_generation_mwh=95.0,
+    spot_price_per_mwh=-5.0,   # negative prices are always valid inputs, never errors
+)
+print(result.effective_fixed_price_per_mwh, result.ppa_cashflow, result.net_cashflow)
+# 0.0 500.0 25.0
+```
+
+`K_eff` (`effective_fixed_price_per_mwh`) is resolved in one fixed, declared order —
+**indexation -> clamp -> negative-price clause** — never any other order: (1) the latest
+`IndexationStep` at or before the interval's start (else the contract's own
+`fixed_price_per_mwh`); (2) `clamp(step_price, floor, cap)` (floor then cap; here the
+indexed price of 35 is raised to the 40 floor); (3) if a `NegativePriceClause` triggers
+(spot **strictly** below `threshold_per_mwh`), `NO_COMPENSATION` suspends the fixed leg or
+`PRICE_AT_ZERO` sets `K_eff := 0` (here spot -5 < 0, so `K_eff` is zeroed — in the example
+above the CfD still pays `contracted * (0 - spot) = 500`, while the spot sale of metered
+generation is unaffected). `PHYSICAL` and `FINANCIAL_CFD` apply `K_eff` to their own,
+separately-specified formula (a `PHYSICAL` fixed leg is `contracted * K_eff`; imbalance
+shortfall/excess legs never change). Every numeric convention above (clamp order, the
+*strict* negative-price trigger, indexation being a precomputed restatement with no CPI
+look-up or I/O performed by this library) is a **declared design decision** of this
+framework, not an external market standard.
+
+`PpaVolumeTerms` states how curtailed energy and out-of-band volume are settled:
+`CurtailmentTreatment.DEEMED_GENERATION` pays `curtailed_mwh * K_eff` and needs a
+`curtailed_mwh` input at both the interval call and (conditionally, per
+`PpaDataColumns.curtailed_mwh`) the frame column; `PRODUCER_BEARS` earns nothing for
+curtailed MWh. An attached `PpaToleranceBand` charges `penalty_per_mwh` only on the MWh
+that fall **outside** `[min_fraction, max_fraction] * contracted_mwh`, recorded as its own
+signed, non-positive `tolerance_penalty` ledger component (never absorbed into another leg).
+
+**Embedded bounds, hedge overlays, and option columns are economically distinct** — this is
+deliberate, not an oversight: `PpaPriceTerms` floor/cap bound the *contract's own price*
+(no premium, no separate instrument); a `hedges=` overlay
+(`PowerHedgeContract`, settled through `quantvolt.pricing.power_hedge`) is a *separate
+financial instrument* with its own premium and payoff, settled into `hedge_cashflow`;
+caller-supplied `option_payoff` columns are realised option cash flows the caller already
+computed elsewhere. No double-count guard is added between them because they are genuinely
+different cash flows — see `docs/european-markets.md` for the framing.
+
+### Period reconciliation, availability, and consecutive-hour triggers
+
+`reconcile_ppa_ledger(contract, ledger, *, columns=None)` is a **pure post-processing pass**
+over an already-settled ledger (from `settle_ppa_frame`, or any frame shaped like one) — it
+never re-derives or contradicts a single interval row, and returns one row per
+`contract.terms.reconciliation.period` (`PpaReconciliationPeriod.MONTHLY` / `QUARTERLY` /
+`ANNUAL`), sorted chronologically.
+
+**Public names**: `PpaReconciliationTerms`, `PpaReconciliationPeriod`, `PpaAvailabilityGuarantee`,
+`PpaReconciliationColumns`, `reconcile_ppa_ledger` · `PpaContractMetadata`,
+`PpaCreditSupportType`, `ChangeInLawAllocation`
+
+```python
+from quantvolt import (
+    PpaAvailabilityGuarantee, PpaReconciliationPeriod, PpaReconciliationTerms,
+    PpaToleranceBand, reconcile_ppa_ledger,
+)
+
+reconciliation = PpaReconciliationTerms(
+    period=PpaReconciliationPeriod.MONTHLY,
+    true_up_price_per_mwh=100.0,        # an explicit, caller-supplied price basis
+    volume_band=PpaToleranceBand(min_fraction=0.9, max_fraction=1.1, penalty_per_mwh=5.0),
+    availability=PpaAvailabilityGuarantee(deemed_availability_fraction=0.95),
+)
+contract = PpaContract(
+    contract_id="wind-de-2026", bidding_zone="DE-LU", fixed_price_per_mwh=55.0,
+    start_utc=start, end_utc=start + timedelta(days=365),
+    volume_basis=PpaVolumeBasis.BASELOAD,
+    terms=PpaTerms(reconciliation=reconciliation),
+)
+ledger = settle_ppa_frame(contract, data)             # unaffected by reconciliation terms
+true_up = reconcile_ppa_ledger(contract, ledger)      # one row per month
+```
+
+Each period row carries `period_start_utc`/`period_end_utc` (the bounds of the ledger rows
+assigned to it, not calendar bounds), `interval_count`, `total_contracted_mwh`,
+`total_metered_generation_mwh`, and three independently-zeroable true-up components that sum
+to `net_true_up`:
+
+- **`volume_band_true_up`** (Requirement 9) — the *aggregate* analogue of the interval-level
+  `PpaVolumeTerms.tolerance`: `-volume_band.penalty_per_mwh *
+  volume_band.out_of_band_mwh(total_metered, total_contracted)`. Economically distinct from
+  the interval-level tolerance band; the two may coexist.
+- **`availability_true_up`** (Requirement 10) — a **one-directional, shortfall-only**
+  deemed-vs-measured availability guarantee (a declared design decision: it charges a true-up
+  when measured availability falls below `deemed_availability_fraction`, and pays nothing back
+  when measured beats it): `-true_up_price_per_mwh *
+  availability.shortfall_fraction(measured) * total_contracted`, where `measured =
+  total_metered / total_contracted` (`1.0` when `total_contracted == 0`, avoiding division by
+  zero).
+- **`consecutive_hour_true_up`** (Requirement 11, EEG-style 4h/6h clauses) — only computed
+  when `NegativePriceClause.min_consecutive_intervals` is set. **A consecutive-hour clause
+  cannot be evaluated interval-locally**: whether a row belongs to a qualifying run needs
+  neighbouring-row state a single interval settlement does not have. This is a **declared
+  design decision**: `settle_ppa_interval`/`settle_ppa_frame` treat such a clause as fully
+  inert (`K_eff` resolves exactly as if no negative-price clause were attached at all;
+  Property 97 covers this locality), and `reconcile_ppa_ledger` detects maximal runs of
+  `spot < threshold_per_mwh` across the ledger, applying the suspension only to intervals in
+  runs `>= min_consecutive_intervals` long. Because the canonical ledger does not carry raw
+  spot (`settle_ppa_frame`'s output never has a spot column), the caller must join a
+  `spot_price_per_mwh` column (or a `PpaReconciliationColumns`-mapped equivalent) onto the
+  ledger themselves before calling `reconcile_ppa_ledger` whenever this feature is used.
+
+`PpaContractMetadata` (`goo_transfer`, `goo_price_per_mwh`, `credit_support_type` /
+`credit_support_amount` / `credit_support_threshold`, `change_in_law_allocation`) is carried
+and validated on `PpaTerms.metadata` but has **zero settlement semantics** — it never enters
+`K_eff`, any ledger component, `component_sum`, or `net_cashflow`, for *any* metadata content
+(Property 85's metadata-only branch covers arbitrary, not just default, metadata).
 
 ## `quantvolt.risk` — VaR, delta aggregation, stress scenarios
 
@@ -772,11 +954,14 @@ model-independent (statically hedgeable), everything else is modelled residual r
 
 ## `quantvolt.portfolio` — book assembly and valuation
 
-Compose forwards, futures, and swaps into a `Portfolio` and value it as a whole; per-position
-results feed `RiskEngine` and `mark_to_market` directly.
+Compose forwards, futures, swaps, transmission/pipeline rights, vanilla/spread options, and
+tolling agreements into a `Portfolio` and value it as a whole; per-position results feed
+`RiskEngine` and `mark_to_market` directly.
 
 **Public names**: `Portfolio`, `Position`, `PricedPosition`, `Instrument` · `MarketData`,
-`PortfolioValuation`, `value_portfolio`
+`PortfolioValuation`, `value_portfolio` · `OptionType`, `OptionSide`, `VanillaOptionContract`,
+`SpreadOptionContract` · `CachedAssetValuation`, `ValuationSource`, `CapFloorType`,
+`CapFloorStripContract`
 
 ```python
 from datetime import date
@@ -813,13 +998,170 @@ print(valuation.priced[0].delta)  # {(commodity_id, period): delta} — feeds Ri
 `tags` (the tags are also where long-dated valuation provenance travels — see
 [risk-and-assets.md](risk-and-assets.md)). Valuation dispatches on instrument type
 (futures/forwards via `price_futures`, swaps via `price_swap`, transmission/pipeline rights via
-`value_transport_right`); pass a `pricers` mapping to override or extend the dispatch for your own
-instrument types. Positions that cannot be priced are returned in `valuation.unpriced`, never
+`value_transport_right`, vanilla options via `price_vanilla_option`, spread/spark-spread options
+via `price_spread_option`/`price_spark_spread_option`, tolling agreements via
+`price_tolling_agreement`); pass a `pricers` mapping to override or extend the dispatch for your
+own instrument types. Positions that cannot be priced are returned in `valuation.unpriced`, never
 silently dropped.
 
-Options are not a built-in portfolio instrument type; the `pricers` seam is the supported way to
-hold a book of them — define your own frozen instrument type and register a pricer that wraps
-`price_vanilla_option` (or any pricer returning a `PricedPosition`):
+`FuturesContract`, `ForwardContract`, and `SwapContract` each carry a `side`
+(`OptionSide.LONG`/`SHORT`, defaulted to `LONG`) — the *same* enum and the *same* "direction via
+a side enum, never a signed notional" convention the option instruments use. `notional` stays
+strictly positive; a `SHORT` future/forward/swap prices to the **exact negation** of the `LONG`
+position (`value_portfolio` sign-flips `npv` and every `delta` entry, while leaving
+`reference_prices` at the raw observed forward so the `RiskEngine`'s scenario P&L flips through
+the flipped delta). Because `side` defaults to `LONG`, every existing construction is
+byte-identical. A short future lets you hedge a *sell* leg — e.g. the withdrawal months of an
+optimal storage schedule — without faking a negative notional:
+
+```python
+from quantvolt import FuturesContract, OptionSide
+
+sell = FuturesContract(ttf, period, contract_price=39.0, notional=2_000.0, side=OptionSide.SHORT)
+```
+
+(Direction is deliberately *not* added to `TransmissionRight`/`PipelineRight`/`TollingAgreement`
+or the PPA instruments: their payoffs are not a symmetric long/short of a single forward
+exposure, so a bare sign-flip would misstate the economics — see the `short-side-instruments`
+spec.)
+
+### Options are a built-in portfolio instrument type
+
+Vanilla and spread options are priced natively — no `pricers=` argument needed. Construct a
+`VanillaOptionContract` or `SpreadOptionContract` and hand it to `value_portfolio` like any other
+instrument; `MarketData` gains two additional fields (`vol_surfaces`, keyed by `commodity_id`, and
+`correlations`, keyed by an ordered `(commodity_id, commodity_id)` pair) so option pricers have
+every input they need from the one immutable object:
+
+```python
+from datetime import date
+
+from quantvolt import (
+    BUILT_IN_COMMODITIES, CurveNode, DeliveryPeriod, DiscountCurve, ForwardCurve,
+    MarketData, OptionSide, OptionType, Portfolio, Position, SpreadOptionContract,
+    VanillaOptionContract, VolatilitySurface, VolatilityTenor, value_portfolio,
+)
+
+ttf = BUILT_IN_COMMODITIES["TTF"]
+power = BUILT_IN_COMMODITIES["EEX_PHELIX_DE"]
+period = DeliveryPeriod(2026, 12)
+
+market = MarketData(
+    forward_curves={
+        "TTF": ForwardCurve(ttf, date(2026, 7, 15), (CurveNode(period, 36.85, "observed"),)),
+        "EEX_PHELIX_DE": ForwardCurve(power, date(2026, 7, 15), (CurveNode(period, 92.0, "observed"),)),
+    },
+    discount_curve=DiscountCurve(
+        date(2026, 7, 15), (date(2026, 7, 16), date(2027, 6, 30)), (1.0, 0.97)
+    ),
+    valuation_date=date(2026, 7, 15),
+    vol_surfaces={
+        "TTF": VolatilitySurface(ttf, (VolatilityTenor(period, 0.55),)),
+        "EEX_PHELIX_DE": VolatilitySurface(power, (VolatilityTenor(period, 0.60),)),
+    },
+    correlations={("EEX_PHELIX_DE", "TTF"): 0.4},
+)
+
+book = Portfolio(name="ttf-vol-book", positions=(
+    Position(VanillaOptionContract(ttf, period, OptionType.CALL, strike=38.0, notional=10_000.0),
+             position_id="opt-1"),
+    Position(VanillaOptionContract(ttf, period, OptionType.PUT, strike=33.0, notional=10_000.0,
+                                    side=OptionSide.SHORT), position_id="opt-2"),
+    Position(SpreadOptionContract("EEX_PHELIX_DE", "TTF", period, strike=50.0, notional=5_000.0),
+             position_id="spark-1"),
+))
+valuation = value_portfolio(book, market)  # no pricers= argument
+print(f"{book.name}: NPV {valuation.total_npv:,.0f} EUR over {len(valuation.priced)} positions")
+```
+
+`VanillaOptionContract` carries `commodity`, `delivery_period`, `option_type` (`OptionType.CALL`/
+`PUT`), `strike`, `notional` (always positive), `side` (`OptionSide.LONG`/`SHORT` — direction lives
+here, never in a signed notional), and an optional `expiry` (defaults to
+`delivery_period.last_day`). `SpreadOptionContract` references its two legs by forward-curve key
+(`commodity_1`/`commodity_2`, not `CommodityConfig`), and `leg2_weight` selects the pricer: `1.0`
+(the default) delegates to `price_spread_option` (Margrabe when `strike == 0.0`, Kirk otherwise);
+any other value (e.g. a heat rate) delegates to `price_spark_spread_option`. The resulting
+`PricedPosition`s carry option deltas keyed by `(commodity_id, period)` — a vanilla option also
+populates `greeks`, while a spread option leaves `greeks=None` (its `delta1`/`delta2`/`vega1`/
+`vega2`/`correlation_sensitivity` vocabulary doesn't map onto the single-underlying `Greeks`) — so
+the options book flows into `RiskEngine.compute_risk`, `apply_scenario`, and `credit_var` exactly
+like futures and swaps.
+
+**Honest Black-76 domain limitation and the Bachelier alternative**: Black-76 requires a strictly
+positive forward. A `VanillaOptionContract` (or a `SpreadOptionContract` leg) whose observed
+forward is `<= 0` — a real occurrence for European power — is unpriceable under Black-76;
+`value_portfolio` propagates the kernel's `ValidationError` rather than clamping, flooring, or
+otherwise silently altering the forward. **This error path stays exactly as-is.**
+
+A Bachelier (normal-model) kernel that *does* support negative forwards now exists —
+`quantvolt.numerics.bachelier_price` / `bachelier_greeks` / `bachelier_implied_vol` and the pricer
+`quantvolt.pricing.price_bachelier_option`. It is **not** wired in as an automatic fallback, by
+deliberate design: `MarketData.vol_surfaces` carry **lognormal** Black-76 vols, and silently
+reusing them as Bachelier **normal** vols would be unit corruption (a lognormal vol is
+dimensionless; a normal vol is an absolute price rate). The paper's rough conversion
+`σ_N ≈ σ_BS · F₀` is a *manual* approximation only and is never applied automatically. To price a
+negative-forward book, register a **caller-supplied Bachelier pricer holding explicit normal vols**
+through the `pricers=` seam (below). A vol-type-aware `VolatilitySurface` that would make an
+automatic Black-76 → Bachelier switch safe is a named, severable deferred requirement (spec
+`.kiro/specs/bachelier-negative-forwards/`, Requirement 8).
+
+Tolling agreements are also priced natively via a `TollingAgreement` instrument (`plant`,
+`power_commodity_id`/`fuel_commodity_id`/`eua_commodity_id`, `schedule`, `capacity`); the pricer
+assembles the required 3x3 `[power, fuel, eua]` correlation matrix from three pairwise
+`MarketData.correlations` entries, failing loud if any is missing. A PPA's forward-looking
+intrinsic mark-to-market is a separate, opt-in capability — see `quantvolt.pricing.price_ppa` and
+`quantvolt.pricing.make_ppa_pricer` (registered only via `pricers=`, never by default, so an
+existing book holding an unmodelled PPA keeps landing in `unpriced` rather than raising).
+
+### Deferred roadmap: cached asset valuation and cap/floor strips
+
+Two further instrument types are natively priced but scoped as **DEFERRED roadmap** (Phase 3 /
+Requirements 19-20 of the `portfolio-native-pricers` spec) rather than fully-designed features —
+they exist so a caller can start using them today, with the noted limitations recorded honestly.
+
+`CachedAssetValuation` folds an expensive, externally-computed LSMC/dispatch valuation (e.g. a
+long-dated power plant or storage position) into a book as a frozen, precomputed number:
+`value_portfolio` never runs a Monte-Carlo or dispatch engine itself. Its pricer only checks that
+`valuation_date` still matches `MarketData.valuation_date` — a mismatch raises rather than silently
+repricing or reusing a stale cache — and re-emits the wrapper's own `npv`/`delta` unchanged. The
+`ValuationSource` provenance tag (`FORWARD`/`PROJECTED` from `assets/long_dated.py`, plus
+`SIMULATED` for this cache) is propagated onto the resulting position's `tags`, the same
+Property-66 pattern `assets.long_dated.var_applicability_guard` reads:
+
+```python
+from datetime import date
+
+from quantvolt import (
+    CachedAssetValuation, DeliveryPeriod, DiscountCurve, MarketData, Portfolio, Position,
+    ValuationSource, value_portfolio,
+)
+
+wrapper = CachedAssetValuation(
+    asset_id="plant-42", npv=1_250_000.0,
+    delta={("DE_POWER", DeliveryPeriod(2030, 6)): 5_000.0},
+    valuation_date=date(2026, 7, 15), source=ValuationSource.SIMULATED,
+    standard_error=8_500.0,  # optional MC standard error, carried through for audit
+)
+market = MarketData({}, DiscountCurve(date(2026, 7, 15), (date(2027, 1, 1),), (0.95,)),
+                     date(2026, 7, 15))
+valuation = value_portfolio(Portfolio(positions=(Position(wrapper),)), market)
+```
+
+`CapFloorStripContract` is a schedule-shaped cap/floor position delegating to
+`quantvolt.pricing.price_cap_floor`. It carries **one** `strike` and **one** `notional` across
+every period in its `schedule` — mirroring the kernel's own `CapFloorRequest` invariant exactly
+(the kernel varies only forward/vol/discount-factor caplet-by-caplet) — plus `commodity`,
+`cap_floor_type` (`CapFloorType.CAP`/`FLOOR`), and `side`. Forward/vol/discount-factor are sourced
+per period exactly like `VanillaOptionContract`'s adapter; each caplet's decision horizon is always
+its own period's `last_day` (no separate `expiry` override). Per-period `delta` is keyed
+`(commodity_id, period)`, and `greeks` is the kernel's own aggregate (summed across periods),
+scaled by side.
+
+### The `pricers` seam is still there for genuinely custom instruments
+
+For an instrument type the library does not natively price — for example a caller's own
+weather-indexed contract — define a frozen instrument type and register a pricer returning a
+`PricedPosition`:
 
 ```python
 from dataclasses import dataclass
@@ -827,31 +1169,27 @@ from datetime import date
 
 from quantvolt import (
     BUILT_IN_COMMODITIES, CurveNode, DeliveryPeriod, DiscountCurve, ForwardCurve,
-    MarketData, Portfolio, Position, PricedPosition, VanillaOptionRequest,
-    price_vanilla_option, value_portfolio,
+    MarketData, Portfolio, Position, PricedPosition, value_portfolio,
 )
 
 @dataclass(frozen=True, slots=True)
-class VanillaOptionPosition:            # caller-defined instrument type
+class WeatherIndexedContract:           # caller-defined instrument type, not natively priced
     commodity_id: str
     period: DeliveryPeriod
-    option_type: str                    # "call" or "put"
-    strike: float
     notional: float
-    sigma: float
-    time_to_expiry: float
+    strike_degree_days: float
+    expected_degree_days: float
+    price_per_degree_day: float
 
-def price_option_position(position, market_data):
-    opt = position.instrument
-    forward = market_data.curve_for(opt.commodity_id).price_at(opt.period)
-    df = market_data.discount_curve.discount_factor(opt.period.last_day)
-    result = price_vanilla_option(VanillaOptionRequest(
-        option_type=opt.option_type, strike=opt.strike, notional=opt.notional,
-        forward=forward, sigma=opt.sigma, time_to_expiry=opt.time_to_expiry,
-        discount_factor=df))
-    return PricedPosition(position=position, npv=result.premium,
-                          delta={(opt.commodity_id, opt.period): result.greeks.delta},
-                          greeks=result.greeks)
+def price_weather_position(position, market_data):
+    inst = position.instrument
+    forward = market_data.curve_for(inst.commodity_id).price_at(inst.period)
+    df = market_data.discount_curve.discount_factor(inst.period.last_day)
+    payoff = (inst.expected_degree_days - inst.strike_degree_days) * inst.price_per_degree_day
+    npv = df * payoff * inst.notional
+    return PricedPosition(position=position, npv=npv,
+                          delta={(inst.commodity_id, inst.period): df * inst.notional},
+                          reference_prices={(inst.commodity_id, inst.period): forward})
 
 ttf = BUILT_IN_COMMODITIES["TTF"]
 period = DeliveryPeriod(2026, 12)
@@ -860,18 +1198,12 @@ market = MarketData(
     DiscountCurve(date(2026, 7, 15), (date(2026, 7, 16), date(2027, 6, 30)), (1.0, 0.97)),
     date(2026, 7, 15),
 )
-book = Portfolio(name="ttf-vol-book", positions=(
-    Position(VanillaOptionPosition("TTF", period, "call", 38.0, 10_000.0, 0.55, 0.4), position_id="opt-1"),
-    Position(VanillaOptionPosition("TTF", period, "put", 33.0, 10_000.0, 0.55, 0.4), position_id="opt-2"),
+book = Portfolio(name="weather-book", positions=(
+    Position(WeatherIndexedContract("TTF", period, 10_000.0, 500.0, 540.0, 0.15), position_id="wx-1"),
 ))
-valuation = value_portfolio(book, market, pricers={VanillaOptionPosition: price_option_position})
-print(f"{book.name}: NPV {valuation.total_npv:,.0f} EUR over {len(valuation.priced)} options")
-# ttf-vol-book: NPV 76,358 EUR over 2 options
+valuation = value_portfolio(book, market, pricers={WeatherIndexedContract: price_weather_position})
+print(f"{book.name}: NPV {valuation.total_npv:,.0f} EUR over {len(valuation.priced)} positions")
 ```
-
-The resulting `PricedPosition`s carry option deltas keyed by `(commodity_id, period)`, so the
-options book flows into `RiskEngine.compute_risk`, `apply_scenario`, and `credit_var` exactly like
-futures and swaps.
 
 ## `quantvolt.data` — optional provider adapters (`quantvolt[data]`)
 

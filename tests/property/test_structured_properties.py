@@ -79,15 +79,33 @@ def test_zero_strike_prices_via_margrabe_and_nonzero_via_kirk(
 # Sensitivity Consistency
 # delta1 is representative of the five sensitivities: the pricer computes them all
 # through the same central finite-difference helper. The oracle is an OUTER central
-# difference over the whole pricer at a different bump size (1e-3 vs the pricer's
-# 1e-4), so agreement is loose-tolerance, not arithmetic identity.
+# difference over the whole pricer at a bump size distinct from the pricer's own
+# (5e-4*F1 vs the pricer's internal 1e-4*F1), so agreement is a loose-tolerance
+# recomputation, not an arithmetic identity.
+#
+# Numerical rationale for the bump size (AMENDED 2026-07-19, code review FIX 6):
+# central-FD truncation error scales as bump**2 * P'''/6. In a deep-OTM tail (e.g.
+# the Margrabe example forward1=414, forward2=432, sigma1=sigma2=0.0625, rho=0.75,
+# T=0.0625, where delta1 = df*N(d1) ~ 5.99e-5), the delta is itself so small that a
+# 1e-3*F1 outer bump made the O(bump**2) truncation term ~2% of the delta --
+# breaching both the 1e-2 relative and the 1e-6*notional absolute tolerance at
+# once, even though the pricer's reported delta1 matches the exact closed-form
+# N(d1) to ~2e-4 relative. An earlier 2e-4*F1 choice was only 2x the pricer's own
+# internal 1e-4*F1 bump, leaving a blind spot: if the pricer's internal bump were
+# ever accidentally doubled to 2e-4*F1 too, this oracle would silently collapse
+# into the identity it is meant to independently check. 5e-4*F1 restores a clean
+# 5x separation from the internal bump (guarding the doubling blind spot) while
+# still landing ~4x below the previously-failing 1e-3*F1 truncation level, cutting
+# the deep-OTM truncation to a comfortable margin under the 1e-2 relative /
+# 1e-6*notional absolute tolerance. Cancellation headroom remains ample: at
+# 5e-4*F1 the up/down premium difference retains well over 10 significant figures.
 @given(request=spread_option_requests())
 @settings(max_examples=100)
 def test_delta1_is_consistent_with_an_outer_finite_difference(
     request: SpreadOptionRequest,
 ) -> None:
     result = price_spread_option(request)
-    bump = 1e-3 * request.forward1
+    bump = 5e-4 * request.forward1
     premium_up = price_spread_option(replace(request, forward1=request.forward1 + bump)).premium
     premium_down = price_spread_option(replace(request, forward1=request.forward1 - bump)).premium
     outer_delta1 = (premium_up - premium_down) / (2.0 * bump)

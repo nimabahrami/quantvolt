@@ -140,9 +140,7 @@ def settle_power_hedges_frame(
     rows: list[dict[str, object]] = []
     for input_row, row in enumerate(data.iter_rows(named=True)):
         try:
-            interval = PowerDeliveryInterval(
-                row[interval_start_column], row[interval_end_column]
-            )
+            interval = PowerDeliveryInterval(row[interval_start_column], row[interval_end_column])
             spot = float(row[spot_price_column])
             active = [contract for contract in contracts if contract.covers(interval)]
             for contract in active:

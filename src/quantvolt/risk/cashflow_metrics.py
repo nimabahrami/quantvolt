@@ -113,9 +113,7 @@ def compare_cashflow_strategies(
             cfar=max(values[1] - values[3], 0.0),
             negative_observations=values[6],
             total_difference_vs_benchmark=values[0] - benchmark_values[0],
-            cfar_reduction_vs_benchmark=max(
-                benchmark_values[1] - benchmark_values[3], 0.0
-            )
+            cfar_reduction_vs_benchmark=max(benchmark_values[1] - benchmark_values[3], 0.0)
             - max(values[1] - values[3], 0.0),
             volatility_reduction_vs_benchmark=benchmark_values[2] - values[2],
         )

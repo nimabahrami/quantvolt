@@ -1,9 +1,11 @@
 """Execute the complete physical PPA and typed-hedge settlement example."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
 
 import polars as pl
+
 import quantvolt as qv
 
 
@@ -11,7 +13,11 @@ def main() -> None:
     start = datetime(2026, 1, 1, 0, 0, tzinfo=UTC)
     end = datetime(2026, 1, 1, 2, 0, tzinfo=UTC)
     contract = qv.PpaContract(
-        "plant-ppa", "DE-LU", 70.0, start, end,
+        "plant-ppa",
+        "DE-LU",
+        70.0,
+        start,
+        end,
         qv.PpaVolumeBasis.BASELOAD,
         qv.PpaSettlementType.PHYSICAL,
         "Buyer GmbH",

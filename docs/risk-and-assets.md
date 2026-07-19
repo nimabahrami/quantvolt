@@ -78,7 +78,9 @@ far more risk than a forward-covered one — so the library keeps the two regime
 `ValuationSource.PROJECTED` value beyond it; the caller propagates that tag onto the `Position`, and
 `var_applicability_guard` then flags short-horizon VaR as **inapplicable** for a projected-valued
 position (returning `applicable=False`, or raising with `strict=True`), steering it to CFaR or
-scenario analysis instead.
+scenario analysis instead. (`ValuationSource` gained a third value, `SIMULATED`, for the DEFERRED-
+roadmap `CachedAssetValuation` portfolio wrapper — see `docs/api.md`'s portfolio section; this
+module still produces only `FORWARD`/`PROJECTED` itself.)
 
 ```python
 from datetime import date

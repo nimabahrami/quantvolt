@@ -1,0 +1,3012 @@
+{
+  "cases": [
+    {
+      "case_id": "margrabe_spark_K0_rho-0.5_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": -0.5,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 15.614354482835617
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho-0.5_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": -0.5,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 17.145750790884247
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho-0.5_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": -0.5,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 19.688240495241363
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho0_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": 0.0,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 15.102778441363178
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho0_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": 0.0,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 16.158570003474757
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho0_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": 0.0,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 18.094859649034316
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho0.3_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": 0.3,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.825689495374114
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho0.3_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": 0.3,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 15.536272231516591
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho0.3_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": 0.3,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 17.002855224361625
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho0.61_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": 0.61,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.61300139007313
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho0.61_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": 0.61,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.917701775211466
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho0.61_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": 0.61,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 15.755032416700633
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho0.9_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": 0.9,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.550139626214532
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho0.9_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": 0.9,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.559210641258304
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_spark_K0_rho0.9_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "margrabe",
+        "rho": 0.9,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 0.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.659490783489225
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho-0.5_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 13.618859590317637
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho-0.5_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 15.356224846296916
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho-0.5_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 18.08226172221782
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho0_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.995558593418577
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho0_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.269135071152991
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho0_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 16.412190454841358
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho0.3_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.625132010563181
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho0.3_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 13.552902673852685
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho0.3_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 15.245524664756505
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho0.61_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.288814432582692
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho0.61_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.778935794130119
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho0.61_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 13.860237730255024
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho0.9_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.128274408033892
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho0.9_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.179458410815954
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K2.5_rho0.9_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 2.5,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.439587040539923
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho-0.5_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 11.752578292096644
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho-0.5_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 13.683407858500356
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho-0.5_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 16.57619810756898
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho0_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 11.023186632496639
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho0_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.511671476861759
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho0_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.846797647626502
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho0.3_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 10.557415358387107
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho0.3_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 11.713460691418925
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho0.3_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 13.622174519065462
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho0.61_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 10.075955066166003
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho0.61_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 10.795475042262485
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho0.61_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.128316532689437
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho0.9_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 9.732819253591233
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho0.9_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 9.90990132386414
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K5_rho0.9_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 5.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 10.425175649134623
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho-0.5_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 8.469525889668954
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho-0.5_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 10.705360669610169
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho-0.5_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 13.8593937537349
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho0_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 7.584400653656162
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho0_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 9.426945081531219
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho0_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.06727211568918
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho0.3_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 6.969849374597089
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho0.3_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 8.523838273498164
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho0.3_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 10.783140699720876
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho0.61_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 6.233877136658812
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho0.61_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 7.4146824004219685
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho0.61_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 9.17906277054586
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho0.9_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 5.405746330361821
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho0.9_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 6.084343540476741
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_spark_K10_rho0.9_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 45.0,
+        "forward2": 30.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.5,
+        "sigma2": 0.4,
+        "strike": 10.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 7.183544273079918
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho-0.5_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": -0.5,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 15.881205566308948
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho-0.5_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": -0.5,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 19.899724946047208
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho-0.5_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": -0.5,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 25.640453175486094
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho0_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": 0.0,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.168053049592453
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho0_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": 0.0,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 17.39198034293205
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho0_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": 0.0,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 22.076504966393504
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho0.3_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": 0.3,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.970213397774746
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho0.3_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": 0.3,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 15.599344270696115
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho0.3_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": 0.3,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 19.490450704628692
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho0.61_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": 0.61,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 11.526514622803004
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho0.61_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": 0.61,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 13.354580938837673
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho0.61_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": 0.61,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 16.17937022278154
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho0.9_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": 0.9,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 9.973310110435111
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho0.9_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": 0.9,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 10.575555239924999
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "margrabe_fin_K0_rho0.9_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "margrabe",
+        "rho": 0.9,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 0.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 11.755886534657943
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho-0.5_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.370662579163067
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho-0.5_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 18.48498706904921
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho-0.5_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 24.301322320552565
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho0_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.594968538992283
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho0_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 15.93349286911956
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho0_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 20.707679752718896
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho0.3_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 11.332931066738507
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho0.3_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.095575782641344
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho0.3_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 18.091745935862583
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho0.61_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 9.764571534762407
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho0.61_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 11.760465377691537
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho0.61_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.721167731170464
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho0.9_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 7.862482416494536
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho0.9_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 8.692675392135218
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K2.5_rho0.9_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 2.5,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 10.09472893421004
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho-0.5_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.950522044758282
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho-0.5_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 17.1374580925222
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho-0.5_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 23.012868426933196
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho0_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 11.130289637994633
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho0_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.55617350628255
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho0_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 19.400161138765196
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho0.3_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 9.822056280135863
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho0.3_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.687451084642621
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho0.3_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 16.765528874358402
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho0.61_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 8.161989144362906
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho0.61_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 10.290521163378468
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho0.61_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 13.358195111466856
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho0.9_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 5.975408905410578
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho0.9_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 7.0173936453357175
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K5_rho0.9_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 5.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 8.606280941931304
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho-0.5_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 10.386423255566045
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho-0.5_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.644491002683932
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho-0.5_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": -0.5,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 20.586631006492194
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho0_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 8.535536686274352
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho0_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 12.046586906314577
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho0_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.0,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 16.96757182061572
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho0.3_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 7.195532389555775
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho0.3_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 10.161353318214822
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho0.3_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.3,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 14.32900274890997
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho0.61_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 5.47183359557492
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho0.61_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 7.731892949470365
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho0.61_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.61,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 10.916350248176304
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho0.9_T0.25_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 0.25
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 3.0767883493363453
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho0.9_T0.5_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 0.5
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 4.350089593853493
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    },
+    {
+      "case_id": "kirk_fin_K10_rho0.9_T1_DF0.97",
+      "inputs": {
+        "discount_factor": 0.97,
+        "forward1": 100.0,
+        "forward2": 90.0,
+        "model": "kirk",
+        "rho": 0.9,
+        "sigma1": 0.35,
+        "sigma2": 0.3,
+        "strike": 10.0,
+        "time_to_expiry": 1.0
+      },
+      "notes": "Mapping (verbatim): each leg's GeneralizedBlackScholesProcess has dividend yield = risk-free rate (q=r) so the process spot equals the forward; both legs share r=-ln(DF)/T so the engine discount = DF; Actual/360 with T*360 integer days gives an exact year fraction. model='margrabe' (K=0) compares margrabe(); model='kirk' compares kirk().",
+      "reference": {
+        "premium": 6.148716011636031
+      },
+      "tolerance": {
+        "premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9 (abs floor 1e-12 near zero): QuantLib KirkEngine under the documented q=r -> spot=forward mapping is convention-identical to quantvolt kirk/margrabe, so the residual is only the two normal-CDF implementations' difference. K=0 collapses to the exact Margrabe form and is compared against margrabe()."
+    }
+  ],
+  "provenance": {
+    "command": "python scripts/fixtures/generate_quantlib_fixtures.py",
+    "generated_utc": "2026-07-19T08:29:22.924152+00:00",
+    "generator": "scripts/fixtures/gen_spread_fixtures.py",
+    "python_version": "3.11.14",
+    "reference_library": "QuantLib",
+    "reference_library_version": "1.43"
+  }
+}

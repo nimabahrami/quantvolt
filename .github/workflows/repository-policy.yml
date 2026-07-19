@@ -17,7 +17,7 @@ jobs:
           python-version: "3.12"
       - uses: actions-rust-lang/setup-rust-toolchain@v1
       - name: Reject large ordinary Git files
-        run: python scripts/check_repository_size.py
+        run: python scripts/ci/check_repository_size.py
       - name: Verify catalog JSON
         run: python -m json.tool src/quantvolt/data/dataset_catalog.json >/dev/null
       - name: Build distribution wheel
@@ -25,4 +25,4 @@ jobs:
           python -m pip install maturin
           maturin build --release --out dist
       - name: Reject datasets in wheel
-        run: python scripts/check_wheel_contents.py dist/*.whl
+        run: python scripts/ci/check_wheel_contents.py dist/*.whl

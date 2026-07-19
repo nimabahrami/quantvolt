@@ -7,7 +7,7 @@ name = "quantvolt"
 version = "0.1.0"
 description = "Quantitative analysis of European power and energy markets"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Nima Bahrami", email = "nima@skillmix.nl" }]
@@ -28,7 +28,9 @@ classifiers = [
     "Intended Audience :: Financial and Insurance Industry",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Rust",
     "Topic :: Office/Business :: Financial :: Investment",
     "Topic :: Scientific/Engineering :: Mathematics",
@@ -61,12 +63,20 @@ dev = [
     "maturin>=1.7,<2.0",
 ]
 
+# PEP 735 dependency group for OFFLINE external-validation fixture generation only.
+# NOT a [project.optional-dependencies] extra and NOT a core/runtime dependency: the
+# analytics core never imports QuantLib, CI never installs this group, and the generator
+# scripts under scripts/ (wheel-excluded above) are the only consumers. See
+# .kiro/specs/external-validation/ and docs/validation.md for the regeneration workflow.
+[dependency-groups]
+validation = ["QuantLib>=1.34"]
+
 [tool.maturin]
 python-source = "src"
 module-name = "quantvolt._core"
-# abi3-py312: build a single stable-ABI wheel that works on CPython 3.12+
+# abi3-py311: build a single stable-ABI wheel that works on CPython 3.11+
 # (one compile per platform instead of one per Python version).
-features = ["pyo3/extension-module", "pyo3/abi3-py312"]
+features = ["pyo3/extension-module", "pyo3/abi3-py311"]
 # Keep the sdist to the buildable package only. The docs site, rendered docs,
 # research data, helper scripts, and the logo are not part of the installable
 # library and would only bloat the distribution.
@@ -90,12 +100,20 @@ exclude = [
 [tool.ruff]
 line-length = 100
 src = ["src", "tests"]
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 
+[tool.ruff.lint.per-file-ignores]
+# Authored documentation text (AUTHORED_DOCS) carries long human-readable lines;
+# RUF001 flags the en-dashes used deliberately in that prose.
+"site/build_api.py" = ["E501", "RUF001"]
+# One-off internal refactoring tool, not shipped code.
+"site/tools/refactor_reference_design.py" = ["E501"]
+
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.11"
 strict = true
 files = ["src/quantvolt"]
 

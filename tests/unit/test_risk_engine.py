@@ -27,7 +27,7 @@ from quantvolt.risk.engine import ExcludedPosition, RiskEngine, RiskResult, Scen
 from quantvolt.risk.scenarios import BUILT_IN_SCENARIOS, ScenarioShock, gas_crisis
 from quantvolt.testing import assert_input_unchanged
 
-_TTF = CommodityConfig("TTF", "EUR/MBtu", Hub("TTF", "ICE_ENDEX", "EUR/MBtu"))
+_TTF = CommodityConfig("TTF", "EUR/MWh", Hub("TTF", "ICE_ENDEX", "EUR/MWh"))
 _JAN = DeliveryPeriod(2026, 1)
 _FEB = DeliveryPeriod(2026, 2)
 _FUTURES = FuturesContract(_TTF, _JAN, contract_price=30.0, notional=100.0)

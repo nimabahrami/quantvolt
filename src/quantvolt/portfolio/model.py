@@ -13,14 +13,42 @@ from dataclasses import dataclass, field
 
 from ..exceptions import ValidationError
 from ..models.greeks import Greeks
-from ..models.instruments import ForwardContract, FuturesContract, SwapContract
+from ..models.instruments import (
+    CachedAssetValuation,
+    CapFloorStripContract,
+    ForwardContract,
+    FuturesContract,
+    PipelineRight,
+    SpreadOptionContract,
+    SwapContract,
+    TollingAgreement,
+    TransmissionRight,
+    VanillaOptionContract,
+)
 from ..models.power_hedge import PowerHedgeContract
 from ..models.ppa import PpaContract
 from ..models.schedule import DeliveryPeriod
 
-# Extensible union of what a portfolio can hold. Add options / tolling here as pricers are wired.
+# Extensible union of what a portfolio can hold. ``TransmissionRight`` / ``PipelineRight``
+# were already priced via DEFAULT_PRICERS but were missing here (a latent strict-mypy hole,
+# fixed by the portfolio-native-pricers spec, Req 6): a well-typed caller could not place
+# them in a Position even though the library priced them. The option / spread-option /
+# tolling types added by that same spec complete the set of natively-priced instruments.
+# ``CachedAssetValuation`` / ``CapFloorStripContract`` (Req 19-20, DEFERRED roadmap) round out
+# the set: a staleness-checked LSMC/dispatch cache and a cap/floor strip, both natively priced.
 Instrument = (
-    FuturesContract | ForwardContract | SwapContract | PpaContract | PowerHedgeContract
+    FuturesContract
+    | ForwardContract
+    | SwapContract
+    | VanillaOptionContract
+    | SpreadOptionContract
+    | TransmissionRight
+    | PipelineRight
+    | TollingAgreement
+    | CachedAssetValuation
+    | CapFloorStripContract
+    | PpaContract
+    | PowerHedgeContract
 )
 
 

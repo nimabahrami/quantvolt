@@ -16,7 +16,22 @@ import pytest
 from quantvolt.exceptions import ValidationError
 from quantvolt.models.commodity import CommodityConfig, Hub
 from quantvolt.models.greeks import Greeks
-from quantvolt.models.instruments import ForwardContract, FuturesContract, SwapContract
+from quantvolt.models.instruments import (
+    CachedAssetValuation,
+    CapFloorStripContract,
+    CapFloorType,
+    ForwardContract,
+    FuturesContract,
+    OptionType,
+    PipelineRight,
+    PlantConfig,
+    SpreadOptionContract,
+    SwapContract,
+    TollingAgreement,
+    TransmissionRight,
+    ValuationSource,
+    VanillaOptionContract,
+)
 from quantvolt.models.power_hedge import (
     PowerHedgeContract,
     PowerHedgePosition,
@@ -24,9 +39,9 @@ from quantvolt.models.power_hedge import (
 )
 from quantvolt.models.ppa import PpaContract, PpaVolumeBasis
 from quantvolt.models.schedule import DeliveryPeriod, DeliverySchedule
-from quantvolt.portfolio.model import Portfolio, Position, PricedPosition
+from quantvolt.portfolio.model import Instrument, Portfolio, Position, PricedPosition
 
-_COMMODITY = CommodityConfig("TTF", "EUR/MBtu", Hub("TTF", "ICE_ENDEX", "EUR/MBtu"))
+_COMMODITY = CommodityConfig("TTF", "EUR/MWh", Hub("TTF", "ICE_ENDEX", "EUR/MWh"))
 _PERIOD = DeliveryPeriod(2026, 1)
 _SCHEDULE = DeliverySchedule((DeliveryPeriod(2026, 1), DeliveryPeriod(2026, 2)))
 
@@ -51,20 +66,48 @@ _HEDGE = PowerHedgeContract(
     1.0,
     60.0,
 )
+_VANILLA_OPTION = VanillaOptionContract(_COMMODITY, _PERIOD, OptionType.CALL, 40.0, 1000.0)
+_SPREAD_OPTION = SpreadOptionContract("EEX_PHELIX_DE", "TTF", _PERIOD, 5.0, 1000.0)
+_TRANSMISSION_RIGHT = TransmissionRight(
+    "HUB_A", "HUB_B", tariff=1.0, quantity=100.0, schedule=_SCHEDULE
+)
+_PIPELINE_RIGHT = PipelineRight("HUB_A", "HUB_B", tariff=1.0, quantity=100.0, schedule=_SCHEDULE)
+_TOLLING = TollingAgreement(
+    PlantConfig(heat_rate=2.0, variable_om_cost=3.0, emissions_intensity=0.2, fuel_type="gas"),
+    "EEX_PHELIX_DE",
+    "TTF",
+    "EUA",
+    _SCHEDULE,
+)
+_CACHED_ASSET_VALUATION = CachedAssetValuation(
+    asset_id="plant-1",
+    npv=1_000.0,
+    delta={("EEX_PHELIX_DE", _PERIOD): 25.0},
+    valuation_date=DeliveryPeriod(2026, 1).last_day,
+    source=ValuationSource.SIMULATED,
+)
+_CAP_FLOOR_STRIP = CapFloorStripContract(_COMMODITY, _SCHEDULE, CapFloorType.CAP, 40.0, 1_000.0)
 
 
 class TestPosition:
-    @pytest.mark.parametrize("instrument", [_FUTURES, _FORWARD, _SWAP, _PPA, _HEDGE])
-    def test_construction_with_each_instrument_type(
-        self,
-        instrument: (
-            FuturesContract
-            | ForwardContract
-            | SwapContract
-            | PpaContract
-            | PowerHedgeContract
-        ),
-    ) -> None:
+    @pytest.mark.parametrize(
+        "instrument",
+        [
+            _FUTURES,
+            _FORWARD,
+            _SWAP,
+            _PPA,
+            _HEDGE,
+            _VANILLA_OPTION,
+            _SPREAD_OPTION,
+            _TRANSMISSION_RIGHT,
+            _PIPELINE_RIGHT,
+            _TOLLING,
+            _CACHED_ASSET_VALUATION,
+            _CAP_FLOOR_STRIP,
+        ],
+    )
+    def test_construction_with_each_instrument_type(self, instrument: Instrument) -> None:
         position = Position(instrument=instrument)
         assert position.instrument is instrument
         assert position.position_id is None

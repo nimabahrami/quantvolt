@@ -18,11 +18,15 @@ long-dated risk is never understated (Req 23):
 
 Tagging semantics
 -----------------
-:class:`ValuationSource` is the single vocabulary of provenance tags. Its two
-values, ``"forward"`` and ``"projected"``, are exactly the strings a caller should
-propagate onto a :class:`~quantvolt.portfolio.model.Position`'s ``tags`` so that
-downstream risk code can tell the regimes apart. :class:`BenchmarkResult` carries
-the tag prominently in its ``source`` field.
+:class:`ValuationSource` (``models/instruments.py``) is the single vocabulary of
+provenance tags. This module produces two of its values, ``"forward"`` and
+``"projected"`` -- exactly the strings a caller should propagate onto a
+:class:`~quantvolt.portfolio.model.Position`'s ``tags`` so that downstream risk code
+can tell the regimes apart. :class:`BenchmarkResult` carries the tag prominently in
+its ``source`` field. A third value, ``"simulated"``, is produced elsewhere (the
+portfolio-native-pricers spec's ``CachedAssetValuation`` wrapper, Req 19) for a
+precomputed LSMC/dispatch cache -- a third regime this module does not itself
+produce, tagged the same way for the same reason (Property-66 pattern).
 
 Intended wiring (this module does not touch ``risk/``)
 ------------------------------------------------------
@@ -62,10 +66,10 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from enum import StrEnum
 
 from ..exceptions import MissingTenorError, ValidationError
 from ..models.curve import ForwardCurve
+from ..models.instruments import ValuationSource as ValuationSource  # explicit re-export
 from ..models.schedule import DeliveryPeriod
 from ..numerics.risk_adjustment import PriceOfRiskKind
 from ..portfolio.model import PricedPosition
@@ -73,17 +77,12 @@ from ..portfolio.model import PricedPosition
 # A pure projection of a period to its model spot expectation (documented, never mutated).
 SpotModel = Callable[[DeliveryPeriod], float]
 
-
-class ValuationSource(StrEnum):
-    """Provenance of a long-dated valuation; the tag that separates the two regimes.
-
-    The string values double as the ``Position.tags`` markers a caller propagates so
-    that :func:`var_applicability_guard` (and any risk code) can tell a projected
-    value apart from a forward-based one.
-    """
-
-    FORWARD = "forward"  # liquid forward curve covers the period (Req 23.1)
-    PROJECTED = "projected"  # projected from a spot model + corporate premium (Req 23.2)
+# ``ValuationSource`` is now defined in ``models/instruments.py`` (the portfolio-native-pricers
+# spec, Req 19, reuses it for a THIRD regime -- a precomputed LSMC/dispatch cache -- and
+# ``models/instruments.py`` is the leaf-ish module every instrument-bearing type can import
+# without a cycle back through ``portfolio/model.py``, which this module already depends on).
+# Imported here (not re-defined) so there remains exactly one provenance vocabulary; every
+# existing ``from quantvolt.assets.long_dated import ValuationSource`` import keeps working.
 
 
 @dataclass(frozen=True, slots=True)

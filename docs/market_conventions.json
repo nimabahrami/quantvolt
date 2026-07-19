@@ -1,0 +1,170 @@
+{
+  "$comment": "Anti-self-referential provenance manifest for quantvolt's built-in commodity registry (src/quantvolt/models/commodity.py:BUILT_IN_COMMODITIES). Every commodity_id there MUST have a matching entry here with the SAME price_unit and exchange, plus either a verbatim external citation (`source`) or a `citation_status: \"pending-verbatim\"` marker that is also listed in `pending` below. Enforced mechanically by scripts/ci/check_provenance.py and tests/unit/test_conventions_manifest.py -- see .kiro/steering/provenance.md. Appending a new commodity (e.g. THE, PEG, ZTP, PSV) is a single new key in `commodities` plus, if not yet fully cited, one entry in `pending`.",
+  "commodities": {
+    "TTF": {
+      "price_unit": "EUR/MWh",
+      "exchange": "ICE_ENDEX",
+      "source": {
+        "url": "https://www.ice.com/products/27996665/Dutch-TTF-Gas-Futures",
+        "quote": "The contract price is in Euros and Euro cents per MWh",
+        "fetched": "2026-07-18"
+      }
+    },
+    "NBP": {
+      "price_unit": "GBp/therm",
+      "exchange": "ICE_ENDEX",
+      "source": {
+        "url": "https://www.ice.com/products/910/UK-NBP-Natural-Gas-Futures",
+        "quote": "The contract price is in Sterling and pence per therm.",
+        "note": "Unit of trading: 1,000 therms of natural gas per day (1 therm = 29.3071 kilowatt hours)",
+        "fetched": "2026-07-18"
+      }
+    },
+    "EEX_PHELIX_DE": {
+      "price_unit": "EUR/MWh",
+      "exchange": "EEX",
+      "citation_status": "pending-verbatim",
+      "source": {
+        "url": "https://www.eex.com/en/markets/power/power-futures"
+      }
+    },
+    "EEX_PHELIX_AT": {
+      "price_unit": "EUR/MWh",
+      "exchange": "EEX",
+      "citation_status": "pending-verbatim",
+      "source": {
+        "url": "https://www.eex.com/en/markets/power/power-futures"
+      }
+    },
+    "EPEX_DE": {
+      "price_unit": "EUR/MWh",
+      "exchange": "EPEX_SPOT",
+      "citation_status": "pending-verbatim",
+      "source": {
+        "url": "https://www.epexspot.com/en/basicspowermarket"
+      }
+    },
+    "EPEX_FR": {
+      "price_unit": "EUR/MWh",
+      "exchange": "EPEX_SPOT",
+      "citation_status": "pending-verbatim",
+      "source": {
+        "url": "https://www.epexspot.com/en/basicspowermarket"
+      }
+    },
+    "EPEX_NL": {
+      "price_unit": "EUR/MWh",
+      "exchange": "EPEX_SPOT",
+      "citation_status": "pending-verbatim",
+      "source": {
+        "url": "https://www.epexspot.com/en/basicspowermarket"
+      }
+    },
+    "EPEX_BE": {
+      "price_unit": "EUR/MWh",
+      "exchange": "EPEX_SPOT",
+      "citation_status": "pending-verbatim",
+      "source": {
+        "url": "https://www.epexspot.com/en/basicspowermarket"
+      }
+    },
+    "EPEX_GB": {
+      "price_unit": "GBP/MWh",
+      "exchange": "EPEX_SPOT",
+      "citation_status": "pending-verbatim",
+      "source": {
+        "url": "https://www.epexspot.com/en/basicspowermarket"
+      }
+    },
+    "THE": {
+      "price_unit": "EUR/MWh",
+      "exchange": "ICE_ENDEX",
+      "source": {
+        "url": "https://www.ice.com/products/27996810/",
+        "quote": "The contract price is in Euros and Euro cents per MWh",
+        "note": "German THE Natural Gas Futures, ICE Endex. Unit of trading: 1 MW; minimum fluctuation: 0.5 Euro Cent per MWh (€ 0.005/MWh).",
+        "fetched": "2026-07-18"
+      }
+    },
+    "PEG": {
+      "price_unit": "EUR/MWh",
+      "exchange": "ICE_ENDEX",
+      "source": {
+        "url": "https://www.ice.com/products/82426582/French-PEG-Natural-Gas-Futures",
+        "quote": "The contract price is in Euros and Euro cents per MWh",
+        "note": "French PEG Natural Gas Futures, ICE Endex. Unit of trading: 1 MWh/day; minimum fluctuation: 0.5 Euro Cent per MWh (€0.005/MWh).",
+        "fetched": "2026-07-18"
+      }
+    },
+    "ZTP": {
+      "price_unit": "EUR/MWh",
+      "exchange": "ICE_ENDEX",
+      "source": {
+        "url": "https://www.ice.com/publicdocs/clear_europe/circulars/C14139%20Attachment.pdf",
+        "quote": "Quotation: The contract price is in Euros and Euro cents per MWh",
+        "note": "ICE Endex Product Specification Appendix A.13. Minimum Price Flux: 0.5 Euro Cent per MWh. Natural gas (H-Gas) at the Zeebrugge Trading Point managed by Fluxys Belgium S.A. and Huberator.",
+        "fetched": "2026-07-18"
+      }
+    },
+    "PSV": {
+      "price_unit": "EUR/MWh",
+      "exchange": "ICE_ENDEX",
+      "source": {
+        "url": "https://www.ice.com/products/49321531/italian-psv-natural-gas-futures",
+        "quote": "The contract price is in Euros and Euro cents per MWh",
+        "note": "Italian PSV Natural Gas Futures, ICE Endex. Unit of trading: 1 MW; minimum fluctuation: 0.5 Euro Cent per MWh (€0.005/MWh).",
+        "fetched": "2026-07-18"
+      }
+    },
+    "EUA": {
+      "price_unit": "EUR/tCO2",
+      "exchange": "EEX",
+      "citation_status": "pending-verbatim",
+      "source": {
+        "url": "https://www.eex.com/en/markets/environmental-markets/eu-ets-spot-futures-options"
+      }
+    }
+  },
+  "pending": [
+    {
+      "commodity_id": "EEX_PHELIX_DE",
+      "url": "https://www.eex.com/en/markets/power/power-futures",
+      "resolve_by_note": "Site quote not yet captured verbatim -- fetch the EEX Phelix DE power-futures contract specification and record its exact price-unit wording."
+    },
+    {
+      "commodity_id": "EEX_PHELIX_AT",
+      "url": "https://www.eex.com/en/markets/power/power-futures",
+      "resolve_by_note": "Site quote not yet captured verbatim -- fetch the EEX Phelix AT power-futures contract specification and record its exact price-unit wording."
+    },
+    {
+      "commodity_id": "EPEX_DE",
+      "url": "https://www.epexspot.com/en/basicspowermarket",
+      "resolve_by_note": "Fetch blocked with HTTP 403 on 2026-07-18 -- retry, or source the verbatim EUR/MWh quote from an EPEX SPOT market-rules PDF instead of the basic-power-market page."
+    },
+    {
+      "commodity_id": "EPEX_FR",
+      "url": "https://www.epexspot.com/en/basicspowermarket",
+      "resolve_by_note": "Fetch blocked with HTTP 403 on 2026-07-18 -- retry, or source the verbatim EUR/MWh quote from an EPEX SPOT market-rules PDF instead of the basic-power-market page."
+    },
+    {
+      "commodity_id": "EPEX_NL",
+      "url": "https://www.epexspot.com/en/basicspowermarket",
+      "resolve_by_note": "Fetch blocked with HTTP 403 on 2026-07-18 -- retry, or source the verbatim EUR/MWh quote from an EPEX SPOT market-rules PDF instead of the basic-power-market page."
+    },
+    {
+      "commodity_id": "EPEX_BE",
+      "url": "https://www.epexspot.com/en/basicspowermarket",
+      "resolve_by_note": "Fetch blocked with HTTP 403 on 2026-07-18 -- retry, or source the verbatim EUR/MWh quote from an EPEX SPOT market-rules PDF instead of the basic-power-market page."
+    },
+    {
+      "commodity_id": "EPEX_GB",
+      "url": "https://www.epexspot.com/en/basicspowermarket",
+      "resolve_by_note": "Fetch blocked with HTTP 403 on 2026-07-18 -- retry, or source the verbatim GBP/MWh quote from an EPEX SPOT market-rules PDF instead of the basic-power-market page."
+    },
+    {
+      "commodity_id": "EUA",
+      "url": "https://www.eex.com/en/markets/environmental-markets/eu-ets-spot-futures-options",
+      "resolve_by_note": "Site quote not yet captured verbatim -- fetch the EEX EUA spot/futures/options contract specification and record its exact EUR/tCO2 price-unit wording."
+    }
+  ]
+}

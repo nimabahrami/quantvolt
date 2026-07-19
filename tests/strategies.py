@@ -37,10 +37,18 @@ from quantvolt.models.commodity import BUILT_IN_COMMODITIES, CommodityConfig
 from quantvolt.models.curve import CurveNode, ForwardCurve
 from quantvolt.models.discount_curve import DiscountCurve
 from quantvolt.models.instruments import (
+    CachedAssetValuation,
+    CapFloorStripContract,
+    CapFloorType,
     FuturesContract,
     InstrumentPriceRecord,
+    OptionSide,
+    OptionType,
     SettlementType,
+    SpreadOptionContract,
     SwapContract,
+    ValuationSource,
+    VanillaOptionContract,
 )
 from quantvolt.models.schedule import DeliveryPeriod, DeliverySchedule, Granularity
 from quantvolt.models.vol_surface import VolatilitySurface, VolatilityTenor
@@ -57,6 +65,8 @@ __all__ = [
     "aligned_forward_curves",
     "asian_option_requests",
     "barrier_option_requests",
+    "cached_asset_valuations",
+    "cap_floor_strip_contracts",
     "commodity_configs",
     "curve_nodes",
     "delivery_periods",
@@ -68,10 +78,12 @@ __all__ = [
     "instrument_price_record_lists",
     "mtm_positions",
     "priced_positions",
+    "spread_option_contracts",
     "spread_option_requests",
     "swap_contracts",
     "swap_pricing_cases",
     "temperature_frames",
+    "vanilla_option_contracts",
     "vanilla_option_requests",
     "vol_surfaces",
 ]
@@ -441,11 +453,120 @@ _DELTA_EXPOSURES: Final[st.SearchStrategy[float]] = st.floats(min_value=-1_000.0
 
 
 @st.composite
+def _risk_futures_contracts(draw: st.DrawFn) -> FuturesContract:
+    """A FuturesContract drawn from the small RISK_COMMODITY_IDS x RISK_PERIODS pool.
+
+    Draws ``side`` from ``OptionSide`` (short-side-instruments spec, Req 5.2) — as
+    ``vanilla_option_contracts``/``spread_option_contracts`` already do — so the base-spec
+    Property 22/23 risk suites see both LONG and SHORT forward-like positions."""
+    return FuturesContract(
+        commodity=BUILT_IN_COMMODITIES[draw(st.sampled_from(RISK_COMMODITY_IDS))],
+        delivery_period=draw(st.sampled_from(RISK_PERIODS)),
+        contract_price=draw(PRICES),
+        notional=draw(NOTIONALS),
+        side=draw(st.sampled_from(OptionSide)),
+    )
+
+
+@st.composite
+def vanilla_option_contracts(draw: st.DrawFn) -> VanillaOptionContract:
+    """A valid ``VanillaOptionContract`` drawn from the shared ``RISK_COMMODITY_IDS`` x
+    ``RISK_PERIODS`` pool (portfolio-native-pricers spec, Req 18.2), so books built from
+    it overlap the same (commodity, period) cells as ``_risk_futures_contracts`` and
+    exercise base-spec Properties 22/23/27/29 through a native option position."""
+    commodity_id = draw(st.sampled_from(RISK_COMMODITY_IDS))
+    period = draw(st.sampled_from(RISK_PERIODS))
+    forward = draw(_OPTION_FORWARDS)
+    sigma = draw(_OPTION_SIGMAS)
+    time_to_expiry = draw(_OPTION_EXPIRIES)
+    strike = _bounded_strike(draw, forward, sigma, time_to_expiry)
+    return VanillaOptionContract(
+        commodity=BUILT_IN_COMMODITIES[commodity_id],
+        delivery_period=period,
+        option_type=draw(st.sampled_from(OptionType)),
+        strike=strike,
+        notional=draw(NOTIONALS),
+        side=draw(st.sampled_from(OptionSide)),
+    )
+
+
+@st.composite
+def spread_option_contracts(draw: st.DrawFn) -> SpreadOptionContract:
+    """A valid ``SpreadOptionContract`` over two distinct commodities drawn from the
+    shared ``RISK_COMMODITY_IDS`` x ``RISK_PERIODS`` pool (Req 18.2); strike mixes
+    exactly-zero (Margrabe) and positive (Kirk) draws, and ``leg2_weight`` sometimes
+    departs from ``1.0`` to exercise the spark-spread chain-rule branch."""
+    commodity_1, commodity_2 = draw(
+        st.tuples(st.sampled_from(RISK_COMMODITY_IDS), st.sampled_from(RISK_COMMODITY_IDS)).filter(
+            lambda pair: pair[0] != pair[1]
+        )
+    )
+    period = draw(st.sampled_from(RISK_PERIODS))
+    return SpreadOptionContract(
+        commodity_1=commodity_1,
+        commodity_2=commodity_2,
+        delivery_period=period,
+        strike=draw(st.one_of(st.just(0.0), st.floats(min_value=0.01, max_value=200.0))),
+        notional=draw(NOTIONALS),
+        leg2_weight=draw(st.floats(min_value=0.1, max_value=5.0)),
+        side=draw(st.sampled_from(OptionSide)),
+    )
+
+
+@st.composite
+def cached_asset_valuations(draw: st.DrawFn) -> CachedAssetValuation:
+    """A valid ``CachedAssetValuation`` drawn from the shared ``RISK_COMMODITY_IDS`` x
+    ``RISK_PERIODS`` pool (portfolio-native-pricers spec, Req 18.2/19), so books built
+    from it overlap the same (commodity, period) cells as every other risk-factor
+    generator and exercise base-spec Properties 22/23/27/29 through this DEFERRED-roadmap
+    passthrough instrument too."""
+    delta_keys = draw(
+        st.sets(
+            st.tuples(st.sampled_from(RISK_COMMODITY_IDS), st.sampled_from(RISK_PERIODS)),
+            max_size=3,
+        )
+    )
+    delta = {key: draw(_DELTA_EXPOSURES) for key in sorted(delta_keys)}
+    return CachedAssetValuation(
+        asset_id=draw(st.sampled_from(("asset-1", "asset-2", "asset-3"))),
+        npv=draw(st.floats(min_value=-1_000_000.0, max_value=1_000_000.0)),
+        delta=delta,
+        valuation_date=draw(st.sampled_from(RISK_PERIODS)).last_day,
+        source=draw(st.sampled_from(ValuationSource)),
+        standard_error=draw(st.one_of(st.none(), st.floats(min_value=0.0, max_value=10_000.0))),
+    )
+
+
+@st.composite
+def cap_floor_strip_contracts(draw: st.DrawFn) -> CapFloorStripContract:
+    """A valid ``CapFloorStripContract`` drawn from the shared ``RISK_COMMODITY_IDS`` x
+    ``RISK_PERIODS`` pool (portfolio-native-pricers spec, Req 18.2/20)."""
+    commodity_id = draw(st.sampled_from(RISK_COMMODITY_IDS))
+    periods = tuple(sorted(draw(st.sets(st.sampled_from(RISK_PERIODS), min_size=1, max_size=6))))
+    return CapFloorStripContract(
+        commodity=BUILT_IN_COMMODITIES[commodity_id],
+        schedule=DeliverySchedule(periods),
+        cap_floor_type=draw(st.sampled_from(CapFloorType)),
+        strike=draw(st.floats(min_value=0.01, max_value=200.0)),
+        notional=draw(NOTIONALS),
+        side=draw(st.sampled_from(OptionSide)),
+    )
+
+
+@st.composite
 def priced_positions(draw: st.DrawFn, min_deltas: int = 0, max_deltas: int = 4) -> PricedPosition:
     """A valuated position for the risk engine: finite npv and a delta mapping whose
     keys come from the small ``RISK_COMMODITY_IDS`` x ``RISK_PERIODS`` pool, so books
     drawn from this strategy overlap on cells (Properties 21-24). ``min_deltas=0``
-    admits empty-delta positions (excluded by the engine as ``missing_delta``)."""
+    admits empty-delta positions (excluded by the engine as ``missing_delta``).
+
+    ``instrument`` is drawn across futures, vanilla options, spread options, a cached
+    asset valuation, and a cap/floor strip (Req 18.2, extended by the DEFERRED-roadmap
+    Req 19/20 instruments): ``PricedPosition``/``aggregate_delta``/``RiskEngine`` never
+    inspect the instrument type itself, so this only proves those base-spec properties
+    (22, 23, 27, 29) hold regardless of which natively-priced instrument produced the
+    position.
+    """
     delta_keys = draw(
         st.sets(
             st.tuples(st.sampled_from(RISK_COMMODITY_IDS), st.sampled_from(RISK_PERIODS)),
@@ -454,11 +575,14 @@ def priced_positions(draw: st.DrawFn, min_deltas: int = 0, max_deltas: int = 4) 
         )
     )
     delta = {key: draw(_DELTA_EXPOSURES) for key in sorted(delta_keys)}
-    instrument = FuturesContract(
-        commodity=BUILT_IN_COMMODITIES[draw(st.sampled_from(RISK_COMMODITY_IDS))],
-        delivery_period=draw(st.sampled_from(RISK_PERIODS)),
-        contract_price=draw(PRICES),
-        notional=draw(NOTIONALS),
+    instrument = draw(
+        st.one_of(
+            _risk_futures_contracts(),
+            vanilla_option_contracts(),
+            spread_option_contracts(),
+            cached_asset_valuations(),
+            cap_floor_strip_contracts(),
+        )
     )
     return PricedPosition(
         position=Position(instrument=instrument),

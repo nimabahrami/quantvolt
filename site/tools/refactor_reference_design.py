@@ -10,39 +10,38 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "script.js"
 CSS = ROOT / "enhancements.css"
 
 REPLACEMENTS = {
     "fields": (
-        "`<div><code>${esc(field.name)}</code><p><span class=\"type-label\">${esc(field.type)}</span>",
-        "`<div class=\"doc-row variable-row\"><code class=\"doc-name\">${esc(field.name)}</code><p><span class=\"type-label\">${esc(field.type)}</span>",
+        '`<div><code>${esc(field.name)}</code><p><span class="type-label">${esc(field.type)}</span>',
+        '`<div class="doc-row variable-row"><code class="doc-name">${esc(field.name)}</code><p><span class="type-label">${esc(field.type)}</span>',
     ),
     "members": (
         "`<div><code>${esc(member.name)}</code><p>${esc(member.value)}</p></div>`",
-        "`<div class=\"doc-row variable-row\"><code class=\"doc-name\">${esc(member.name)}</code><p><code class=\"member-value\">${esc(member.value)}</code></p></div>`",
+        '`<div class="doc-row variable-row"><code class="doc-name">${esc(member.name)}</code><p><code class="member-value">${esc(member.value)}</code></p></div>`',
     ),
     "methods": (
         "`<div><code>${esc(method.signature)}</code><p>${inlineDoc(method.summary || 'Public method.')}</p></div>`",
-        "`<div class=\"method-card\"><code class=\"method-signature\">${esc(method.signature)}</code><p>${inlineDoc(method.summary || 'Public method.')}</p></div>`",
+        '`<div class="method-card"><code class="method-signature">${esc(method.signature)}</code><p>${inlineDoc(method.summary || \'Public method.\')}</p></div>`',
     ),
     "description": (
-        "<h2 id=\"description\">Description</h2><div class=\"api-description\">${doc}</div>${fields}",
-        "<h2 id=\"description\">Description</h2>${doc}${fields}",
+        '<h2 id="description">Description</h2><div class="api-description">${doc}</div>${fields}',
+        '<h2 id="description">Description</h2>${doc}${fields}',
     ),
     "fallback-description": (
         "`<p>This public ${symbol.kind} is exported by <code>${moduleByName(moduleName)?.qualified}</code>. See the source for implementation details and validation behavior.</p>`",
-        "`<div class=\"api-description\"><p>This public ${symbol.kind} is exported by <code>${moduleByName(moduleName)?.qualified}</code>. See the source for implementation details and validation behavior.</p></div>`",
+        '`<div class="api-description"><p>This public ${symbol.kind} is exported by <code>${moduleByName(moduleName)?.qualified}</code>. See the source for implementation details and validation behavior.</p></div>`',
     ),
     "not-found": (
         "`<p><a href=\"#/overview\">Return to the overview →</a></p>`,'404'",
-        "`<div class=\"admonition error\" role=\"alert\"><b>Documentation error</b><p>The requested route does not match a generated guide or API symbol.</p><a href=\"#/overview\">Return to the overview →</a></div>`,'404'",
+        '`<div class="admonition error" role="alert"><b>Documentation error</b><p>The requested route does not match a generated guide or API symbol.</p><a href="#/overview">Return to the overview →</a></div>`,\'404\'',
     ),
 }
 
-DOC_RENDERER = r'''function renderDoc(doc){
+DOC_RENDERER = r"""function renderDoc(doc){
   if(!doc)return'';
   const sectionNames=new Set(['Args:','Arguments:','Parameters:','Keyword Args:','Other Parameters:','Attributes:','Returns:','Yields:','Raises:','Notes:','Examples:','Example:','Warnings:','See Also:','References:']);
   const chunks=[];
@@ -77,14 +76,14 @@ DOC_RENDERER = r'''function renderDoc(doc){
     const tone=chunk.title==='Warnings'?' warning-note':chunk.title==='Raises'?' error-note':'';
     return `<h2 id="${sectionId}">${chunk.title}</h2><div class="doc-section-note${tone}"><p>${inlineDoc(text).replaceAll('\n','<br>')}</p></div>`;
   }).join('');
-}'''
+}"""
 
-INLINE_RENDERER = r'''function inlineDoc(value){
+INLINE_RENDERER = r"""function inlineDoc(value){
   return esc(value)
     .replace(/``([^`]+)``/g,'<code>$1</code>')
     .replace(/:(?:class|func|meth|attr|mod|data|exc|const):`~?([^`]+)`/g,'<code>$1</code>')
     .replace(/`([^`]+)`/g,'<code>$1</code>');
-}'''
+}"""
 
 CSS_BLOCK = r"""
 
@@ -172,7 +171,9 @@ def main() -> None:
         outcomes.append("design tokens and components: applied")
     else:
         outcomes.append("design tokens and components: already applied")
-    marker_v2 = "/* Structured API docstring sections — maintained by tools/refactor_reference_design.py */"
+    marker_v2 = (
+        "/* Structured API docstring sections — maintained by tools/refactor_reference_design.py */"
+    )
     if marker_v2 not in css:
         css = css.rstrip() + CSS_V2 + "\n"
         outcomes.append("structured docstring sections: applied")
@@ -181,13 +182,24 @@ def main() -> None:
     CSS.write_text(css, encoding="utf-8")
 
     required_script = (
-        "api-description", "variable-row", "error-row", "method-card",
-        "method-signature", "admonition error", "Attributes:", "Yields:",
-        "doc-section-note", "(?:class|func|meth|attr|mod|data|exc|const)",
+        "api-description",
+        "variable-row",
+        "error-row",
+        "method-card",
+        "method-signature",
+        "admonition error",
+        "Attributes:",
+        "Yields:",
+        "doc-section-note",
+        "(?:class|func|meth|attr|mod|data|exc|const)",
     )
     required_css = (
-        "--error:#CA3535", ".api-description", ".doc-table>.doc-row",
-        ".method-list>.method-card", ".error-table>.error-row", ".admonition.error",
+        "--error:#CA3535",
+        ".api-description",
+        ".doc-table>.doc-row",
+        ".method-list>.method-card",
+        ".error-table>.error-row",
+        ".admonition.error",
         ".doc-section-note",
     )
     missing = [token for token in required_script if token not in script]

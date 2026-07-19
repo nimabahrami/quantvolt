@@ -1,9 +1,12 @@
 """Execute the foundations used by the models, numerics and curves guides."""
+
 from __future__ import annotations
 
 import math
 
 import numpy as np
+from shared_setup import DEC_26, MARKET_DATE, TTF, example_market
+
 import quantvolt as qv
 from quantvolt.numerics import (
     black76_greeks,
@@ -14,8 +17,6 @@ from quantvolt.numerics import (
     finite_difference_bump,
     simulate_correlated_forwards,
 )
-
-from shared_setup import DEC_26, MARKET_DATE, TTF, example_market
 
 
 def main() -> None:

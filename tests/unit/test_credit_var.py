@@ -21,7 +21,7 @@ from quantvolt.portfolio.model import Position, PricedPosition
 from quantvolt.risk.credit_var import CounterpartyCreditDetail, CreditVaRResult, credit_var
 from quantvolt.testing import assert_input_unchanged
 
-_TTF = CommodityConfig("TTF", "EUR/MBtu", Hub("TTF", "ICE_ENDEX", "EUR/MBtu"))
+_TTF = CommodityConfig("TTF", "EUR/MWh", Hub("TTF", "ICE_ENDEX", "EUR/MWh"))
 _JAN = DeliveryPeriod(2026, 1)
 
 

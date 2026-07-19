@@ -23,7 +23,7 @@ from quantvolt.models.curve import CurveNode, ForwardCurve
 from quantvolt.models.schedule import DeliveryPeriod
 
 MARKET_DATE = date(2025, 1, 1)
-COMMODITY = CommodityConfig("TTF", "EUR/MBtu", Hub("TTF", "ICE_ENDEX", "EUR/MBtu"))
+COMMODITY = CommodityConfig("TTF", "EUR/MWh", Hub("TTF", "ICE_ENDEX", "EUR/MWh"))
 
 JAN = DeliveryPeriod(2025, 1)
 FEB = DeliveryPeriod(2025, 2)

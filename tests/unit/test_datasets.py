@@ -39,9 +39,7 @@ def test_cache_dir_honors_environment(monkeypatch: pytest.MonkeyPatch, tmp_path)
 def test_fetch_is_atomic_verified_and_reused(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
     payload = b"small deterministic dataset\n"
     original = datasets.info("eia-henry-hub-spot-daily")
-    record = replace(
-        original, size=len(payload), sha256=hashlib.sha256(payload).hexdigest()
-    )
+    record = replace(original, size=len(payload), sha256=hashlib.sha256(payload).hexdigest())
     monkeypatch.setenv("QUANTVOLT_DATA_DIR", str(tmp_path))
     monkeypatch.setattr(datasets, "_record", lambda _: record)
     calls = 0

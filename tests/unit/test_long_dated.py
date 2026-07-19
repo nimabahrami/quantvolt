@@ -31,7 +31,7 @@ from quantvolt.testing import assert_input_unchanged
 
 # --- Fixtures / builders --------------------------------------------------------------
 
-GAS = CommodityConfig("TTF", "EUR/MBtu", Hub("TTF", "ICE_ENDEX", "EUR/MBtu"))
+GAS = CommodityConfig("TTF", "EUR/MWh", Hub("TTF", "ICE_ENDEX", "EUR/MWh"))
 POWER = CommodityConfig("EEX_PHELIX_DE", "EUR/MWh", Hub("EEX_PHELIX_DE", "EEX", "EUR/MWh"))
 
 # Liquid span: 2027-01 (observed) and 2027-02 (interpolated). The furthest liquid
@@ -245,4 +245,9 @@ class TestValuationSource:
     def test_tag_string_values(self) -> None:
         assert ValuationSource.FORWARD == "forward"
         assert ValuationSource.PROJECTED == "projected"
-        assert {s.value for s in ValuationSource} == {"forward", "projected"}
+
+    def test_three_values_closed_set(self) -> None:
+        # A third value, SIMULATED, was added by the portfolio-native-pricers spec (Req 19)
+        # for CachedAssetValuation, a precomputed LSMC/dispatch cache -- a regime this module
+        # does not itself produce. This module still produces only FORWARD/PROJECTED.
+        assert {s.value for s in ValuationSource} == {"forward", "projected", "simulated"}

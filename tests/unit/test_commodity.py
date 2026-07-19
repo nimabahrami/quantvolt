@@ -14,7 +14,7 @@ from quantvolt.models.commodity import (
 )
 
 
-def test_registry_has_exactly_the_ten_built_ins() -> None:
+def test_registry_has_exactly_the_fourteen_built_ins() -> None:
     assert set(BUILT_IN_COMMODITIES) == {
         "EEX_PHELIX_DE",
         "EEX_PHELIX_AT",
@@ -25,14 +25,30 @@ def test_registry_has_exactly_the_ten_built_ins() -> None:
         "EPEX_GB",
         "TTF",
         "NBP",
+        "THE",
+        "PEG",
+        "ZTP",
+        "PSV",
         "EUA",
     }
 
 
 def test_builtin_lookup_returns_expected_config() -> None:
     ttf = resolve_commodity("TTF")
-    assert ttf == CommodityConfig("TTF", "EUR/MBtu", Hub("TTF", "ICE_ENDEX", "EUR/MBtu"))
+    assert ttf == CommodityConfig("TTF", "EUR/MWh", Hub("TTF", "ICE_ENDEX", "EUR/MWh"))
     assert ttf.hub.exchange == "ICE_ENDEX"
+
+
+def test_nbp_native_quotation_is_pence_per_therm() -> None:
+    nbp = resolve_commodity("NBP")
+    assert nbp == CommodityConfig("NBP", "GBp/therm", Hub("NBP", "ICE_ENDEX", "GBp/therm"))
+
+
+@pytest.mark.parametrize("hub_id", ["THE", "PEG", "ZTP", "PSV"])
+def test_deferred_european_gas_hubs_are_eur_per_mwh_on_ice_endex(hub_id: str) -> None:
+    """Requirement 7 (deferred, Task 13): THE/PEG/ZTP/PSV at EUR/MWh, ICE Endex."""
+    config = resolve_commodity(hub_id)
+    assert config == CommodityConfig(hub_id, "EUR/MWh", Hub(hub_id, "ICE_ENDEX", "EUR/MWh"))
 
 
 def test_builtin_lookup_without_extras_matches_registry_entry() -> None:
@@ -115,3 +131,32 @@ def test_value_objects_are_frozen() -> None:
     cfg = CommodityConfig("C", "EUR/MWh", hub)
     with pytest.raises(AttributeError):
         cfg.price_unit = "other"  # type: ignore[misc]
+
+
+def test_registry_invariant_every_builtin_parses_and_config_matches_hub() -> None:
+    """Property 78 (unit-level check): every built-in config/hub parses to a valid
+    PriceUnit, and a config's price_unit agrees with its hub's price_unit."""
+    from quantvolt.models.units import PriceUnit
+
+    for config in BUILT_IN_COMMODITIES.values():
+        PriceUnit.parse(config.price_unit)
+        PriceUnit.parse(config.hub.price_unit)
+        assert config.price_unit == config.hub.price_unit
+
+
+def test_no_builtin_entry_uses_mbtu() -> None:
+    # Compare the denominator exactly: "MBtu" is a substring of the valid "MMBtu",
+    # so a substring check would false-fail if an MMBtu built-in were ever added.
+    for config in BUILT_IN_COMMODITIES.values():
+        assert config.price_unit.split("/")[1] != "MBtu"
+        assert config.hub.price_unit.split("/")[1] != "MBtu"
+
+
+def test_hub_construction_rejects_invalid_price_unit() -> None:
+    with pytest.raises(ValidationError):
+        Hub("H", "E", "EUR/MBtu")
+
+
+def test_commodity_config_construction_rejects_invalid_price_unit() -> None:
+    with pytest.raises(ValidationError):
+        CommodityConfig("C", "EUR/MBtu", Hub("H", "E", "EUR/MWh"))

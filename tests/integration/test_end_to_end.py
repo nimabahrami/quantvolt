@@ -1,6 +1,7 @@
-"""End-to-end integration tests (Task 50) — exercised through the public facade only.
+"""End-to-end integration tests (Task 50; portfolio-native-pricers Task 13) —
+exercised through the public facade only.
 
-Four realistic mini-scenarios, each anchored by hand-checkable numbers:
+Five realistic mini-scenarios, each anchored by hand-checkable numbers:
 
 1. **Curve build -> pricing -> risk**: TTF and EEX_PHELIX_DE curves are built by
    ``CurveBuilder`` from ``InstrumentPriceRecord``s with a gap month (proving
@@ -16,6 +17,11 @@ Four realistic mini-scenarios, each anchored by hand-checkable numbers:
 4. **Multi-commodity mark-to-market**: settlement prices for some positions,
    forward-curve fallback (flagged ``estimated``) for others, a missing-both case
    raising ``NoPricingDataError``, and idempotence.
+5. **Portfolio-native options + transport right**: a future, a swap, a native
+   vanilla option, a native spread option, and a transmission right in one book,
+   all priced by ``value_portfolio`` with no ``pricers=`` argument; per-position
+   NPVs match the direct kernel calls and deltas aggregate across every instrument
+   type (Req 7, 8; base-spec Req 24).
 
 All discount factors are stored exactly at the settlement-date tenors so every NPV
 below is hand-computable without interpolation of the discount curve.
@@ -47,22 +53,32 @@ from quantvolt import (
     MarketData,
     MtMPosition,
     NoPricingDataError,
+    OptionSide,
+    OptionType,
     PlantConfig,
     Portfolio,
     PortfolioValuation,
     Position,
     RiskEngine,
     RiskResult,
+    SpreadOptionContract,
+    SpreadOptionRequest,
     SwapContract,
     TollingResult,
+    TransmissionRight,
+    VanillaOptionContract,
+    VanillaOptionRequest,
     VolatilitySurface,
     VolatilityTenor,
     aggregate_delta,
     mark_to_market,
     price_futures,
+    price_spread_option,
     price_swap,
     price_tolling_agreement,
+    price_vanilla_option,
     value_portfolio,
+    value_transport_right,
 )
 
 VALUATION_DATE = date(2026, 7, 1)
@@ -547,3 +563,175 @@ def test_curve_to_risk_flow_is_deterministic_end_to_end() -> None:
     second_valuation, second_risk = run_curve_to_risk_flow()
     assert first_valuation == second_valuation
     assert first_risk == second_risk
+
+
+# --- Flow 5: portfolio-native options + transport right (portfolio-native-pricers spec) ---
+
+FLOW5_PERIOD = DeliveryPeriod(2027, 9)  # settles 2027-09-30
+FLOW5_VALUATION_DATE = date(2027, 1, 1)
+FLOW5_HUB_A = BUILT_IN_COMMODITIES["EPEX_NL"]
+FLOW5_HUB_B = BUILT_IN_COMMODITIES["EPEX_BE"]
+
+FLOW5_TTF_PRICE = 32.0
+FLOW5_POWER_PRICE = 95.0
+FLOW5_HUB_A_PRICE = 40.0
+FLOW5_HUB_B_PRICE = 46.0
+FLOW5_SWAP_FIXED = 30.0
+FLOW5_FUTURES_PRICE = 88.0
+FLOW5_DF = 0.96  # stored exactly at the 2027-09-30 tenor
+FLOW5_TTF_SIGMA = 0.35
+FLOW5_POWER_SIGMA = 0.42
+FLOW5_RHO = 0.45
+
+FLOW5_FUTURES = FuturesContract(
+    POWER, FLOW5_PERIOD, contract_price=FLOW5_FUTURES_PRICE, notional=20.0
+)
+FLOW5_SWAP = SwapContract(
+    TTF,
+    fixed_rate=FLOW5_SWAP_FIXED,
+    floating_index="TTF_DA",
+    notional=100.0,
+    schedule=DeliverySchedule((FLOW5_PERIOD,)),
+)
+FLOW5_OPTION = VanillaOptionContract(
+    commodity=TTF,
+    delivery_period=FLOW5_PERIOD,
+    option_type=OptionType.CALL,
+    strike=34.0,
+    notional=1_000.0,
+    side=OptionSide.LONG,
+)
+FLOW5_SPREAD = SpreadOptionContract(
+    commodity_1="EEX_PHELIX_DE",
+    commodity_2="TTF",
+    delivery_period=FLOW5_PERIOD,
+    strike=50.0,
+    notional=500.0,
+    side=OptionSide.SHORT,
+)
+FLOW5_TRANSPORT = TransmissionRight(
+    origin="EPEX_NL",
+    destination="EPEX_BE",
+    tariff=2.0,
+    quantity=25.0,
+    schedule=DeliverySchedule((FLOW5_PERIOD,)),
+)
+
+
+def make_flow5_discount_curve() -> DiscountCurve:
+    return DiscountCurve(
+        reference_date=FLOW5_VALUATION_DATE,
+        tenors=(FLOW5_PERIOD.last_day,),
+        factors=(FLOW5_DF,),
+    )
+
+
+def make_flow5_market_data() -> MarketData:
+    return MarketData(
+        forward_curves={
+            "EEX_PHELIX_DE": make_observed_curve(POWER, (FLOW5_PERIOD,), (FLOW5_POWER_PRICE,)),
+            "TTF": make_observed_curve(TTF, (FLOW5_PERIOD,), (FLOW5_TTF_PRICE,)),
+            "EPEX_NL": make_observed_curve(FLOW5_HUB_A, (FLOW5_PERIOD,), (FLOW5_HUB_A_PRICE,)),
+            "EPEX_BE": make_observed_curve(FLOW5_HUB_B, (FLOW5_PERIOD,), (FLOW5_HUB_B_PRICE,)),
+        },
+        discount_curve=make_flow5_discount_curve(),
+        valuation_date=FLOW5_VALUATION_DATE,
+        vol_surfaces={
+            "TTF": VolatilitySurface(TTF, (VolatilityTenor(FLOW5_PERIOD, FLOW5_TTF_SIGMA),)),
+            "EEX_PHELIX_DE": VolatilitySurface(
+                POWER, (VolatilityTenor(FLOW5_PERIOD, FLOW5_POWER_SIGMA),)
+            ),
+        },
+        correlations={("EEX_PHELIX_DE", "TTF"): FLOW5_RHO},
+    )
+
+
+def make_flow5_book() -> Portfolio:
+    return Portfolio(
+        positions=(
+            Position(FLOW5_FUTURES, position_id="POS-FUT"),
+            Position(FLOW5_SWAP, position_id="POS-SWP"),
+            Position(FLOW5_OPTION, position_id="POS-OPT"),
+            Position(FLOW5_SPREAD, position_id="POS-SPR"),
+            Position(FLOW5_TRANSPORT, position_id="POS-TRN"),
+        ),
+        name="native-options-and-transport-book",
+    )
+
+
+class TestPortfolioNativeOptionsAndTransportFlow:
+    def test_no_positions_land_in_unpriced(self) -> None:
+        valuation = value_portfolio(make_flow5_book(), make_flow5_market_data())
+        assert valuation.unpriced == ()
+        assert len(valuation.priced) == 5
+
+    def test_each_position_npv_matches_its_direct_kernel_call(self) -> None:
+        market_data = make_flow5_market_data()
+        valuation = value_portfolio(make_flow5_book(), market_data)
+
+        futures_npv = price_futures(
+            FLOW5_FUTURES,
+            market_data.curve_for("EEX_PHELIX_DE"),
+            FLOW5_VALUATION_DATE,
+            market_data.discount_curve,
+        ).npv
+        swap_npv = price_swap(
+            FLOW5_SWAP, market_data.curve_for("TTF"), market_data.discount_curve
+        ).npv
+        option_result = price_vanilla_option(
+            VanillaOptionRequest(
+                option_type="call",
+                strike=FLOW5_OPTION.strike,
+                notional=FLOW5_OPTION.notional,
+                forward=FLOW5_TTF_PRICE,
+                sigma=FLOW5_TTF_SIGMA,
+                time_to_expiry=(FLOW5_PERIOD.last_day - FLOW5_VALUATION_DATE).days / 365.0,
+                discount_factor=FLOW5_DF,
+            )
+        )
+        spread_result = price_spread_option(
+            SpreadOptionRequest(
+                forward1=FLOW5_POWER_PRICE,
+                forward2=FLOW5_TTF_PRICE,
+                strike=FLOW5_SPREAD.strike,
+                sigma1=FLOW5_POWER_SIGMA,
+                sigma2=FLOW5_TTF_SIGMA,
+                correlation=FLOW5_RHO,
+                time_to_expiry=(FLOW5_PERIOD.last_day - FLOW5_VALUATION_DATE).days / 365.0,
+                discount_factor=FLOW5_DF,
+                notional=FLOW5_SPREAD.notional,
+            )
+        )
+        transport_result = value_transport_right(
+            FLOW5_TRANSPORT,
+            market_data.curve_for("EPEX_NL"),
+            market_data.curve_for("EPEX_BE"),
+            market_data.discount_curve,
+        )
+
+        assert valuation.priced[0].npv == pytest.approx(futures_npv)
+        assert valuation.priced[1].npv == pytest.approx(swap_npv)
+        assert valuation.priced[2].npv == pytest.approx(option_result.premium)
+        assert valuation.priced[3].npv == pytest.approx(-spread_result.premium)  # SHORT
+        assert valuation.priced[4].npv == pytest.approx(transport_result.total)
+        assert valuation.total_npv == pytest.approx(
+            futures_npv
+            + swap_npv
+            + option_result.premium
+            - spread_result.premium
+            + transport_result.total
+        )
+
+    def test_deltas_aggregate_across_every_instrument_type(self) -> None:
+        valuation = value_portfolio(make_flow5_book(), make_flow5_market_data())
+        matrix = aggregate_delta(list(valuation.priced))
+
+        expected: dict[tuple[str, DeliveryPeriod], float] = {}
+        for priced in valuation.priced:
+            for key, exposure in priced.delta.items():
+                expected[key] = expected.get(key, 0.0) + exposure
+        for (commodity_id, period), net in expected.items():
+            assert matrix.delta_at(commodity_id, period) == pytest.approx(net)
+        # The spread option contributes to both legs' cells.
+        assert ("EEX_PHELIX_DE", FLOW5_PERIOD) in expected
+        assert ("TTF", FLOW5_PERIOD) in expected

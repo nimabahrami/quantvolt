@@ -1,0 +1,261 @@
+{
+  "cases": [
+    {
+      "case_id": "cap_strip0_K50_N1000_n6",
+      "inputs": {
+        "caplets": [
+          {
+            "discount_factor": 0.995,
+            "forward": 52.0,
+            "sigma": 0.6,
+            "time_to_expiry": 0.08
+          },
+          {
+            "discount_factor": 0.99,
+            "forward": 48.0,
+            "sigma": 0.55,
+            "time_to_expiry": 0.17
+          },
+          {
+            "discount_factor": 0.985,
+            "forward": 45.0,
+            "sigma": 0.5,
+            "time_to_expiry": 0.25
+          },
+          {
+            "discount_factor": 0.98,
+            "forward": 47.0,
+            "sigma": 0.45,
+            "time_to_expiry": 0.33
+          },
+          {
+            "discount_factor": 0.975,
+            "forward": 55.0,
+            "sigma": 0.4,
+            "time_to_expiry": 0.42
+          },
+          {
+            "discount_factor": 0.97,
+            "forward": 60.0,
+            "sigma": 0.38,
+            "time_to_expiry": 0.5
+          }
+        ],
+        "notional": 1000.0,
+        "option_type": "cap",
+        "strike": 50.0
+      },
+      "notes": "Caplet-by-caplet blackFormula reference. QuantLib's interest-rate cap machinery (ql.Cap / BlackCapFloorEngine) is NOT used: Ibor forwards and accrual day-counts make it not comparable to an energy cap on delivery-period forward prices (Requirement 4.1). strip_premium == sum(caplet_premiums) is the additivity identity.",
+      "reference": {
+        "caplet_premiums": [
+          4517.459194521545,
+          3459.6887719868996,
+          2596.488388609195,
+          3556.6241777600144,
+          8066.936740956516,
+          11804.264052275339
+        ],
+        "strip_premium": 34001.46132610951
+      },
+      "tolerance": {
+        "caplet_premiums": {
+          "kind": "rel",
+          "value": 1e-09
+        },
+        "strip_premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9: each caplet reference is QuantLib blackFormula on that period's own forward/sigma/T/DF (convention-identical to price_cap_floor's Black-76 caplet), so the residual is only the two normal-CDF implementations' difference. The strip premium is the exact sum of the per-caplet references (Property 94 additivity)."
+    },
+    {
+      "case_id": "floor_strip1_K50_N1000_n6",
+      "inputs": {
+        "caplets": [
+          {
+            "discount_factor": 0.995,
+            "forward": 52.0,
+            "sigma": 0.6,
+            "time_to_expiry": 0.08
+          },
+          {
+            "discount_factor": 0.99,
+            "forward": 48.0,
+            "sigma": 0.55,
+            "time_to_expiry": 0.17
+          },
+          {
+            "discount_factor": 0.985,
+            "forward": 45.0,
+            "sigma": 0.5,
+            "time_to_expiry": 0.25
+          },
+          {
+            "discount_factor": 0.98,
+            "forward": 47.0,
+            "sigma": 0.45,
+            "time_to_expiry": 0.33
+          },
+          {
+            "discount_factor": 0.975,
+            "forward": 55.0,
+            "sigma": 0.4,
+            "time_to_expiry": 0.42
+          },
+          {
+            "discount_factor": 0.97,
+            "forward": 60.0,
+            "sigma": 0.38,
+            "time_to_expiry": 0.5
+          }
+        ],
+        "notional": 1000.0,
+        "option_type": "floor",
+        "strike": 50.0
+      },
+      "notes": "Caplet-by-caplet blackFormula reference. QuantLib's interest-rate cap machinery (ql.Cap / BlackCapFloorEngine) is NOT used: Ibor forwards and accrual day-counts make it not comparable to an energy cap on delivery-period forward prices (Requirement 4.1). strip_premium == sum(caplet_premiums) is the additivity identity.",
+      "reference": {
+        "caplet_premiums": [
+          2527.4591945215416,
+          5439.688771986899,
+          7521.488388609195,
+          6496.624177760007,
+          3191.936740956519,
+          2104.264052275345
+        ],
+        "strip_premium": 27281.461326109507
+      },
+      "tolerance": {
+        "caplet_premiums": {
+          "kind": "rel",
+          "value": 1e-09
+        },
+        "strip_premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9: each caplet reference is QuantLib blackFormula on that period's own forward/sigma/T/DF (convention-identical to price_cap_floor's Black-76 caplet), so the residual is only the two normal-CDF implementations' difference. The strip premium is the exact sum of the per-caplet references (Property 94 additivity)."
+    },
+    {
+      "case_id": "cap_strip2_K30_N500_n12",
+      "inputs": {
+        "caplets": [
+          {
+            "discount_factor": 0.999,
+            "forward": 30.0,
+            "sigma": 0.7,
+            "time_to_expiry": 0.08333333333333333
+          },
+          {
+            "discount_factor": 0.995,
+            "forward": 32.5,
+            "sigma": 0.6799999999999999,
+            "time_to_expiry": 0.16666666666666666
+          },
+          {
+            "discount_factor": 0.991,
+            "forward": 34.33012701892219,
+            "sigma": 0.6599999999999999,
+            "time_to_expiry": 0.25
+          },
+          {
+            "discount_factor": 0.987,
+            "forward": 35.0,
+            "sigma": 0.6399999999999999,
+            "time_to_expiry": 0.3333333333333333
+          },
+          {
+            "discount_factor": 0.983,
+            "forward": 34.3301270189222,
+            "sigma": 0.62,
+            "time_to_expiry": 0.4166666666666667
+          },
+          {
+            "discount_factor": 0.979,
+            "forward": 32.5,
+            "sigma": 0.6,
+            "time_to_expiry": 0.5
+          },
+          {
+            "discount_factor": 0.975,
+            "forward": 30.0,
+            "sigma": 0.58,
+            "time_to_expiry": 0.5833333333333334
+          },
+          {
+            "discount_factor": 0.971,
+            "forward": 27.5,
+            "sigma": 0.5599999999999999,
+            "time_to_expiry": 0.6666666666666666
+          },
+          {
+            "discount_factor": 0.967,
+            "forward": 25.66987298107781,
+            "sigma": 0.5399999999999999,
+            "time_to_expiry": 0.75
+          },
+          {
+            "discount_factor": 0.963,
+            "forward": 25.0,
+            "sigma": 0.52,
+            "time_to_expiry": 0.8333333333333334
+          },
+          {
+            "discount_factor": 0.959,
+            "forward": 25.66987298107781,
+            "sigma": 0.49999999999999994,
+            "time_to_expiry": 0.9166666666666666
+          },
+          {
+            "discount_factor": 0.955,
+            "forward": 27.499999999999996,
+            "sigma": 0.48,
+            "time_to_expiry": 1.0
+          }
+        ],
+        "notional": 500.0,
+        "option_type": "cap",
+        "strike": 30.0
+      },
+      "notes": "Caplet-by-caplet blackFormula reference. QuantLib's interest-rate cap machinery (ql.Cap / BlackCapFloorEngine) is NOT used: Ibor forwards and accrual day-counts make it not comparable to an energy cap on delivery-period forward prices (Requirement 4.1). strip_premium == sum(caplet_premiums) is the additivity identity.",
+      "reference": {
+        "caplet_premiums": [
+          1205.968124697437,
+          2408.527211287882,
+          3331.601491007883,
+          3783.539405862817,
+          3710.290391106244,
+          3226.577724287001,
+          2563.615956290369,
+          1961.9844036567433,
+          1575.489448281642,
+          1457.49709742006,
+          1616.5303297553137,
+          2048.7531353589216
+        ],
+        "strip_premium": 28890.374719012314
+      },
+      "tolerance": {
+        "caplet_premiums": {
+          "kind": "rel",
+          "value": 1e-09
+        },
+        "strip_premium": {
+          "kind": "rel",
+          "value": 1e-09
+        }
+      },
+      "tolerance_rationale": "rel 1e-9: each caplet reference is QuantLib blackFormula on that period's own forward/sigma/T/DF (convention-identical to price_cap_floor's Black-76 caplet), so the residual is only the two normal-CDF implementations' difference. The strip premium is the exact sum of the per-caplet references (Property 94 additivity)."
+    }
+  ],
+  "provenance": {
+    "command": "python scripts/fixtures/gen_capfloor_fixtures.py",
+    "generated_utc": "2026-07-19T08:36:03.113535+00:00",
+    "generator": "scripts/fixtures/gen_capfloor_fixtures.py",
+    "python_version": "3.11.14",
+    "reference_library": "QuantLib",
+    "reference_library_version": "1.43"
+  }
+}

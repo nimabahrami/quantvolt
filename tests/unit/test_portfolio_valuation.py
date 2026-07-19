@@ -14,14 +14,31 @@ import dataclasses
 from dataclasses import dataclass
 from datetime import date
 
+import numpy as np
 import pytest
 
 from quantvolt.exceptions import ExpiredContractError, ValidationError
 from quantvolt.models.commodity import CommodityConfig, Hub
 from quantvolt.models.curve import CurveNode, ForwardCurve
 from quantvolt.models.discount_curve import DiscountCurve
-from quantvolt.models.instruments import ForwardContract, FuturesContract, SwapContract
+from quantvolt.models.instruments import (
+    CachedAssetValuation,
+    CapFloorStripContract,
+    CapFloorType,
+    ForwardContract,
+    FuturesContract,
+    OptionSide,
+    OptionType,
+    PlantConfig,
+    SpreadOptionContract,
+    SwapContract,
+    TollingAgreement,
+    ValuationSource,
+    VanillaOptionContract,
+)
 from quantvolt.models.schedule import DeliveryPeriod, DeliverySchedule
+from quantvolt.models.vol_surface import VolatilitySurface, VolatilityTenor
+from quantvolt.numerics.daycount import actual_365
 from quantvolt.portfolio.model import Portfolio, Position, PricedPosition
 from quantvolt.portfolio.valuation import (
     DEFAULT_PRICERS,
@@ -30,7 +47,19 @@ from quantvolt.portfolio.valuation import (
     value_portfolio,
 )
 from quantvolt.pricing.futures import price_futures
+from quantvolt.pricing.spread_option import (
+    SpreadOptionRequest,
+    price_spark_spread_option,
+    price_spread_option,
+)
 from quantvolt.pricing.swap import price_swap
+from quantvolt.pricing.tolling import price_tolling_agreement
+from quantvolt.pricing.vanilla import (
+    CapFloorRequest,
+    VanillaOptionRequest,
+    price_cap_floor,
+    price_vanilla_option,
+)
 from quantvolt.risk.aggregation import aggregate_delta
 from quantvolt.testing import assert_input_unchanged
 
@@ -366,3 +395,665 @@ class TestRiskWiring:
                 expected[key] = expected.get(key, 0.0) + exposure
         for (commodity_id, period), net in expected.items():
             assert matrix.delta_at(commodity_id, period) == pytest.approx(net)
+
+
+# --- portfolio-native-pricers spec: MarketData vol_surfaces/correlations extension, and
+# native vanilla/spread/tolling option pricers (Reqs 1-3, 7, 8, 14) ---
+
+EUA = CommodityConfig("EUA", "EUR/tCO2", Hub("EUA", "EEX", "EUR/tCO2"))
+
+TTF_SIGMA = 0.35
+POWER_SIGMA = 0.40
+EUA_SIGMA = 0.25
+
+
+def make_ttf_vol_surface() -> VolatilitySurface:
+    return VolatilitySurface(commodity=TTF, tenors=(VolatilityTenor(JAN, TTF_SIGMA),))
+
+
+def make_power_vol_surface() -> VolatilitySurface:
+    return VolatilitySurface(commodity=POWER, tenors=(VolatilityTenor(JAN, POWER_SIGMA),))
+
+
+class TestMarketDataVolAndCorrelationExtension:
+    """Requirement 1: additive vol_surfaces/correlations fields, defensively copied,
+    with correlations validated strictly inside (-1, 1) at construction."""
+
+    def test_defaults_are_empty(self) -> None:
+        market_data = make_market_data()
+        assert market_data.vol_surfaces == {}
+        assert market_data.correlations == {}
+
+    def test_vol_surfaces_defensively_copied(self) -> None:
+        caller_surfaces = {"TTF": make_ttf_vol_surface()}
+        market_data = MarketData(
+            forward_curves={"TTF": make_ttf_curve()},
+            discount_curve=make_discount_curve(),
+            valuation_date=VALUATION_DATE,
+            vol_surfaces=caller_surfaces,
+        )
+        assert market_data.vol_surfaces is not caller_surfaces
+        del caller_surfaces["TTF"]
+        assert market_data.surface_for("TTF") == make_ttf_vol_surface()
+
+    def test_correlations_defensively_copied(self) -> None:
+        caller_correlations = {("TTF", "DE_POWER"): 0.5}
+        market_data = MarketData(
+            forward_curves={"TTF": make_ttf_curve()},
+            discount_curve=make_discount_curve(),
+            valuation_date=VALUATION_DATE,
+            correlations=caller_correlations,
+        )
+        assert market_data.correlations is not caller_correlations
+        del caller_correlations[("TTF", "DE_POWER")]
+        assert market_data.correlation_for("TTF", "DE_POWER") == 0.5
+
+    @pytest.mark.parametrize("rho", [1.0, -1.0, 1.5, -1.5, float("nan")])
+    def test_out_of_range_correlation_rejected_naming_the_pair(self, rho: float) -> None:
+        with pytest.raises(ValidationError, match=r"correlations\[\('TTF', 'DE_POWER'\)\]"):
+            MarketData(
+                forward_curves={"TTF": make_ttf_curve()},
+                discount_curve=make_discount_curve(),
+                valuation_date=VALUATION_DATE,
+                correlations={("TTF", "DE_POWER"): rho},
+            )
+
+    def test_in_range_correlation_accepted(self) -> None:
+        market_data = MarketData(
+            forward_curves={"TTF": make_ttf_curve()},
+            discount_curve=make_discount_curve(),
+            valuation_date=VALUATION_DATE,
+            correlations={("TTF", "DE_POWER"): 0.999},
+        )
+        assert market_data.correlation_for("TTF", "DE_POWER") == 0.999
+
+    def test_existing_call_sites_without_the_new_fields_still_work(self) -> None:
+        # Requirement 1.4: additive with defaults.
+        market_data = make_market_data()
+        valuation = value_portfolio(make_mixed_portfolio(), market_data)
+        assert valuation.total_npv == pytest.approx(FUTURES_NPV + FORWARD_NPV + SWAP_NPV)
+
+
+class TestSurfaceForAccessor:
+    """Requirement 2: fail-loud vol-surface accessor, mirroring curve_for's shape."""
+
+    def test_hit_returns_the_registered_surface(self) -> None:
+        market_data = MarketData(
+            forward_curves={"TTF": make_ttf_curve()},
+            discount_curve=make_discount_curve(),
+            valuation_date=VALUATION_DATE,
+            vol_surfaces={"TTF": make_ttf_vol_surface()},
+        )
+        assert market_data.surface_for("TTF") == make_ttf_vol_surface()
+
+    def test_miss_names_the_commodity_and_lists_available(self) -> None:
+        market_data = MarketData(
+            forward_curves={"TTF": make_ttf_curve()},
+            discount_curve=make_discount_curve(),
+            valuation_date=VALUATION_DATE,
+            vol_surfaces={"TTF": make_ttf_vol_surface()},
+        )
+        with pytest.raises(ValidationError) as excinfo:
+            market_data.surface_for("DE_POWER")
+        message = str(excinfo.value)
+        assert "'DE_POWER'" in message
+        assert "'TTF'" in message
+
+    def test_miss_with_no_surfaces_at_all(self) -> None:
+        market_data = make_market_data()
+        with pytest.raises(ValidationError, match="none"):
+            market_data.surface_for("TTF")
+
+
+class TestCorrelationForAccessor:
+    """Requirement 3: symmetric correlation lookup, a pure query (no re-validation)."""
+
+    def test_forward_order_hit(self) -> None:
+        market_data = MarketData(
+            forward_curves={"TTF": make_ttf_curve()},
+            discount_curve=make_discount_curve(),
+            valuation_date=VALUATION_DATE,
+            correlations={("TTF", "DE_POWER"): 0.6},
+        )
+        assert market_data.correlation_for("TTF", "DE_POWER") == 0.6
+
+    def test_reverse_order_hit_is_symmetric(self) -> None:
+        market_data = MarketData(
+            forward_curves={"TTF": make_ttf_curve()},
+            discount_curve=make_discount_curve(),
+            valuation_date=VALUATION_DATE,
+            correlations={("TTF", "DE_POWER"): 0.6},
+        )
+        assert market_data.correlation_for("DE_POWER", "TTF") == 0.6
+
+    def test_missing_pair_names_it_and_lists_available(self) -> None:
+        market_data = MarketData(
+            forward_curves={"TTF": make_ttf_curve()},
+            discount_curve=make_discount_curve(),
+            valuation_date=VALUATION_DATE,
+            correlations={("TTF", "DE_POWER"): 0.6},
+        )
+        with pytest.raises(ValidationError) as excinfo:
+            market_data.correlation_for("TTF", "EUA")
+        message = str(excinfo.value)
+        assert "'EUA'" in message
+        assert "('TTF', 'DE_POWER')" in message
+
+
+# --- Requirement 7 / Property 80: native vanilla-option pricer -------------------------
+
+VANILLA_STRIKE = 34.0
+VANILLA_NOTIONAL = 1_000.0
+VANILLA_TTE = actual_365(VALUATION_DATE, JAN.last_day)
+
+
+def make_vanilla_market_data() -> MarketData:
+    return MarketData(
+        forward_curves={"TTF": make_ttf_curve()},
+        discount_curve=make_discount_curve(),
+        valuation_date=VALUATION_DATE,
+        vol_surfaces={"TTF": make_ttf_vol_surface()},
+    )
+
+
+def make_vanilla_option(side: OptionSide = OptionSide.LONG) -> VanillaOptionContract:
+    return VanillaOptionContract(
+        commodity=TTF,
+        delivery_period=JAN,
+        option_type=OptionType.CALL,
+        strike=VANILLA_STRIKE,
+        notional=VANILLA_NOTIONAL,
+        side=side,
+    )
+
+
+def _expected_vanilla_result() -> object:
+    return price_vanilla_option(
+        VanillaOptionRequest(
+            option_type="call",
+            strike=VANILLA_STRIKE,
+            notional=VANILLA_NOTIONAL,
+            forward=TTF_JAN,
+            sigma=TTF_SIGMA,
+            time_to_expiry=VANILLA_TTE,
+            discount_factor=JAN_DF,
+        )
+    )
+
+
+class TestNativeVanillaOptionPricer:
+    def test_long_npv_delta_greeks_and_reference_price_match_the_kernel(self) -> None:
+        expected = _expected_vanilla_result()
+        portfolio = Portfolio(positions=(Position(make_vanilla_option()),))
+        valuation = value_portfolio(portfolio, make_vanilla_market_data())
+        result = valuation.priced[0]
+        assert result.npv == pytest.approx(expected.premium)
+        assert result.delta == pytest.approx({("TTF", JAN): expected.greeks.delta})
+        assert result.greeks == expected.greeks
+        assert result.reference_prices == pytest.approx({("TTF", JAN): TTF_JAN})
+
+    def test_short_side_sign_flips_npv_delta_and_greeks(self) -> None:
+        expected = _expected_vanilla_result()
+        portfolio = Portfolio(positions=(Position(make_vanilla_option(OptionSide.SHORT)),))
+        valuation = value_portfolio(portfolio, make_vanilla_market_data())
+        result = valuation.priced[0]
+        assert result.npv == pytest.approx(-expected.premium)
+        assert result.delta == pytest.approx({("TTF", JAN): -expected.greeks.delta})
+        assert result.greeks == expected.greeks.scale(-1.0)
+
+    def test_expiry_none_defaults_to_delivery_period_last_day(self) -> None:
+        option = make_vanilla_option()
+        assert option.expiry is None
+        # time_to_expiry used above is computed from JAN.last_day; an explicit equal
+        # expiry must reproduce the identical premium.
+        explicit = VanillaOptionContract(
+            commodity=TTF,
+            delivery_period=JAN,
+            option_type=OptionType.CALL,
+            strike=VANILLA_STRIKE,
+            notional=VANILLA_NOTIONAL,
+            expiry=JAN.last_day,
+        )
+        market_data = make_vanilla_market_data()
+        v1 = value_portfolio(Portfolio(positions=(Position(option),)), market_data)
+        v2 = value_portfolio(Portfolio(positions=(Position(explicit),)), market_data)
+        assert v1.priced[0].npv == v2.priced[0].npv
+
+    def test_missing_vol_surface_raises_naming_the_commodity(self) -> None:
+        market_data = MarketData(
+            forward_curves={"TTF": make_ttf_curve()},
+            discount_curve=make_discount_curve(),
+            valuation_date=VALUATION_DATE,
+        )
+        portfolio = Portfolio(positions=(Position(make_vanilla_option()),))
+        with pytest.raises(ValidationError, match="'TTF'"):
+            value_portfolio(portfolio, market_data)
+
+    def test_non_positive_forward_propagates_black76_domain_error(self) -> None:
+        """Requirement 12: a non-positive forward is never clamped; the kernel's own
+        ValidationError propagates unmodified."""
+        negative_curve = ForwardCurve(
+            commodity=TTF, market_date=VALUATION_DATE, nodes=(CurveNode(JAN, -5.0, "observed"),)
+        )
+        market_data = MarketData(
+            forward_curves={"TTF": negative_curve},
+            discount_curve=make_discount_curve(),
+            valuation_date=VALUATION_DATE,
+            vol_surfaces={"TTF": make_ttf_vol_surface()},
+        )
+        portfolio = Portfolio(positions=(Position(make_vanilla_option()),))
+        with pytest.raises(ValidationError, match="forward"):
+            value_portfolio(portfolio, market_data)
+
+    def test_wrong_instrument_type_is_rejected_by_the_adapter_directly(self) -> None:
+        from quantvolt.portfolio.valuation import _price_vanilla_option
+
+        with pytest.raises(ValidationError, match="VanillaOptionContract"):
+            _price_vanilla_option(Position(FUTURES), make_vanilla_market_data())
+
+
+# --- Requirement 8 / Property 81: native spread-option pricer --------------------------
+
+SPREAD_STRIKE = 50.0
+SPREAD_NOTIONAL = 500.0
+SPREAD_RHO = 0.5
+
+
+def make_spread_market_data() -> MarketData:
+    return MarketData(
+        forward_curves={"TTF": make_ttf_curve(), "DE_POWER": make_power_curve()},
+        discount_curve=make_discount_curve(),
+        valuation_date=VALUATION_DATE,
+        vol_surfaces={"TTF": make_ttf_vol_surface(), "DE_POWER": make_power_vol_surface()},
+        correlations={("DE_POWER", "TTF"): SPREAD_RHO},
+    )
+
+
+def make_spread_option(
+    leg2_weight: float = 1.0, side: OptionSide = OptionSide.LONG
+) -> SpreadOptionContract:
+    return SpreadOptionContract(
+        commodity_1="DE_POWER",
+        commodity_2="TTF",
+        delivery_period=JAN,
+        strike=SPREAD_STRIKE,
+        notional=SPREAD_NOTIONAL,
+        leg2_weight=leg2_weight,
+        side=side,
+    )
+
+
+def _expected_spread_request() -> SpreadOptionRequest:
+    return SpreadOptionRequest(
+        forward1=POWER_JAN,
+        forward2=TTF_JAN,
+        strike=SPREAD_STRIKE,
+        sigma1=POWER_SIGMA,
+        sigma2=TTF_SIGMA,
+        correlation=SPREAD_RHO,
+        time_to_expiry=actual_365(VALUATION_DATE, JAN.last_day),
+        discount_factor=JAN_DF,
+        notional=SPREAD_NOTIONAL,
+    )
+
+
+class TestNativeSpreadOptionPricer:
+    def test_plain_spread_npv_delta_and_reference_prices_match_the_kernel(self) -> None:
+        expected = price_spread_option(_expected_spread_request())
+        portfolio = Portfolio(positions=(Position(make_spread_option()),))
+        valuation = value_portfolio(portfolio, make_spread_market_data())
+        result = valuation.priced[0]
+        assert result.npv == pytest.approx(expected.premium)
+        assert result.delta == pytest.approx(
+            {("DE_POWER", JAN): expected.delta1, ("TTF", JAN): expected.delta2}
+        )
+        assert result.greeks is None
+        assert result.reference_prices == pytest.approx(
+            {("DE_POWER", JAN): POWER_JAN, ("TTF", JAN): TTF_JAN}
+        )
+
+    def test_short_side_sign_flips_npv_and_both_leg_deltas(self) -> None:
+        expected = price_spread_option(_expected_spread_request())
+        portfolio = Portfolio(positions=(Position(make_spread_option(side=OptionSide.SHORT)),))
+        valuation = value_portfolio(portfolio, make_spread_market_data())
+        result = valuation.priced[0]
+        assert result.npv == pytest.approx(-expected.premium)
+        assert result.delta == pytest.approx(
+            {("DE_POWER", JAN): -expected.delta1, ("TTF", JAN): -expected.delta2}
+        )
+
+    def test_spark_spread_leg2_weight_delegates_to_price_spark_spread_option(self) -> None:
+        heat_rate = 2.0
+        expected = price_spark_spread_option(_expected_spread_request(), heat_rate)
+        portfolio = Portfolio(positions=(Position(make_spread_option(leg2_weight=heat_rate)),))
+        valuation = value_portfolio(portfolio, make_spread_market_data())
+        result = valuation.priced[0]
+        assert result.npv == pytest.approx(expected.premium)
+        assert result.delta == pytest.approx(
+            {("DE_POWER", JAN): expected.delta1, ("TTF", JAN): expected.delta2}
+        )
+
+    def test_missing_correlation_raises_naming_the_pair(self) -> None:
+        market_data = MarketData(
+            forward_curves={"TTF": make_ttf_curve(), "DE_POWER": make_power_curve()},
+            discount_curve=make_discount_curve(),
+            valuation_date=VALUATION_DATE,
+            vol_surfaces={"TTF": make_ttf_vol_surface(), "DE_POWER": make_power_vol_surface()},
+        )
+        portfolio = Portfolio(positions=(Position(make_spread_option()),))
+        with pytest.raises(ValidationError, match="DE_POWER"):
+            value_portfolio(portfolio, market_data)
+
+    def test_wrong_instrument_type_is_rejected_by_the_adapter_directly(self) -> None:
+        from quantvolt.portfolio.valuation import _price_spread_option
+
+        with pytest.raises(ValidationError, match="SpreadOptionContract"):
+            _price_spread_option(Position(FUTURES), make_spread_market_data())
+
+
+# --- Requirement 14 / Property 83: native tolling-agreement pricer ---------------------
+
+PLANT = PlantConfig(heat_rate=2.0, variable_om_cost=3.0, emissions_intensity=0.2, fuel_type="gas")
+TOLL_SCHEDULE = DeliverySchedule((JAN, FEB))
+RHO_POWER_FUEL, RHO_POWER_EUA, RHO_FUEL_EUA = 0.6, 0.3, 0.4
+
+
+def make_toll_power_curve() -> ForwardCurve:
+    return ForwardCurve(
+        commodity=POWER,
+        market_date=VALUATION_DATE,
+        nodes=(CurveNode(JAN, 95.0, "observed"), CurveNode(FEB, 96.0, "observed")),
+    )
+
+
+def make_toll_fuel_curve() -> ForwardCurve:
+    return ForwardCurve(
+        commodity=TTF,
+        market_date=VALUATION_DATE,
+        nodes=(CurveNode(JAN, 30.0, "observed"), CurveNode(FEB, 32.0, "observed")),
+    )
+
+
+def make_toll_eua_curve() -> ForwardCurve:
+    return ForwardCurve(
+        commodity=EUA,
+        market_date=VALUATION_DATE,
+        nodes=(CurveNode(JAN, 70.0, "observed"), CurveNode(FEB, 72.0, "observed")),
+    )
+
+
+def make_toll_vol_surface() -> VolatilitySurface:
+    return VolatilitySurface(
+        commodity=POWER, tenors=(VolatilityTenor(JAN, 0.4), VolatilityTenor(FEB, 0.38))
+    )
+
+
+def make_tolling_market_data() -> MarketData:
+    return MarketData(
+        forward_curves={
+            "DE_POWER": make_toll_power_curve(),
+            "TTF": make_toll_fuel_curve(),
+            "EUA": make_toll_eua_curve(),
+        },
+        discount_curve=make_discount_curve(),
+        valuation_date=VALUATION_DATE,
+        vol_surfaces={"DE_POWER": make_toll_vol_surface()},
+        correlations={
+            ("DE_POWER", "TTF"): RHO_POWER_FUEL,
+            ("DE_POWER", "EUA"): RHO_POWER_EUA,
+            ("TTF", "EUA"): RHO_FUEL_EUA,
+        },
+    )
+
+
+def make_tolling_agreement() -> TollingAgreement:
+    return TollingAgreement(
+        plant=PLANT,
+        power_commodity_id="DE_POWER",
+        fuel_commodity_id="TTF",
+        eua_commodity_id="EUA",
+        schedule=TOLL_SCHEDULE,
+    )
+
+
+def _expected_tolling_result() -> object:
+    matrix = np.array(
+        [
+            [1.0, RHO_POWER_FUEL, RHO_POWER_EUA],
+            [RHO_POWER_FUEL, 1.0, RHO_FUEL_EUA],
+            [RHO_POWER_EUA, RHO_FUEL_EUA, 1.0],
+        ]
+    )
+    return price_tolling_agreement(
+        plant=PLANT,
+        power_curve=make_toll_power_curve(),
+        fuel_curve=make_toll_fuel_curve(),
+        eua_curve=make_toll_eua_curve(),
+        vol_surface=make_toll_vol_surface(),
+        correlation_matrix=matrix,
+        schedule=TOLL_SCHEDULE,
+        discount_curve=make_discount_curve(),
+    )
+
+
+class TestNativeTollingAgreementPricer:
+    def test_npv_matches_the_kernel(self) -> None:
+        expected = _expected_tolling_result()
+        portfolio = Portfolio(positions=(Position(make_tolling_agreement()),))
+        valuation = value_portfolio(portfolio, make_tolling_market_data())
+        assert valuation.priced[0].npv == pytest.approx(expected.npv)
+
+    def test_delta_keys_map_power_fuel_eua_to_commodity_period_pairs(self) -> None:
+        expected = _expected_tolling_result()
+        portfolio = Portfolio(positions=(Position(make_tolling_agreement()),))
+        valuation = value_portfolio(portfolio, make_tolling_market_data())
+        delta = valuation.priced[0].delta
+        for index, period in enumerate((JAN, FEB)):
+            assert delta[("DE_POWER", period)] == pytest.approx(
+                expected.per_period_deltas["power"][index]
+            )
+            assert delta[("TTF", period)] == pytest.approx(
+                expected.per_period_deltas["fuel"][index]
+            )
+            assert delta[("EUA", period)] == pytest.approx(expected.per_period_deltas["eua"][index])
+
+    def test_missing_one_of_the_three_correlations_raises(self) -> None:
+        market_data = MarketData(
+            forward_curves={
+                "DE_POWER": make_toll_power_curve(),
+                "TTF": make_toll_fuel_curve(),
+                "EUA": make_toll_eua_curve(),
+            },
+            discount_curve=make_discount_curve(),
+            valuation_date=VALUATION_DATE,
+            vol_surfaces={"DE_POWER": make_toll_vol_surface()},
+            correlations={
+                ("DE_POWER", "TTF"): RHO_POWER_FUEL,
+                ("DE_POWER", "EUA"): RHO_POWER_EUA,
+                # ("TTF", "EUA") deliberately missing
+            },
+        )
+        portfolio = Portfolio(positions=(Position(make_tolling_agreement()),))
+        with pytest.raises(ValidationError, match="EUA"):
+            value_portfolio(portfolio, market_data)
+
+    def test_wrong_instrument_type_is_rejected_by_the_adapter_directly(self) -> None:
+        from quantvolt.portfolio.valuation import _price_tolling_agreement
+
+        with pytest.raises(ValidationError, match="TollingAgreement"):
+            _price_tolling_agreement(Position(FUTURES), make_tolling_market_data())
+
+
+# --- Requirement 19 (DEFERRED roadmap): CachedAssetValuation passthrough ---------------
+
+
+def make_cached_asset_valuation(
+    *, valuation_date: date = VALUATION_DATE, source: ValuationSource = ValuationSource.SIMULATED
+) -> CachedAssetValuation:
+    return CachedAssetValuation(
+        asset_id="plant-42",
+        npv=12_345.0,
+        delta={("DE_POWER", JAN): 100.0, ("TTF", FEB): -50.0},
+        valuation_date=valuation_date,
+        source=source,
+        standard_error=1.5,
+    )
+
+
+def make_cached_asset_market_data() -> MarketData:
+    return MarketData(
+        forward_curves={},
+        discount_curve=make_discount_curve(),
+        valuation_date=VALUATION_DATE,
+    )
+
+
+class TestNativeCachedAssetValuationPricer:
+    def test_npv_and_delta_pass_through_exactly(self) -> None:
+        wrapper = make_cached_asset_valuation()
+        portfolio = Portfolio(positions=(Position(wrapper),))
+        valuation = value_portfolio(portfolio, make_cached_asset_market_data())
+        result = valuation.priced[0]
+        assert result.npv == wrapper.npv
+        assert result.delta == dict(wrapper.delta)
+        assert result.greeks is None
+        assert result.reference_prices == {}
+
+    def test_valuation_source_tag_is_propagated_onto_position_tags(self) -> None:
+        wrapper = make_cached_asset_valuation(source=ValuationSource.SIMULATED)
+        portfolio = Portfolio(positions=(Position(wrapper, position_id="plant-42"),))
+        valuation = value_portfolio(portfolio, make_cached_asset_market_data())
+        result = valuation.priced[0]
+        assert ValuationSource.SIMULATED.value in result.position.tags
+        assert result.position.position_id == "plant-42"
+
+    def test_existing_tag_is_not_duplicated(self) -> None:
+        wrapper = make_cached_asset_valuation(source=ValuationSource.SIMULATED)
+        portfolio = Portfolio(
+            positions=(Position(wrapper, tags=(ValuationSource.SIMULATED.value, "desk-A")),)
+        )
+        valuation = value_portfolio(portfolio, make_cached_asset_market_data())
+        result = valuation.priced[0]
+        assert result.position.tags.count(ValuationSource.SIMULATED.value) == 1
+        assert "desk-A" in result.position.tags
+
+    def test_stale_valuation_date_raises_naming_both_dates(self) -> None:
+        wrapper = make_cached_asset_valuation(valuation_date=date(2025, 12, 1))
+        portfolio = Portfolio(positions=(Position(wrapper),))
+        with pytest.raises(ValidationError, match="2025, 12, 1") as exc_info:
+            value_portfolio(portfolio, make_cached_asset_market_data())
+        assert "2025, 12, 15" in str(exc_info.value)
+
+    def test_wrong_instrument_type_is_rejected_by_the_adapter_directly(self) -> None:
+        from quantvolt.portfolio.valuation import _price_cached_asset_valuation
+
+        with pytest.raises(ValidationError, match="CachedAssetValuation"):
+            _price_cached_asset_valuation(Position(FUTURES), make_cached_asset_market_data())
+
+
+# --- Requirement 20 (DEFERRED roadmap): native cap/floor-strip pricer ------------------
+
+STRIP_SCHEDULE = DeliverySchedule((JAN, FEB))
+
+
+def make_strip_vol_surface() -> VolatilitySurface:
+    # Covers both STRIP_SCHEDULE periods (make_ttf_vol_surface only covers JAN).
+    return VolatilitySurface(
+        commodity=TTF, tenors=(VolatilityTenor(JAN, TTF_SIGMA), VolatilityTenor(FEB, TTF_SIGMA))
+    )
+
+
+def make_strip_market_data() -> MarketData:
+    return MarketData(
+        forward_curves={"TTF": make_ttf_curve()},
+        discount_curve=make_discount_curve(),
+        valuation_date=VALUATION_DATE,
+        vol_surfaces={"TTF": make_strip_vol_surface()},
+    )
+
+
+def make_cap_floor_strip(
+    *, cap_floor_type: CapFloorType = CapFloorType.CAP, side: OptionSide = OptionSide.LONG
+) -> CapFloorStripContract:
+    return CapFloorStripContract(
+        commodity=TTF,
+        schedule=STRIP_SCHEDULE,
+        cap_floor_type=cap_floor_type,
+        strike=34.0,
+        notional=1_000.0,
+        side=side,
+    )
+
+
+def _expected_strip_result(cap_floor_type: CapFloorType) -> object:
+    market_data = make_strip_market_data()
+    caplets = tuple(
+        VanillaOptionRequest(
+            option_type=cap_floor_type.value,
+            strike=34.0,
+            notional=1_000.0,
+            forward=market_data.curve_for("TTF").price_at(period),
+            sigma=market_data.surface_for("TTF").sigma_at(period),
+            time_to_expiry=actual_365(VALUATION_DATE, period.last_day),
+            discount_factor=market_data.discount_curve.discount_factor(period.last_day),
+        )
+        for period in STRIP_SCHEDULE.periods
+    )
+    return price_cap_floor(
+        CapFloorRequest(
+            option_type=cap_floor_type.value, strike=34.0, notional=1_000.0, caplets=caplets
+        )
+    )
+
+
+class TestNativeCapFloorStripPricer:
+    def test_npv_and_greeks_match_the_kernel(self) -> None:
+        expected = _expected_strip_result(CapFloorType.CAP)
+        portfolio = Portfolio(positions=(Position(make_cap_floor_strip()),))
+        valuation = value_portfolio(portfolio, make_strip_market_data())
+        result = valuation.priced[0]
+        assert result.npv == pytest.approx(expected.premium)
+        assert result.greeks == expected.greeks
+
+    def test_per_period_delta_matches_independently_priced_caplets(self) -> None:
+        # Strip additivity vs single caplets (external-validation Property 94 precedent):
+        # each per-period delta must equal the SAME period priced alone via
+        # price_vanilla_option, not merely sum to the aggregate.
+        expected = _expected_strip_result(CapFloorType.CAP)
+        portfolio = Portfolio(positions=(Position(make_cap_floor_strip()),))
+        valuation = value_portfolio(portfolio, make_strip_market_data())
+        result = valuation.priced[0]
+        for period, caplet in zip(STRIP_SCHEDULE.periods, expected.per_period, strict=True):
+            assert result.delta[("TTF", period)] == pytest.approx(caplet.greeks.delta)
+        assert sum(result.delta.values()) == pytest.approx(expected.greeks.delta)
+
+    def test_short_side_sign_flips_npv_delta_and_greeks(self) -> None:
+        expected = _expected_strip_result(CapFloorType.CAP)
+        portfolio = Portfolio(positions=(Position(make_cap_floor_strip(side=OptionSide.SHORT)),))
+        valuation = value_portfolio(portfolio, make_strip_market_data())
+        result = valuation.priced[0]
+        assert result.npv == pytest.approx(-expected.premium)
+        assert result.greeks == expected.greeks.scale(-1.0)
+
+    def test_floor_type_matches_the_kernel(self) -> None:
+        expected = _expected_strip_result(CapFloorType.FLOOR)
+        strip = make_cap_floor_strip(cap_floor_type=CapFloorType.FLOOR)
+        portfolio = Portfolio(positions=(Position(strip),))
+        valuation = value_portfolio(portfolio, make_strip_market_data())
+        result = valuation.priced[0]
+        assert result.npv == pytest.approx(expected.premium)
+
+    def test_wrong_instrument_type_is_rejected_by_the_adapter_directly(self) -> None:
+        from quantvolt.portfolio.valuation import _price_cap_floor_strip
+
+        with pytest.raises(ValidationError, match="CapFloorStripContract"):
+            _price_cap_floor_strip(Position(FUTURES), make_strip_market_data())
+
+
+class TestNewInstrumentsRegisteredInDefaultPricers:
+    def test_default_pricers_cover_every_native_instrument_type(self) -> None:
+        assert VanillaOptionContract in DEFAULT_PRICERS
+        assert SpreadOptionContract in DEFAULT_PRICERS
+        assert TollingAgreement in DEFAULT_PRICERS
+        assert CachedAssetValuation in DEFAULT_PRICERS
+        assert CapFloorStripContract in DEFAULT_PRICERS

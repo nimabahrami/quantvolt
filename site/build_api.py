@@ -2,6 +2,7 @@
 
 Run from the repository root: python3 site/build_api.py
 """
+
 from __future__ import annotations
 
 import ast
@@ -15,9 +16,22 @@ PACKAGE = ROOT / "src" / "quantvolt"
 OUT = ROOT / "site" / "api-data.js"
 COVERAGE_OUT = ROOT / "site" / "api-coverage.json"
 MODULE_ORDER = [
-    "quantvolt", "models", "numerics", "curves", "pricing", "portfolio", "risk",
-    "hedging", "assets", "curvemodels", "stats", "market", "workflow", "data",
-    "exceptions", "testing",
+    "quantvolt",
+    "models",
+    "numerics",
+    "curves",
+    "pricing",
+    "portfolio",
+    "risk",
+    "hedging",
+    "assets",
+    "curvemodels",
+    "stats",
+    "market",
+    "workflow",
+    "data",
+    "exceptions",
+    "testing",
 ]
 MODULE_DESCRIPTIONS = {
     "quantvolt": "Curated top-level facade for the most common QuantVolt workflows.",
@@ -40,6 +54,8 @@ MODULE_DESCRIPTIONS = {
 
 AUTHORED_DOCS = {
     "AsianOptionRequest": "Inputs for an Asian option calculation. Select arithmetic or geometric averaging and the requested analytic or seeded Monte Carlo method; all price, volatility, expiry, discounting, averaging and notional assumptions are explicit fields.",
+    "BachelierOptionRequest": "Complete Bachelier (normal-model) call or put inputs for a forward that may be negative or zero: type, strike, notional, forward, absolute normal volatility (normal_sigma, NOT the lognormal Black-76 sigma), time to expiry and discount factor.",
+    "BachelierOptionResult": "Bachelier (normal-model) option output containing the discounted premium and the complete analytical Greeks object.",
     "BarrierOptionRequest": "Inputs for an analytic barrier option. The barrier direction and knock behavior are encoded by the option/barrier type together with spot/forward, strike, barrier, volatility, expiry and discounting assumptions.",
     "CapFloorRequest": "Inputs for a cap or floor strip over aligned forward, strike, volatility, expiry and discount-factor sequences.",
     "CapFloorResult": "Aggregate cap/floor premium together with the individual caplet or floorlet contributions used to reconcile it.",
@@ -50,6 +66,7 @@ AUTHORED_DOCS = {
     "LookbackOptionRequest": "Inputs for a fixed- or floating-strike lookback option, including observed extrema, volatility, expiry, discounting and notional.",
     "RiskResult": "Portfolio tail-risk output containing VaR and CVaR levels, scenario P&L observations, factor ordering and excluded-position diagnostics.",
     "SwapPricingResult": "Swap valuation output containing total NPV, one forward delta per schedule period and rho for the documented parallel rate bump.",
+    "ValuationSource": "Provenance tag for a valuation regime: FORWARD (liquid forward curve), PROJECTED (spot model plus corporate premium, assets.long_dated), or SIMULATED (a precomputed LSMC/dispatch cache, the CachedAssetValuation portfolio wrapper). Propagated onto a Position's tags so downstream risk code can tell the regimes apart.",
     "VanillaOptionRequest": "Complete Black–76 call or put inputs: type, strike, notional, forward, volatility, time to expiry and discount factor.",
     "VanillaOptionResult": "Vanilla option output containing discounted premium and the complete analytical Greeks object.",
     "BUILT_IN_COMMODITIES": "Read-only-by-convention registry of the package's built-in European power, gas and carbon commodity definitions, keyed by stable commodity ID.",
@@ -63,6 +80,11 @@ AUTHORED_DOCS = {
     "StationarityResult": "Stationarity-test output containing procedure, statistic, p-value, critical values, sample size and interpreted stationarity conclusion.",
     "Pipeline": "Gas pipeline description used by transmission utilities, including route identity and capacity assumptions.",
     "DEFAULT_STEPS": "Ordered seven-step model-selection workflow used when ModelingWorkflow is constructed without caller overrides.",
+    "KWH_PER_THERM": "Statutory therm in kWh (29.3071), from the ICE UK NBP futures spec.",
+    "MWH_PER_THERM": "Statutory therm in MWh; the base therm<->MWh conversion factor.",
+    "THERMS_PER_MMBTU": "Definitional therms per MMBtu (10.0): 1 MMBtu = 1e6 Btu = 10 therms.",
+    "MWH_PER_MMBTU": "MWh per MMBtu, derived from THERMS_PER_MMBTU * MWH_PER_THERM (0.293071).",
+    "PENCE_PER_POUND": "Pence sterling per pound (100.0); the GBp/GBP factor for convert_price.",
 }
 
 
@@ -137,7 +159,10 @@ def signature(node: ast.AST, name: str) -> str:
         return f"{name}({text}){returns}"
     if isinstance(node, ast.ClassDef):
         for child in node.body:
-            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) and child.name == "__init__":
+            if (
+                isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and child.name == "__init__"
+            ):
                 args = ast.unparse(child.args)
                 args = args.removeprefix("self, ").removeprefix("self")
                 return f"{name}({args})"
@@ -153,9 +178,18 @@ def signature(node: ast.AST, name: str) -> str:
 def describe_symbol(public_module: str, name: str, qualified: str) -> dict[str, Any]:
     path, defined_name = source_for(qualified)
     item: dict[str, Any] = {
-        "name": name, "module": public_module, "qualified": qualified,
-        "kind": "constant", "signature": name, "summary": "Public package value.",
-        "doc": "", "methods": [], "fields": [], "members": [], "source": "", "line": 1,
+        "name": name,
+        "module": public_module,
+        "qualified": qualified,
+        "kind": "constant",
+        "signature": name,
+        "summary": "Public package value.",
+        "doc": "",
+        "methods": [],
+        "fields": [],
+        "members": [],
+        "source": "",
+        "line": 1,
     }
     if path is None:
         return item
@@ -163,8 +197,19 @@ def describe_symbol(public_module: str, name: str, qualified: str) -> dict[str, 
     candidates = [n for n in tree.body if getattr(n, "name", None) == defined_name]
     node = candidates[0] if candidates else None
     if node is None:
-        # Re-exported through an intermediate __init__; resolve once more.
-        mapping = imports(tree, qualified.rsplit(".", 1)[0])
+        # Re-exported through an intermediate module; resolve once more. ``imports()``'s
+        # level arithmetic treats its ``package`` argument as the dotted name a bare "."
+        # refers to, which is correct for an ``__init__.py`` (whose own dotted name IS its
+        # package) but wrong for a leaf module (whose relative imports are relative to its
+        # *containing* package, one segment shorter than its own dotted path) -- e.g.
+        # ``assets/long_dated.py`` re-exporting a name via ``from ..models.instruments
+        # import X``. Strip the leaf module's own segment before computing levels so both
+        # cases resolve to the same (correct) Python relative-import semantics.
+        module_dotted = qualified.rsplit(".", 1)[0]
+        import_package = (
+            module_dotted if path.name == "__init__.py" else module_dotted.rsplit(".", 1)[0]
+        )
+        mapping = imports(tree, import_package)
         if defined_name in mapping and mapping[defined_name] != qualified:
             return describe_symbol(public_module, name, mapping[defined_name])
     if node is not None:
@@ -193,10 +238,16 @@ def describe_symbol(public_module: str, name: str, qualified: str) -> dict[str, 
                 and child.targets[0].id.isupper()
             ]
             item["methods"] = [
-                {"name": child.name, "signature": signature(child, child.name),
-                 "summary": ((ast.get_docstring(child) or "").split("\n\n", 1)[0].replace("\n", " "))}
+                {
+                    "name": child.name,
+                    "signature": signature(child, child.name),
+                    "summary": (
+                        (ast.get_docstring(child) or "").split("\n\n", 1)[0].replace("\n", " ")
+                    ),
+                }
                 for child in node.body
-                if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) and not child.name.startswith("_")
+                if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))
+                and not child.name.startswith("_")
             ]
     if not item["doc"] and name in AUTHORED_DOCS:
         item["doc"] = AUTHORED_DOCS[name]
@@ -220,27 +271,48 @@ def build() -> dict[str, Any]:
         exported = literal_all(tree)
         if not exported:
             exported = [
-                node.name for node in tree.body
+                node.name
+                for node in tree.body
                 if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
                 and not node.name.startswith("_")
             ]
         mapping = imports(tree, qualified_module)
-        symbols = [describe_symbol(module_name, name, mapping.get(name, f"{qualified_module}.{name}")) for name in exported]
-        symbols.sort(key=lambda x: ({"class": 0, "function": 1, "constant": 2}.get(x["kind"], 3), x["name"].lower()))
+        symbols = [
+            describe_symbol(module_name, name, mapping.get(name, f"{qualified_module}.{name}"))
+            for name in exported
+        ]
+        symbols.sort(
+            key=lambda x: (
+                {"class": 0, "function": 1, "constant": 2}.get(x["kind"], 3),
+                x["name"].lower(),
+            )
+        )
         symbol_count += len(symbols)
-        modules.append({"name": module_name, "qualified": qualified_module, "description": MODULE_DESCRIPTIONS[module_name], "symbols": symbols})
+        modules.append(
+            {
+                "name": module_name,
+                "qualified": qualified_module,
+                "description": MODULE_DESCRIPTIONS[module_name],
+                "symbols": symbols,
+            }
+        )
     return {"version": "0.1.0", "modules": modules, "symbolCount": symbol_count}
 
 
 if __name__ == "__main__":
     data = build()
-    OUT.write_text("window.API_DATA = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n", encoding="utf-8")
+    OUT.write_text(
+        "window.API_DATA = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n",
+        encoding="utf-8",
+    )
     coverage = {
         "version": data["version"],
         "totals": {
             "modules": len(data["modules"]),
             "symbols": data["symbolCount"],
-            "documented": sum(bool(symbol["doc"]) for module in data["modules"] for symbol in module["symbols"]),
+            "documented": sum(
+                bool(symbol["doc"]) for module in data["modules"] for symbol in module["symbols"]
+            ),
         },
         "symbols": [
             {
@@ -249,13 +321,17 @@ if __name__ == "__main__":
                 "source": symbol["source"],
                 "has_docstring": bool(symbol["doc"]),
                 "has_signature": bool(symbol["signature"]),
-                "has_fields_or_methods": bool(symbol["fields"] or symbol["methods"] or symbol["members"]),
+                "has_fields_or_methods": bool(
+                    symbol["fields"] or symbol["methods"] or symbol["members"]
+                ),
             }
             for module in data["modules"]
             for symbol in module["symbols"]
         ],
     }
-    COVERAGE_OUT.write_text(json.dumps(coverage, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    COVERAGE_OUT.write_text(
+        json.dumps(coverage, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     print(
         f"Generated {data['symbolCount']} symbols across {len(data['modules'])} modules "
         f"-> {OUT.relative_to(ROOT)}; coverage -> {COVERAGE_OUT.relative_to(ROOT)}"

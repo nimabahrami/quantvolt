@@ -432,13 +432,20 @@ example or linked to a directly preceding, copy-pasteable setup block.
 ## Phase 17 — cross-module end-to-end tutorials
 
 - [ ] Quotes → curve → option → portfolio → VaR.
-- [ ] Power/gas/EUA curves → clean spark spread → tolling valuation → hedge.
-- [ ] Weather/outage data → generation scenario → PPA settlement → CFaR.
+- [x] Power/gas/EUA curves → clean spark spread → tolling valuation → hedge. (`#/guide/tutorial-spark`,
+  `site/examples/verify_tutorial_spark.py`; native `SpreadOptionContract`/`TollingAgreement`
+  portfolio instrument, `quantvolt.hedging.variance_min_hedge`.)
+- [x] Weather/outage data → generation scenario → PPA settlement → CFaR. (`#/guide/tutorial-ppa`,
+  `site/examples/verify_tutorial_ppa.py`; jointly-sampled scenarios, `PpaTerms` floor +
+  negative-price clause, `cash_flow_at_risk`.)
 - [ ] PPA nomination calibration → out-of-sample application → realized settlement.
-- [ ] Storage intrinsic → stochastic extrinsic → risk and governance benchmark.
+- [x] Storage intrinsic → stochastic extrinsic → risk and governance benchmark. (`#/guide/tutorial-storage`,
+  `site/examples/verify_tutorial_storage.py`; `storage_intrinsic` → seeded `storage_value` →
+  forward hedge replicated from the intrinsic schedule.)
 - [ ] Multifactor forward simulation → Monte Carlo VaR → named stress comparison.
 - [ ] Provider data → validated snapshot → offline reproducible replay.
-- [ ] Every tutorial gets a dependency diagram, complete code file and output snapshot.
+- [ ] Every tutorial gets a dependency diagram, complete code file and output snapshot. (Done for
+  the three shipped in this pass; not yet done for the remaining four workflows above.)
 
 ## Phase 18 — verification and release gate
 

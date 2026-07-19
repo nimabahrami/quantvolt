@@ -15,7 +15,7 @@ from quantvolt.models.schedule import DeliveryPeriod
 from quantvolt.testing import assert_input_unchanged
 
 MARKET_DATE = date(2025, 1, 1)
-COMMODITY = CommodityConfig("TTF", "EUR/MBtu", Hub("TTF", "ICE_ENDEX", "EUR/MBtu"))
+COMMODITY = CommodityConfig("TTF", "EUR/MWh", Hub("TTF", "ICE_ENDEX", "EUR/MWh"))
 
 JAN = DeliveryPeriod(2025, 1)
 FEB = DeliveryPeriod(2025, 2)
@@ -77,14 +77,24 @@ def test_to_dict_shape_is_json_friendly() -> None:
     assert data["market_date"] == "2025-01-01"
     assert data["commodity"] == {
         "commodity_id": "TTF",
-        "price_unit": "EUR/MBtu",
-        "hub": {"hub_id": "TTF", "exchange": "ICE_ENDEX", "price_unit": "EUR/MBtu"},
+        "price_unit": "EUR/MWh",
+        "hub": {"hub_id": "TTF", "exchange": "ICE_ENDEX", "price_unit": "EUR/MWh"},
     }
     assert data["nodes"][0] == {
         "period": {"year": 2025, "month": 1},
         "price": 30.0,
         "status": "observed",
     }
+
+
+def test_from_dict_rejects_stale_mbtu_price_unit() -> None:
+    # Persisted curves from before the gas-unit-conventions fix carried "EUR/MBtu";
+    # from_dict must reject them at the boundary, not deserialise them silently.
+    data = make_curve().to_dict()
+    data["commodity"]["price_unit"] = "EUR/MBtu"
+    data["commodity"]["hub"]["price_unit"] = "EUR/MBtu"
+    with pytest.raises(ValidationError):
+        ForwardCurve.from_dict(data)
 
 
 def test_from_dict_reconstructs_exact_objects() -> None:
@@ -120,7 +130,7 @@ def test_prices_beyond_tolerance_are_not_equal() -> None:
 
 
 def test_different_commodity_is_not_equal() -> None:
-    other = CommodityConfig("NBP", "GBP/MBtu", Hub("NBP", "ICE_ENDEX", "GBP/MBtu"))
+    other = CommodityConfig("NBP", "GBp/therm", Hub("NBP", "ICE_ENDEX", "GBp/therm"))
     a = make_curve()
     b = ForwardCurve(commodity=other, market_date=MARKET_DATE, nodes=a.nodes)
     assert a != b

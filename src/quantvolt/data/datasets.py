@@ -38,7 +38,8 @@ class DatasetRecord:
 
 def _catalog() -> dict[str, Any]:
     resource = files("quantvolt.data").joinpath(_CATALOG_RESOURCE)
-    return json.loads(resource.read_text(encoding="utf-8"))
+    catalog: dict[str, Any] = json.loads(resource.read_text(encoding="utf-8"))
+    return catalog
 
 
 def _record(dataset_id: str) -> DatasetRecord:

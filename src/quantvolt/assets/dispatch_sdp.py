@@ -771,7 +771,13 @@ def _dispatch_lsm(
                 conditions.append(float(np.linalg.cond(basis)))
                 predicted = basis @ coeffs
                 continuation = {s: predicted[:, j] for j, s in enumerate(feasible_next)}
-                coefficients = {s: coeffs[:, j].copy() for j, s in enumerate(feasible_next)}
+                # .astype(np.float64) (not .copy()): numpy's lstsq stub types its first
+                # return value as floating[Any] on some numpy releases (narrower Vector =
+                # NDArray[float64] elsewhere) -- this pins the static (and, since the data
+                # is already float64, identical-at-runtime) dtype across numpy versions.
+                coefficients = {
+                    s: coeffs[:, j].astype(np.float64) for j, s in enumerate(feasible_next)
+                }
             else:
                 # A min-run-locked online state whose derated capacity has collapsed
                 # below every feasible level on *some* paths realizes -inf there (a
@@ -799,7 +805,7 @@ def _dispatch_lsm(
                     step_conditions.append(float(np.linalg.cond(design)))
                     predicted_s = basis @ coeffs_s
                     continuation[state] = np.where(finite, predicted_s, -np.inf)
-                    coefficients[state] = coeffs_s.copy()
+                    coefficients[state] = coeffs_s.astype(np.float64)
                 conditions.append(max(step_conditions, default=1.0))
         policy_coefficients.append(coefficients)
 

@@ -16,7 +16,7 @@ from quantvolt.models.commodity import CommodityConfig, Hub
 from quantvolt.models.schedule import DeliveryPeriod
 from quantvolt.models.vol_surface import Moneyness, VolatilitySurface, VolatilityTenor
 
-COMMODITY = CommodityConfig("TTF", "EUR/MBtu", Hub("TTF", "ICE_ENDEX", "EUR/MBtu"))
+COMMODITY = CommodityConfig("TTF", "EUR/MWh", Hub("TTF", "ICE_ENDEX", "EUR/MWh"))
 
 
 def make_surface() -> VolatilitySurface:

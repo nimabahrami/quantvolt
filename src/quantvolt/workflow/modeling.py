@@ -29,7 +29,7 @@ import math
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Final
+from typing import Final, TypeAlias
 
 from .._validation import require_non_empty, require_non_negative, require_probability
 from ..exceptions import ValidationError
@@ -160,13 +160,13 @@ class WorkflowResult:
 
 # --- Step signatures ---------------------------------------------------------------------
 
-type Step1 = Callable[[StructuredProduct], QualitativeAnalysis]
-type Step2 = Callable[[StructuredProduct, QualitativeAnalysis], tuple[StaticHedge, ...]]
-type Step3 = Callable[[StructuredProduct, tuple[StaticHedge, ...]], ResidualAnalysis]
-type Step4 = Callable[[ResidualAnalysis, ModelSelectionCriteria], ResidualModel]
-type Step5 = Callable[[ResidualModel, ModelSelectionCriteria], DataSufficiencyReport]
-type Step6 = Callable[[ResidualModel, tuple[StaticHedge, ...], float], ConsistencyReport]
-type Step7 = Callable[[StructuredProduct, ResidualModel, tuple[StaticHedge, ...]], float]
+Step1: TypeAlias = Callable[[StructuredProduct], QualitativeAnalysis]
+Step2: TypeAlias = Callable[[StructuredProduct, QualitativeAnalysis], tuple[StaticHedge, ...]]
+Step3: TypeAlias = Callable[[StructuredProduct, tuple[StaticHedge, ...]], ResidualAnalysis]
+Step4: TypeAlias = Callable[[ResidualAnalysis, ModelSelectionCriteria], ResidualModel]
+Step5: TypeAlias = Callable[[ResidualModel, ModelSelectionCriteria], DataSufficiencyReport]
+Step6: TypeAlias = Callable[[ResidualModel, tuple[StaticHedge, ...], float], ConsistencyReport]
+Step7: TypeAlias = Callable[[StructuredProduct, ResidualModel, tuple[StaticHedge, ...]], float]
 
 
 # --- Default step implementations (deterministic, pure) ----------------------------------

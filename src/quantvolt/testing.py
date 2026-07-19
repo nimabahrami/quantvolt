@@ -9,8 +9,12 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Callable
+from typing import ParamSpec, TypeVar
 
 import numpy as np
+
+_P = ParamSpec("_P")
+_R = TypeVar("_R")
 
 
 def _inputs_equal(before: object, after: object) -> bool:
@@ -45,7 +49,7 @@ def _inputs_equal(before: object, after: object) -> bool:
     return bool(np.asarray(result).all())
 
 
-def assert_input_unchanged[**P, R](func: Callable[P, R], *args: P.args, **kwargs: P.kwargs) -> R:
+def assert_input_unchanged(func: Callable[_P, _R], *args: _P.args, **kwargs: _P.kwargs) -> _R:
     """Call ``func`` and assert it did not mutate any of its inputs; return its result.
 
     A deep copy of every positional and keyword argument is taken *before* ``func`` runs.
