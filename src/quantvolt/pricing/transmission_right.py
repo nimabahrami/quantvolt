@@ -261,8 +261,8 @@ def value_transport_right(
     shifts the volatility horizon, only the discount-factor lookup date.
 
     Intrinsic value is ``Σ D · Q_delivered · max(P_B - P_A - T_AB, 0)``. Supplying
-    ``vols=(sigma_origin, sigma_destination)`` and ``correlation`` (both or neither,
-    Req 24.2) adds the spread-option extrinsic value per period. A ``BIDIRECTIONAL``
+    ``vols=(sigma_origin, sigma_destination)`` and ``correlation`` together adds the
+    spread-option extrinsic value per period. A ``BIDIRECTIONAL``
     right commits each period to the best of A→B (tariff ``tariff``), B→A (tariff
     ``reverse_tariff``, defaulting to ``tariff``) or no-flow, and is subadditive versus
     two one-way rights.

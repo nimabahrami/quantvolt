@@ -89,6 +89,16 @@ AUTHORED_DOCS = {
     "PENCE_PER_POUND": "Pence sterling per pound (100.0); the GBp/GBP factor for convert_price.",
 }
 
+INTERNAL_DOC_MARKERS = re.compile(
+    r"(?ix)"
+    r"(?:"
+    r"\b(?:fix|task|property|req(?:uirement)?)\s*[- ]?\d+"
+    r"|§\s*\d+"
+    r"|\b(?:coding-style|tasks|requirements)\.md\b"
+    r"|\b(?:amended\s+\d{4}|code\s+review|why\s+not\s+the|known\s+collapse)\b"
+    r")"
+)
+
 
 def project_version() -> str:
     """Read the single package version source used by builds and documentation."""
@@ -311,8 +321,26 @@ def build() -> dict[str, Any]:
     return {"version": project_version(), "modules": modules, "symbolCount": symbol_count}
 
 
+def reject_internal_doc_markers(data: dict[str, Any]) -> None:
+    """Keep implementation history and specification bookkeeping out of public API text."""
+    violations: list[str] = []
+    for module in data["modules"]:
+        for symbol in module["symbols"]:
+            texts = [symbol.get("summary", ""), symbol.get("doc", "")]
+            texts.extend(method.get("summary", "") for method in symbol.get("methods", []))
+            markers = sorted(
+                {match.group(0) for text in texts for match in INTERNAL_DOC_MARKERS.finditer(text)}
+            )
+            if markers:
+                violations.append(f"{symbol['qualified']}: {', '.join(markers)}")
+    if violations:
+        details = "\n  - ".join(violations)
+        raise ValueError(f"internal markers found in public API documentation:\n  - {details}")
+
+
 if __name__ == "__main__":
     data = build()
+    reject_internal_doc_markers(data)
     OUT.write_text(
         "window.API_DATA = " + json.dumps(data, ensure_ascii=False, indent=2) + ";\n",
         encoding="utf-8",

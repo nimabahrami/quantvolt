@@ -234,7 +234,7 @@ def black76_implied_vol(
     compatibility with callers using the low-level kernel API directly).
     Inversion then uses Brent's method over ``[vol_lower, vol_upper]`` (default
     ``[1e-9, 10.0]``) — a bracketing solver, so it cannot diverge near zero vega
-    the way Newton-Raphson would (design §2.7).
+    the way Newton-Raphson can.
 
     Args:
         option_type: ``"call"`` or ``"put"``.

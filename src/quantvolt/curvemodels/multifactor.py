@@ -103,7 +103,7 @@ class LognormalPowerWarning(UserWarning):
 
 @dataclass(frozen=True, slots=True, eq=False)
 class MultifactorForwardModel:
-    """Frozen config over factor loadings ``sigma_k(t, T)`` for the §32-33 forward model.
+    """Frozen configuration of factor loadings ``sigma_k(t, T)``.
 
     Attributes:
         loadings: ``(n_steps, n_factors, n_tenors)`` ``float64`` array; ``loadings[b, k, j]``
@@ -111,7 +111,7 @@ class MultifactorForwardModel:
             (or ``(commodity, month)``) ``j`` over time bucket ``b`` of width ``dt``. Copied
             and made read-only at construction so the config is genuinely immutable.
         dt: Uniform time-step ``Delta t`` in years over which each bucket's loadings hold.
-            Defaults to ``1/12`` (monthly, §33). Must be ``> 0``.
+            Defaults to ``1/12`` (monthly). Must be ``> 0``.
 
     The initial curve ``F(0, T)`` is not stored: it is supplied to ``simulate_forwards``
     and matched by construction (the dynamics are a driftless-in-``F`` martingale from any
@@ -148,7 +148,7 @@ class MultifactorForwardModel:
 
     @property
     def n_factors(self) -> int:
-        """Number of common Brownian factors ``K`` (``M`` in §33)."""
+        """Number of common Brownian factors."""
         return int(self.loadings.shape[1])
 
     @property
@@ -176,7 +176,7 @@ class MultifactorForwardModel:
         psd_eig_tol: float = _PSD_EIG_TOL,
         unit_diagonal_tol: float = _UNIT_DIAGONAL_TOL,
     ) -> MultifactorForwardModel:
-        """Build loadings whose induced structure reproduces a target correlation (§33.4).
+        """Build loadings whose induced structure reproduces a target correlation.
 
         Given a target correlation matrix ``R`` (``(D, D)``, symmetric, unit-diagonal, PSD)
         and per-tenor instantaneous volatilities ``v`` (``sigma`` of each forward's log
@@ -186,8 +186,7 @@ class MultifactorForwardModel:
         and :func:`induced_correlation` recovers ``R`` exactly (up to round-off). ``n_factors``
         equals ``D`` (a full-rank representation). The loadings are constant across the
         ``n_steps`` buckets, so the cumulative variance to horizon ``T = n_steps·dt`` is
-        ``v_i^2·T`` -- i.e. this construction also satisfies the §33.3 option-variance
-        condition when ``v`` is the implied vol.
+        ``v_i^2·T``, matching the total variance implied by ``v``.
 
         Args:
             target_corr: ``(D, D)`` target correlation matrix.
@@ -260,11 +259,11 @@ def _check_step(model: MultifactorForwardModel, step: int) -> int:
 
 
 def induced_covariance(model: MultifactorForwardModel, step: int) -> npt.NDArray[np.float64]:
-    """Instantaneous induced covariance-*rate* matrix at bucket ``step`` (§32.2, §33.4).
+    """Instantaneous induced covariance-rate matrix at bucket ``step``.
 
     Returns the ``(D, D)`` matrix ``Sigma[i, j] = sum_k sigma_k(t_step, T_i)·sigma_k(t_step, T_j)``
-    -- the coefficient of ``dt`` in ``d<ln F(·,T_i), ln F(·,T_j)>_t`` (§32.2 "Induced Forward
-    Covariance"). It is the Gram matrix ``LᵀL`` of the loading slice ``L = loadings[step]``
+    -- the coefficient of ``dt`` in ``d<ln F(·,T_i), ln F(·,T_j)>_t``. It is the Gram
+    matrix ``LᵀL`` of the loading slice ``L = loadings[step]``
     (shape ``(K, D)``) and is therefore symmetric and positive semidefinite **by
     construction**. Multiply by ``model.dt`` for the one-step covariance consumed by the MC
     engine (equivalently :func:`cumulative_covariance` over a single bucket).
@@ -275,11 +274,11 @@ def induced_covariance(model: MultifactorForwardModel, step: int) -> npt.NDArray
 
 
 def induced_correlation(model: MultifactorForwardModel, step: int) -> npt.NDArray[np.float64]:
-    """Instantaneous induced correlation matrix at bucket ``step`` (§32.2, §33.4).
+    """Instantaneous induced correlation matrix at bucket ``step``.
 
     Normalises :func:`induced_covariance` to correlations
-    ``rho[i, j] = Sigma[i, j] / (sqrt(Sigma[i, i])·sqrt(Sigma[j, j]))`` ("Induced Forward
-    Correlation", §32.2). By Cauchy-Schwarz on the Gram matrix ``rho in [-1, 1]`` with
+    ``rho[i, j] = Sigma[i, j] / (sqrt(Sigma[i, i])·sqrt(Sigma[j, j]))``. By
+    Cauchy-Schwarz on the Gram matrix ``rho in [-1, 1]`` with
     ``rho[i, i] = 1`` for every tenor of non-zero variance; the result is clipped to
     ``[-1, 1]`` to absorb float round-off, so the bound holds exactly. A tenor
     with zero instantaneous variance (expired, eq A.5) has an undefined off-diagonal
@@ -309,7 +308,7 @@ def induced_correlation(model: MultifactorForwardModel, step: int) -> npt.NDArra
 def cumulative_covariance(
     model: MultifactorForwardModel, upto_step: int | None = None
 ) -> npt.NDArray[np.float64]:
-    """Cumulative covariance ``Gamma`` over ``[0, T*]`` (§33 cumulative multi-commodity covariance).
+    """Cumulative covariance ``Gamma`` over ``[0, T*]``.
 
     Returns ``Gamma[i, j] = sum_{b < n} sum_k sigma_k(t_b, T_i)·sigma_k(t_b, T_j)·dt`` -- the
     Riemann sum of the induced covariance rate over the first ``n`` buckets, i.e. the discrete
@@ -332,11 +331,11 @@ def cumulative_covariance(
 def option_variance(
     model: MultifactorForwardModel, upto_step: int | None = None
 ) -> npt.NDArray[np.float64]:
-    """Cumulative per-tenor variance ``Gamma_ii`` to horizon (§33.3 total-variance LHS).
+    """Cumulative per-tenor variance ``Gamma_ii`` to the selected horizon.
 
     Returns the diagonal of :func:`cumulative_covariance`,
-    ``Gamma_ii = sum_b sum_k sigma_k(t_b, T_i)^2·dt`` -- the left-hand side of the §33.3
-    option-variance-matching condition ``integral sum_m sigma_(i,k,m)^2 ds =
+    ``Gamma_ii = sum_b sum_k sigma_k(t_b, T_i)^2·dt`` -- the total-variance quantity
+    ``integral sum_m sigma_(i,k,m)^2 ds =
     [sigma_impl]^2·(T - t)``.
     """
     return np.ascontiguousarray(np.diag(cumulative_covariance(model, upto_step)).copy())
@@ -350,7 +349,7 @@ def matches_option_variance(
     rtol: float = 1e-9,
     atol: float = 1e-12,
 ) -> bool:
-    """Check the §33.3 option-variance-matching condition ``Gamma_ii(T) == sigma_impl^2·T``.
+    """Check the option-variance condition ``Gamma_ii(T) == sigma_impl^2·T``.
 
     Compares the model's cumulative per-tenor variance :func:`option_variance` (over the
     full horizon) against the quoted Black total variance ``[sigma_impl]^2·(T_k)`` for each
@@ -375,10 +374,10 @@ def matches_option_variance(
 def forward_matching_residual(
     initial_forwards: npt.ArrayLike, expected_forwards: npt.ArrayLike
 ) -> npt.NDArray[np.float64]:
-    """Residual of the §33.2 forward-matching condition ``E^Q[F(t)] - F(0)``.
+    """Residual of the forward-matching condition ``E^Q[F(t)] - F(0)``.
 
-    The forward-matching condition (§33.2 "Current Forward-Curve Matching Condition") is
-    ``E^Q[F_(i,k)(t)] = F_(i,k)(0)``. This returns ``expected_forwards - initial_forwards``,
+    The forward-matching condition is ``E^Q[F_(i,k)(t)] = F_(i,k)(0)``. This returns
+    ``expected_forwards - initial_forwards``,
     which is zero in expectation for the martingale dynamics and should be ~0 for a
     simulated Monte Carlo mean. At ``t = 0`` it is exactly zero by construction.
     """
@@ -398,7 +397,7 @@ def matches_initial_curve(
     rtol: float = 1e-2,
     atol: float = 1e-8,
 ) -> bool:
-    """Check the §33.2 forward-matching condition ``E^Q[F(t)] == F(0)`` within tolerance.
+    """Check ``E^Q[F(t)] == F(0)`` within tolerance.
 
     Returns ``True`` iff ``expected_forwards`` matches ``initial_forwards`` within
     ``(rtol, atol)``. The default ``rtol`` accommodates a Monte Carlo mean; at ``t = 0`` the
@@ -412,7 +411,7 @@ def matches_initial_curve(
 
 
 def risk_neutral_drift(cov: npt.ArrayLike) -> npt.NDArray[np.float64]:
-    """Per-step risk-neutral log-drift ``mu = -1/2 · diag(C)`` (Q-measure, §32 integrated form).
+    """Per-step risk-neutral log-drift ``mu = -1/2 · diag(C)`` under ``Q``.
 
     The integrated multifactor solution carries the Ito correction ``-1/2 integral sum_k
     sigma_k^2 ds`` in log space, so under ``Q`` the per-step drift of ``ln F`` is
@@ -483,14 +482,14 @@ def simulate_forwards(
     commodity_ids: Sequence[str] | None = None,
     antithetic: bool = True,
 ) -> npt.NDArray[np.float64]:
-    """Simulate risk-neutral forward-price paths via the correlated MC engine (§2.20 bridge).
+    """Simulate risk-neutral forward-price paths with correlated Monte Carlo.
 
     Assembles the one-step covariance ``C = build_covariance(*mc_inputs(model, step), dt)``,
     sets the martingale drift ``mu = -1/2·diag(C)`` (:func:`risk_neutral_drift`), and drives
     ``numerics.monte_carlo.simulate_correlated_forwards`` from ``z0 = ln F(0, ·)``. Returns
     **forward prices** ``F = exp(Z)`` of shape ``(n_paths, steps + 1, D)``; record 0 of every
-    path equals ``initial_forwards`` exactly (initial-curve match by construction, Property
-    71). ``initial_forwards`` must be strictly positive (lognormal support). The bucket
+    path equals ``initial_forwards`` exactly by construction. ``initial_forwards`` must be
+    strictly positive (lognormal support). The bucket
     ``step`` loading slice is held constant across all ``steps`` because the engine consumes a
     single covariance; for genuinely time-varying loadings the caller assembles a per-step
     covariance itself. If ``commodity_ids`` is given, the lognormal-not-for-power advisory

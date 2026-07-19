@@ -59,9 +59,8 @@ class PpaIntervalSettlement:
     indexation -> clamp -> negative-price clause (see
     :func:`settle_ppa_interval`); it equals ``contract.fixed_price_per_mwh``
     when no :class:`~quantvolt.models.ppa_terms.PpaTerms` are attached.
-    ``ppa_cashflow`` already folds in any deemed-generation make-whole revenue
-    (AMENDED 2026-07-19, code review FIX 1: it no longer adds curtailed MWh onto
-    the *contracted* fixed leg for a ``PHYSICAL`` PPA — see
+    ``ppa_cashflow`` includes any deemed-generation make-whole revenue without adding
+    curtailed MWh to the contracted fixed leg for a ``PHYSICAL`` PPA (see
     :func:`settle_ppa_interval`), and ``tolerance_penalty`` is its own signed,
     non-positive ledger component (a producer cost) rather than being absorbed
     into another leg.
@@ -389,9 +388,8 @@ def settle_ppa_interval(
     negative-price resolution order.
 
     ``curtailed_mwh`` (default ``0.0``) is compensated per
-    ``contract.terms.volume.curtailment`` under an **indifference** principle
-    (AMENDED 2026-07-19, code review FIX 1): a producer curtailed under
-    ``DEEMED_GENERATION`` is never worse off, and never *better* off, than had it
+    ``contract.terms.volume.curtailment`` under an **indifference** principle: a producer
+    curtailed under ``DEEMED_GENERATION`` is never worse off, and never *better* off, than had it
     delivered in full — curtailed MWh count *as delivery toward the contracted
     volume*, they are not an extra, separately-paid quantity on top of it.
 
@@ -628,8 +626,8 @@ def _consecutive_hour_corrections(
     get :func:`_row_correction`, every other row (including rows in a sub-threshold
     run that is too short) gets exactly ``0.0`` (consecutive-hour locality).
 
-    **AMENDED 2026-07-19 (code review FIX 2):** "consecutive" means **clock-time
-    contiguous**, not merely row-adjacent (EEG-style Section 51 windows are defined
+    "Consecutive" means **clock-time contiguous**, not merely row-adjacent
+    (EEG-style Section 51 windows are defined
     on wall-clock time). Row ``i + 1`` continues row ``i``'s run only when
     ``interval_start_utc[i + 1] == interval_end_utc[i]``; any other relationship (a
     gap, or an overlap that should never occur in a validated ledger) breaks the
@@ -712,8 +710,8 @@ def reconcile_ppa_ledger(
       a period boundary is attributed row-by-row to
       whichever period contains each corrected row (a declared design
       decision — it is not specially split or reallocated). "Consecutive"
-      means **clock-time contiguous**, not merely row-adjacent (AMENDED
-      2026-07-19): row ``i + 1`` only continues row ``i``'s run when
+      means **clock-time contiguous**, not merely row-adjacent: row ``i + 1`` only
+      continues row ``i``'s run when
       ``interval_start_utc[i + 1] == interval_end_utc[i]``; a gapped ledger
       (for example from ``settle_ppa_frame(require_contiguous=False)``, or one
       the caller assembled by joining rows from more than one source) has its

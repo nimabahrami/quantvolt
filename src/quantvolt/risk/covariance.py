@@ -236,7 +236,7 @@ def garch11_covariance(
 ) -> NDArray[np.float64]:
     """Diagonal GARCH(1,1) + constant-conditional-correlation covariance forecast.
 
-    Estimator (Bollerslev 1990 CCC-GARCH), per the design §2.16 (eqs. U10.2-U10.3):
+    Estimator: Bollerslev's constant-conditional-correlation GARCH model.
 
     1. **De-mean** each asset column to obtain innovations ``u_j``.
     2. **Fit** a univariate GARCH(1,1)

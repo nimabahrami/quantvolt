@@ -82,17 +82,8 @@ class CorrelatedSimulationRequest:
     ``symmetry_tol`` and ``psd_tol`` gate the per-step covariance validation; defaults
     match the module's standard tolerances.
 
-    ``eq=False`` disables the auto-generated field-tuple ``__eq__`` (Fix 9): dataclass
-    equality by default compares fields with plain ``==``, and NumPy arrays make that
-    ambiguous (``ValueError: The truth value of an array ... is ambiguous``) — which broke
-    both ``req == deepcopy(req)`` and the shipped
-    :func:`~quantvolt.testing.assert_input_unchanged` on this request type, since that
-    utility's mutation check falls back to plain ``==`` for a non-array, non-Polars input.
-    :meth:`__eq__` below compares array fields via :func:`numpy.array_equal` and every
-    other field via plain ``==``. With ``eq=False`` dataclass leaves ``__hash__``
-    untouched (falling back to ``object``'s identity-based hash); this request is a bag of
-    mutable-looking array-like fields with no principled value-hash, so identity hashing
-    is an acceptable, documented consequence, not a further defect.
+    Array inputs are copied at the public boundary. Equality compares array fields
+    elementwise. The request uses identity-based hashing.
     """
 
     z0: npt.ArrayLike

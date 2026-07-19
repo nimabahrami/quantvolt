@@ -249,14 +249,9 @@ def simulate(
         xi_{n+1}  = xi_n + (mu_xi - lambda_xi)*dt + eps_xi
         (eps_chi, eps_xi) ~ N(0, Q)     # Q from `_transition_covariance`
 
-    **Why not the Task-62 correlated engine.** ``numerics.monte_carlo.simulate_correlated_
-    forwards`` advances an additive random walk ``Z <- Z + mu + L*eps`` with a *constant*
-    per-step drift and no dependence on the current state. That is exact for ``xi`` but not
-    for ``chi``: the OU exact step multiplies the *state* by ``e^(-kappa*dt)``, which the
-    additive kernel cannot represent, and the ``rho`` correlation couples the two factors so
-    they must be drawn jointly. A direct exact scheme is therefore used — it is unconditionally
-    exact (no discretisation bias for any ``dt``) and stays deterministic under ``seed`` via
-    :func:`numpy.random.default_rng`.
+    The correlated innovations are sampled jointly from the exact transition covariance.
+    This gives an exact discretisation for any ``dt`` and deterministic paths for a fixed
+    ``seed``.
 
     Args:
         params: Risk-neutral model parameters.
@@ -269,8 +264,8 @@ def simulate(
             QuantVolt version, architecture and native build give identical paths.
 
     Returns:
-        A ``float64`` array of shape ``(path_count, steps + 1, 2)`` (matching the Task-62
-        convention). ``[:, :, 0]`` is ``chi``, ``[:, :, 1]`` is ``xi``; record 0 of every
+        A ``float64`` array of shape ``(path_count, steps + 1, 2)``.
+        ``[:, :, 0]`` is ``chi``, ``[:, :, 1]`` is ``xi``; record 0 of every
         path is ``(chi0, xi0)``.
     """
     require_positive("dt", dt)

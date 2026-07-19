@@ -17,7 +17,7 @@ from .schedule import DeliveryPeriod
 
 
 class Moneyness(StrEnum):
-    """Option moneyness relative to the forward (design §3.1)."""
+    """Option moneyness relative to the forward."""
 
     ATM = "atm"
     OTM = "otm"

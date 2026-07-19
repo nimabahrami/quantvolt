@@ -98,8 +98,8 @@ def implied_vol(
     Round-trip contract: ``implied_vol`` applied to
     ``black76_price(sigma0, ...)`` recovers ``sigma0`` within ``tol``. Inversion uses
     Brent over ``[sigma_lower, sigma_upper]`` (default ``[1e-9, 10.0]``) — a bracketing
-    solver, so it cannot diverge near zero vega the way Newton-Raphson would (design
-    §2.7). The inversion is performed locally with :func:`brent_root` and a
+    solver, so it cannot diverge near zero vega the way Newton-Raphson can. The inversion
+    is performed locally with :func:`brent_root` and a
     call-counting objective (instead of delegating to
     :func:`~quantvolt.numerics.black76.black76_implied_vol`) so that
     :attr:`ImpliedVolResult.iteration_count` can be reported — the kernel does not

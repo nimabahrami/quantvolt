@@ -584,8 +584,8 @@ def storage_value(
     the bulk of the sampling variance — so ``extrinsic >= 0`` holds robustly rather than being
     swamped by the (large) variance of ``total`` alone. ``total`` is anchored on the exact
     intrinsic value as ``intrinsic + extrinsic``, and ``extrinsic`` is reported honestly with
-    its standard error rather than clamped (a small negative value within a few standard errors
-    is Monte Carlo noise, per the Property-64 tolerance floor).
+    its standard error rather than clamped; a small negative value within a few standard
+    errors can arise from Monte Carlo noise.
 
     Args:
         model: The storage parameters.

@@ -22,7 +22,7 @@ def brent_root(
 
     Thin wrapper over :func:`scipy.optimize.brentq`. Brent's method is a
     bracketing solver, chosen over Newton-Raphson for implied-vol inversion so
-    that it cannot diverge near zero vega (design note §2.7).
+    that it cannot diverge near zero vega.
 
     Args:
         f: Continuous scalar function to solve ``f(x) == 0``.
