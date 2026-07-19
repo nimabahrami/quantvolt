@@ -23,6 +23,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
@@ -31,7 +34,6 @@ jobs:
           # 3.12+) ships a __init__.pyi that uses PEP 695 `type` statements unconditionally,
           # which mypy --python-version 3.11 cannot parse. Under 3.11 uv.lock resolves the
           # older numpy 2.4.x branch, whose stub has no such construct.
-          python-version: "3.11"
       - run: uv sync --extra dev --extra data
       - run: uv run ruff check .
       - run: uv run ruff format --check .
@@ -58,11 +60,13 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: test-${{ matrix.python-version }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-          python-version: ${{ matrix.python-version }}
-      - run: uv sync
+      - run: uv sync --extra dev
       - name: Build native extension (release)
         # Release, not debug: the Rust Monte Carlo kernels are 10-50x slower in debug builds,
         # which would risk CI timeouts on convergence/standard-error tests.
@@ -77,11 +81,13 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: benchmarks
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-          python-version: "3.12"
-      - run: uv sync
+      - run: uv sync --extra dev
       - run: uv run maturin develop --release
       - run: uv run pytest tests/benchmarks -q
 

@@ -1,6 +1,6 @@
 [package]
 name = "quantvolt-core"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 publish = false
 
@@ -26,4 +26,3 @@ rand_distr = "0.6"
 # reduction in CI wheel-build time.
 [profile.release]
 lto = "thin"
-

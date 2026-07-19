@@ -490,11 +490,11 @@ pub fn simulate_correlated_forwards_term_core(
         if antithetic {
             write_record(&mut data, p_minus, 0, rec, dim, &minus);
         }
-        for step in 0..steps {
+        for (step, factor) in factors.iter().enumerate().take(steps) {
             for e in &mut eps {
                 *e = rng.sample::<f64, _>(StandardNormal);
             }
-            matvec_lower(&factors[step], &eps, dim, &mut incr);
+            matvec_lower(factor, &eps, dim, &mut incr);
             let offset = step * dim;
             for d in 0..dim {
                 if active_steps[offset + d] {

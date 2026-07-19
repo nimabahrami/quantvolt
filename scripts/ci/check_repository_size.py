@@ -6,7 +6,12 @@ import subprocess
 from pathlib import Path
 
 MAX_TRACKED_BYTES = 1_000_000
-ALLOWED_LARGE_PREFIXES = ("site/assets/",)
+ALLOWED_LARGE_PREFIXES = (
+    "site/assets/",
+    # Immutable external-reference grids used by the numerical validation suite.
+    # Tests are excluded from wheels/sdists by the Maturin package configuration.
+    "tests/validation/fixtures/",
+)
 
 
 def main() -> None:
